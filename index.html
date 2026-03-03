@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подбор автомобиля</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e8eaf0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 680px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -.3px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 36px;
+  }
+
+  .steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 18px;
+    right: 18px;
+    height: 2px;
+    background: #2a2d3a;
+    z-index: 0;
+  }
+
+  .step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+  }
+
+  .step-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2a2d3a;
+    border: 2px solid #2a2d3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: all .3s ease;
+  }
+
+  .step.active .step-dot {
+    background: #3b5bdb;
+    border-color: #3b5bdb;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(59,91,219,.2);
+  }
+
+  .step.done .step-dot {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #fff;
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+  }
+
+  .step.active .step-label { color: #a5b4fc; }
+  .step.done .step-label  { color: #4ade80; }
+
+  .fields { display: flex; flex-direction: column; gap: 16px; }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+
+  .field label span {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11px;
+    color: #4b5563;
+    margin-left: 6px;
+  }
+
+  select {
+    width: 100%;
+    padding: 13px 16px;
+    background: #0f1117;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    color: #e8eaf0;
+    font-size: 15px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+
+  select:focus {
+    border-color: #3b5bdb;
+    box-shadow: 0 0 0 3px rgba(59,91,219,.15);
+  }
+
+  select:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+
+  select option { background: #1a1d27; }
+
+  .result {
+    margin-top: 28px;
+    padding: 20px;
+    background: #0f1117;
+    border: 1px solid #22c55e33;
+    border-radius: 12px;
+    display: none;
+  }
+
+  .result.visible { display: block; }
+
+  .result-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ade80;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: 14px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .result-item { display: flex; flex-direction: column; gap: 3px; }
+
+  .result-item .key {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .result-item .val {
+    font-size: 15px;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #1e2435;
+    border: 1px solid #2a2d3a;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    color: #6b7280;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: 500;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #2a2d3a;
+    border-top-color: #3b5bdb;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .reset-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    color: #6b7280;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .reset-btn:hover {
+    border-color: #3b5bdb;
+    color: #a5b4fc;
+    background: rgba(59,91,219,.05);
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Подбор автомобиля</h1>
+  <p class="subtitle">Выберите параметры последовательно</p>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    Загрузка базы данных...
+  </div>
+
+  <div id="main" style="display:none">
+    <div class="steps">
+      <div class="step active" id="s1">
+        <div class="step-dot">1</div>
+        <div class="step-label">Марка</div>
+      </div>
+      <div class="step" id="s2">
+        <div class="step-dot">2</div>
+        <div class="step-label">Год</div>
+      </div>
+      <div class="step" id="s3">
+        <div class="step-dot">3</div>
+        <div class="step-label">Модель</div>
+      </div>
+      <div class="step" id="s4">
+        <div class="step-dot">4</div>
+        <div class="step-label">Двигатель</div>
+      </div>
+    </div>
+
+    <div class="fields">
+      <div class="field">
+        <label>Производитель</label>
+        <select id="selMaker">
+          <option value="">— Выберите марку —</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Год выпуска <span id="yearCount"></span></label>
+        <select id="selYear" disabled>
+          <option value="">— Сначала выберите марку —</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Модель <span id="modelCount"></span></label>
+        <select id="selModel" disabled>
+          <option value="">— Сначала выберите год —</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Двигатель / Комплектация <span id="carCount"></span></label>
+        <select id="selCar" disabled>
+          <option value="">— Сначала выберите модель —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-title">Выбранный автомобиль</div>
+      <div class="result-grid" id="resultGrid"></div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">Сбросить выбор</button>
+  </div>
+</div>
+
+<script>
+let ALL_CARS = [];
+let MAKERS = [];
+
+// Загрузка данных
+fetch('cars_data.json')
+  .then(r => r.json())
+  .then(data => {
+    MAKERS = data.makers;
+    ALL_CARS = data.cars;
+    init();
+  })
+  .catch(() => {
+    document.getElementById('loading').innerHTML =
+      '<p style="color:#ef4444">Ошибка загрузки данных. Откройте файл через локальный сервер.</p>';
+  });
+
+function init() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+
+  const selMaker = document.getElementById('selMaker');
+  MAKERS.forEach(m => {
+    const opt = new Option(m.n, m.id);
+    selMaker.add(opt);
+  });
+
+  selMaker.addEventListener('change', onMakerChange);
+  document.getElementById('selYear').addEventListener('change', onYearChange);
+  document.getElementById('selModel').addEventListener('change', onModelChange);
+  document.getElementById('selCar').addEventListener('change', onCarChange);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+}
+
+function onMakerChange() {
+  const makerId = +this.value;
+  resetFrom(2);
+
+  if (!makerId) { setStep(1); return; }
+  setStep(1, true);
+
+  // Все записи этого производителя
+  const makerCars = ALL_CARS.filter(c => c[0] === makerId);
+
+  // Собираем уникальные годы из диапазона
+  const yearsSet = new Set();
+  makerCars.forEach(c => {
+    const yf = c[6], yt = c[7];
+    if (!yf) return;
+    const end = yt || new Date().getFullYear();
+    for (let y = yf; y <= Math.min(end, new Date().getFullYear()); y++) {
+      yearsSet.add(y);
+    }
+  });
+
+  const years = [...yearsSet].sort((a,b) => b - a);
+
+  const sel = document.getElementById('selYear');
+  sel.innerHTML = `<option value="">— Выберите год (${years.length}) —</option>`;
+  years.forEach(y => sel.add(new Option(y, y)));
+  sel.disabled = false;
+
+  document.getElementById('yearCount').innerHTML =
+    `<span class="count-badge">${years.length} вариантов</span>`;
+
+  setStep(2);
+}
+
+function onYearChange() {
+  const year = +this.value;
+  const makerId = +document.getElementById('selMaker').value;
+  resetFrom(3);
+
+  if (!year) { setStep(2); return; }
+  setStep(2, true);
+
+  // Фильтруем: диапазон производства включает выбранный год
+  const filtered = ALL_CARS.filter(c => {
+    if (c[0] !== makerId) return false;
+    const yf = c[6], yt = c[7];
+    if (!yf) return false;
+    return yf <= year && (yt === null || yt >= year);
+  });
+
+  // Уникальные модели
+  const modelsMap = new Map();
+  filtered.forEach(c => {
+    if (!modelsMap.has(c[1])) modelsMap.set(c[1], c[2]);
+  });
+
+  const models = [...modelsMap.entries()].sort((a,b) => a[1].localeCompare(b[1]));
+
+  const sel = document.getElementById('selModel');
+  sel.innerHTML = `<option value="">— Выберите модель (${models.length}) —</option>`;
+  models.forEach(([id, name]) => sel.add(new Option(name, id)));
+  sel.disabled = false;
+
+  document.getElementById('modelCount').innerHTML =
+    `<span class="count-badge">${models.length} моделей</span>`;
+
+  setStep(3);
+}
+
+function onModelChange() {
+  const modelId = +this.value;
+  const makerId = +document.getElementById('selMaker').value;
+  const year    = +document.getElementById('selYear').value;
+  resetFrom(4);
+
+  if (!modelId) { setStep(3); return; }
+  setStep(3, true);
+
+  // Фильтруем по марке + год + модель
+  const filtered = ALL_CARS.filter(c => {
+    if (c[0] !== makerId || c[1] !== modelId) return false;
+    const yf = c[6], yt = c[7];
+    if (!yf) return false;
+    return yf <= year && (yt === null || yt >= year);
+  });
+
+  const sel = document.getElementById('selCar');
+  sel.innerHTML = `<option value="">— Выберите двигатель (${filtered.length}) —</option>`;
+  filtered.forEach(c => {
+    const kw = c[8] ? ` · ${c[8]} кВт / ${c[9]} л.с.` : '';
+    const fuel = c[5] ? ` · ${fuelLabel(c[5])}` : '';
+    sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
+  });
+  sel.disabled = false;
+
+  document.getElementById('carCount').innerHTML =
+    `<span class="count-badge">${filtered.length} вариантов</span>`;
+
+  setStep(4);
+}
+
+function onCarChange() {
+  const carId = +this.value;
+  if (!carId) { hideResult(); return; }
+
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+
+  setStep(4, true);
+
+  const maker = MAKERS.find(m => m.id === car[0]);
+  const modelSel = document.getElementById('selModel');
+  const modelName = modelSel.options[modelSel.selectedIndex]?.text || '';
+
+  const yRange = car[6] && car[7]
+    ? `${car[6]} – ${car[7]}`
+    : car[6] ? `с ${car[6]}` : '—';
+
+  document.getElementById('resultGrid').innerHTML = `
+    <div class="result-item">
+      <div class="key">Марка</div>
+      <div class="val">${maker?.n || '—'}</div>
+    </div>
+    <div class="result-item">
+      <div class="key">Год выпуска</div>
+      <div class="val">${document.getElementById('selYear').value}</div>
+    </div>
+    <div class="result-item">
+      <div class="key">Модель</div>
+      <div class="val">${modelName}</div>
+    </div>
+    <div class="result-item">
+      <div class="key">Производство</div>
+      <div class="val">${yRange}</div>
+    </div>
+    <div class="result-item">
+      <div class="key">Комплектация</div>
+      <div class="val">${car[4]}</div>
+    </div>
+    <div class="result-item">
+      <div class="key">Тип топлива</div>
+      <div class="val">${fuelLabel(car[5]) || '—'}</div>
+    </div>
+    ${car[8] ? `
+    <div class="result-item">
+      <div class="key">Мощность</div>
+      <div class="val">${car[8]} кВт / ${car[9]} л.с.</div>
+    </div>` : ''}
+  `;
+  document.getElementById('result').classList.add('visible');
+}
+
+function fuelLabel(f) {
+  const map = {
+    'Petrol': 'Бензин',
+    'Diesel': 'Дизель',
+    'Electric': 'Электро',
+    'Petrol/Electric': 'Гибрид (бензин/электро)',
+    'Diesel/Electro': 'Гибрид (дизель/электро)',
+    'Petrol/Liquified Petroleum Gas (LPG)': 'Бензин/ГАЗ (LPG)',
+    'Petrol/Compressed Natural Gas (CNG)': 'Бензин/КПГ (CNG)',
+    'Petrol/Ethanol': 'Бензин/Этанол',
+    'Ethanol': 'Этанол',
+    'CNG': 'КПГ (CNG)',
+    'LPG': 'ГАЗ (LPG)',
+    'Hydrogen': 'Водород',
+    'Mixture': 'Смесь',
+  };
+  return map[f] || f;
+}
+
+function setStep(n, done = false) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('s' + i);
+    el.classList.remove('active', 'done');
+    if (i < n || (i === n && done)) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+function resetFrom(step) {
+  hideResult();
+  if (step <= 2) {
+    const sy = document.getElementById('selYear');
+    sy.innerHTML = '<option value="">— Сначала выберите марку —</option>';
+    sy.disabled = true;
+    document.getElementById('yearCount').innerHTML = '';
+  }
+  if (step <= 3) {
+    const sm = document.getElementById('selModel');
+    sm.innerHTML = '<option value="">— Сначала выберите год —</option>';
+    sm.disabled = true;
+    document.getElementById('modelCount').innerHTML = '';
+  }
+  if (step <= 4) {
+    const sc = document.getElementById('selCar');
+    sc.innerHTML = '<option value="">— Сначала выберите модель —</option>';
+    sc.disabled = true;
+    document.getElementById('carCount').innerHTML = '';
+  }
+}
+
+function hideResult() {
+  document.getElementById('result').classList.remove('visible');
+}
+
+function reset() {
+  document.getElementById('selMaker').value = '';
+  resetFrom(2);
+  setStep(1);
+}
+</script>
+</body>
+</html>
