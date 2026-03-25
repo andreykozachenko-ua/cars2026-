@@ -940,7 +940,6 @@ a { text-decoration: none; color: inherit; }
     <div class="selector-card">
       <div class="selector-tabs">
         <div class="selector-tab active" data-tab="reg">🔴 Reg number</div>
-        <div class="selector-tab" data-tab="part">🔍 Part name</div>
         <div class="selector-tab" data-tab="selector">🚗 Select car</div>
       </div>
       <div class="selector-body">
@@ -972,35 +971,7 @@ a { text-decoration: none; color: inherit; }
           <div class="tab-note">Works for UK registered vehicles. Data from DVLA.</div>
         </div>
 
-        <!-- TAB 2: Part name / number -->
-        <div class="tab-panel" id="tab-part">
-          <p class="tab-hint">Search by part name, OEM number or brand</p>
-          <div class="card-search-wrap" style="margin-bottom:0">
-            <span class="card-search-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </span>
-            <input
-              class="card-search-input"
-              type="text"
-              placeholder="E.g. brake pad, oil filter, 1J0615301..."
-              autocomplete="off"
-              spellcheck="false"
-            />
-          </div>
-          <div class="part-suggestions">
-            <span class="part-tag">Brake pads</span>
-            <span class="part-tag">Oil filter</span>
-            <span class="part-tag">Timing belt</span>
-            <span class="part-tag">Spark plugs</span>
-            <span class="part-tag">Alternator</span>
-          </div>
-          <button class="find-btn" style="margin-top:14px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            Search parts
-          </button>
-        </div>
-
-        <!-- TAB 3: Car selector -->
+        <!-- TAB 2: Car selector -->
         <div class="tab-panel" id="tab-selector">
           <div id="loadingOverlay" class="loading-overlay">
             <div class="spin"></div>
