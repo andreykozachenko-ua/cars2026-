@@ -670,6 +670,94 @@ a { text-decoration: none; color: inherit; }
   box-shadow: 0 2px 10px rgba(11,79,168,.1);
 }
 
+/* ── Tab panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.tab-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.tab-note {
+  font-size: 11px;
+  color: #aab0be;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ── Reg plate ── */
+.reg-wrap { display: flex; gap: 10px; align-items: center; }
+
+.reg-plate {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  border: 2.5px solid #f5c400;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5c400;
+  height: 50px;
+}
+
+.reg-plate-left {
+  background: #003399;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  height: 100%;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.reg-flag { font-size: 14px; line-height: 1; }
+.reg-gb { font-size: 9px; font-weight: 800; color: #fff; letter-spacing: .5px; }
+
+.reg-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: #f5c400;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+  color: #1a1a2e;
+  font-family: 'Arial', sans-serif;
+  padding: 0 12px;
+  height: 100%;
+}
+
+.reg-input::placeholder { color: rgba(26,26,46,.35); letter-spacing: 2px; font-size: 20px; }
+
+/* ── Part suggestions ── */
+.part-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.part-tag {
+  background: var(--gray-bg);
+  border: 1.5px solid var(--gray-border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.part-tag:hover {
+  background: #e8eef8;
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
 /* ── Result card ── */
 .result-panel {
   background: #f0f7ff;
@@ -851,80 +939,130 @@ a { text-decoration: none; color: inherit; }
     <!-- Selector card -->
     <div class="selector-card">
       <div class="selector-tabs">
-        <div class="selector-tab active">🚗 Select by car</div>
-        <div class="selector-tab">🔍 Search by part no.</div>
-        <div class="selector-tab">📋 VIN lookup</div>
+        <div class="selector-tab active" data-tab="reg">🔴 Reg number</div>
+        <div class="selector-tab" data-tab="part">🔍 Part name</div>
+        <div class="selector-tab" data-tab="selector">🚗 Select car</div>
       </div>
       <div class="selector-body">
 
-        <div id="loadingOverlay" class="loading-overlay">
-          <div class="spin"></div>
-          Loading vehicle database...
+        <!-- TAB 1: Reg number -->
+        <div class="tab-panel active" id="tab-reg">
+          <p class="tab-hint">Enter your number plate to find exact-fit parts</p>
+          <div class="reg-wrap">
+            <div class="reg-plate">
+              <div class="reg-plate-left">
+                <span class="reg-flag">🇬🇧</span>
+                <span class="reg-gb">GB</span>
+              </div>
+              <input
+                class="reg-input"
+                type="text"
+                placeholder="AB12 CDE"
+                maxlength="8"
+                autocomplete="off"
+                spellcheck="false"
+                oninput="this.value = this.value.toUpperCase()"
+              />
+            </div>
+          </div>
+          <button class="find-btn" style="margin-top:14px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Find parts by reg
+          </button>
+          <div class="tab-note">Works for UK registered vehicles. Data from DVLA.</div>
         </div>
 
-        <div id="selectorContent" style="display:none">
-          <!-- Quick search -->
-          <div class="card-search-wrap">
+        <!-- TAB 2: Part name / number -->
+        <div class="tab-panel" id="tab-part">
+          <p class="tab-hint">Search by part name, OEM number or brand</p>
+          <div class="card-search-wrap" style="margin-bottom:0">
             <span class="card-search-icon">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </span>
             <input
-              id="csInput"
               class="card-search-input"
               type="text"
-              placeholder="E.g. BMW 3er 2018 or 2005 Volvo S40..."
+              placeholder="E.g. brake pad, oil filter, 1J0615301..."
               autocomplete="off"
               spellcheck="false"
             />
-            <button class="card-search-clear" id="csClear">×</button>
-            <div class="card-search-dropdown" id="csDropdown"></div>
           </div>
-
-          <div class="card-or">or select step by step</div>
-
-          <div class="card-selects">
-            <div>
-              <div class="card-select-label">Make</div>
-              <div class="card-select-wrap">
-                <select id="csMaker">
-                  <option value="">— Select make —</option>
-                </select>
-              </div>
-            </div>
-            <div class="card-row">
-              <div class="card-select-wrap">
-                <div class="card-select-label">Year</div>
-                <select id="csYear" disabled>
-                  <option value="">— Year —</option>
-                </select>
-              </div>
-              <div class="card-select-wrap">
-                <div class="card-select-label">Model</div>
-                <select id="csModel" disabled>
-                  <option value="">— Model —</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <div class="card-select-label">Engine / Trim</div>
-              <div class="card-select-wrap">
-                <select id="csCar" disabled>
-                  <option value="">— Engine / Trim —</option>
-                </select>
-              </div>
-            </div>
+          <div class="part-suggestions">
+            <span class="part-tag">Brake pads</span>
+            <span class="part-tag">Oil filter</span>
+            <span class="part-tag">Timing belt</span>
+            <span class="part-tag">Spark plugs</span>
+            <span class="part-tag">Alternator</span>
           </div>
-
-          <div class="result-panel" id="csResult">
-            <div class="result-panel-title">Selected vehicle</div>
-            <div class="result-panel-grid" id="csResultGrid"></div>
-          </div>
-
-          <button class="find-btn" id="csFindBtn">
+          <button class="find-btn" style="margin-top:14px">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            Find parts for my car
+            Search parts
           </button>
         </div>
+
+        <!-- TAB 3: Car selector -->
+        <div class="tab-panel" id="tab-selector">
+          <div id="loadingOverlay" class="loading-overlay">
+            <div class="spin"></div>
+            Loading vehicle database...
+          </div>
+
+          <div id="selectorContent" style="display:none">
+            <div class="card-search-wrap">
+              <span class="card-search-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <input
+                id="csInput"
+                class="card-search-input"
+                type="text"
+                placeholder="E.g. BMW 3er 2018 or 2005 Volvo S40..."
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="card-search-clear" id="csClear">×</button>
+              <div class="card-search-dropdown" id="csDropdown"></div>
+            </div>
+
+            <div class="card-or">or select step by step</div>
+
+            <div class="card-selects">
+              <div>
+                <div class="card-select-label">Make</div>
+                <div class="card-select-wrap">
+                  <select id="csMaker"><option value="">— Select make —</option></select>
+                </div>
+              </div>
+              <div class="card-row">
+                <div class="card-select-wrap">
+                  <div class="card-select-label">Year</div>
+                  <select id="csYear" disabled><option value="">— Year —</option></select>
+                </div>
+                <div class="card-select-wrap">
+                  <div class="card-select-label">Model</div>
+                  <select id="csModel" disabled><option value="">— Model —</option></select>
+                </div>
+              </div>
+              <div>
+                <div class="card-select-label">Engine / Trim</div>
+                <div class="card-select-wrap">
+                  <select id="csCar" disabled><option value="">— Engine / Trim —</option></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-panel" id="csResult">
+              <div class="result-panel-title">Selected vehicle</div>
+              <div class="result-panel-grid" id="csResultGrid"></div>
+            </div>
+
+            <button class="find-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              Find parts for my car
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1060,6 +1198,16 @@ a { text-decoration: none; color: inherit; }
 </footer>
 
 <script>
+// Tab switching
+document.querySelectorAll('.selector-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.selector-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
 let ALL_CARS = [], MAKERS = [];
 let csDebounce = null, csFocused = -1;
 
