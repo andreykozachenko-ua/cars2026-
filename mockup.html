@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUTODOC — Car Parts Online</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #0b4fa8;
+  --blue-dark: #083a80;
+  --blue-light: #1a63c4;
+  --orange: #f58220;
+  --orange-dark: #e0701a;
+  --gray-bg: #f4f6f9;
+  --gray-border: #e0e4ec;
+  --text: #1a1a2e;
+  --text-muted: #7a8499;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #fff;
+  color: var(--text);
+  font-size: 14px;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* ── Top bar ── */
+.topbar {
+  background: var(--blue-dark);
+  color: rgba(255,255,255,.75);
+  font-size: 12px;
+  padding: 6px 0;
+}
+
+.topbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar-links { display: flex; gap: 20px; }
+.topbar-links a { color: rgba(255,255,255,.7); font-size: 12px; }
+.topbar-links a:hover { color: #fff; }
+
+.topbar-trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.stars { color: #00b67a; font-size: 13px; letter-spacing: 1px; }
+
+/* ── Header ── */
+.header {
+  background: #fff;
+  border-bottom: 1px solid var(--gray-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: -1px;
+}
+
+.logo-dot { color: var(--orange); }
+
+.header-search {
+  flex: 1;
+  max-width: 560px;
+  display: flex;
+  height: 42px;
+}
+
+.header-search input {
+  flex: 1;
+  border: 2px solid var(--blue);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 0 16px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+
+.header-search input::placeholder { color: #aab0be; }
+
+.header-search button {
+  background: var(--blue);
+  border: none;
+  border-radius: 0 6px 6px 0;
+  padding: 0 18px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.header-search button:hover { background: var(--blue-dark); }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.header-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 11px;
+  transition: background .15s, color .15s;
+}
+
+.header-action:hover { background: var(--gray-bg); color: var(--blue); }
+
+.header-action svg { width: 22px; height: 22px; }
+
+.cart-action { position: relative; }
+
+.cart-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Nav ── */
+.nav {
+  background: var(--blue);
+  position: relative;
+}
+
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-item {
+  color: rgba(255,255,255,.9);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.nav-item:hover { background: rgba(255,255,255,.12); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.15); color: #fff; }
+
+.nav-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.15);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, #1a6dd4 100%);
+  padding: 56px 24px 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.hero-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  position: relative;
+}
+
+.hero-left { flex: 1; max-width: 560px; }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,.9);
+  margin-bottom: 18px;
+}
+
+.hero-badge span { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; display: inline-block; }
+
+.hero h1 {
+  font-size: 38px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  letter-spacing: -.5px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--orange);
+}
+
+.hero-sub {
+  color: rgba(255,255,255,.7);
+  font-size: 15px;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 28px;
+}
+
+.hero-stat { text-align: left; }
+
+.hero-stat .num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.hero-stat .lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  margin-top: 2px;
+}
+
+/* ── Selector card ── */
+.selector-card {
+  flex: 0 0 440px;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.selector-tabs {
+  display: flex;
+  background: #f4f6f9;
+  border-bottom: 1px solid var(--gray-border);
+}
+
+.selector-tab {
+  flex: 1;
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+}
+
+.selector-tab.active {
+  color: var(--blue);
+  background: #fff;
+  border-bottom-color: var(--blue);
+}
+
+.selector-body { padding: 20px; }
+
+/* Search inside card */
+.card-search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.card-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aab0be;
+  display: flex;
+  pointer-events: none;
+}
+
+.card-search-input {
+  width: 100%;
+  padding: 11px 36px 11px 38px;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  background: #fafbfc;
+}
+
+.card-search-input::placeholder { color: #aab0be; }
+
+.card-search-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(11,79,168,.1);
+  background: #fff;
+}
+
+.card-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #aab0be;
+  cursor: pointer;
+  font-size: 17px;
+  display: none;
+  padding: 3px;
+}
+
+.card-search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 200;
+  display: none;
+  box-shadow: 0 12px 32px rgba(0,0,0,.12);
+}
+
+.card-search-dropdown.open { display: block; }
+
+.cdd-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f2f5;
+  transition: background .15s;
+}
+
+.cdd-item:last-child { border-bottom: none; }
+.cdd-item:hover, .cdd-item.focused { background: #f4f6f9; }
+
+.cdd-main { font-size: 13px; color: var(--text); }
+.cdd-main mark { background: none; color: var(--blue); font-weight: 600; }
+.cdd-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.cdd-empty { padding: 14px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.cdd-more { padding: 8px 14px; text-align: center; font-size: 11px; color: var(--text-muted); background: #fafbfc; }
+
+.card-or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: #c0c8d8;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 14px;
+}
+
+.card-or::before, .card-or::after { content: ''; flex: 1; height: 1px; background: var(--gray-border); }
+
+/* Selects inside card */
+.card-selects { display: flex; flex-direction: column; gap: 10px; }
+
+.card-row { display: flex; gap: 10px; }
+.card-row .card-select-wrap { flex: 1; }
+
+.card-select-wrap { position: relative; }
+
+.card-select-wrap select {
+  width: 100%;
+  padding: 11px 34px 11px 14px;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 8px;
+  background: #fafbfc;
+  color: var(--text);
+  font-size: 13px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23aab0be' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.card-select-wrap select:focus {
+  border-color: var(--blue);
+  background-color: #fff;
+}
+
+.card-select-wrap select:disabled { opacity: .45; cursor: not-allowed; }
+
+.card-select-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 5px;
+}
+
+.find-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--orange);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 14px;
+  transition: background .2s, transform .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.find-btn:hover { background: var(--orange-dark); }
+.find-btn:active { transform: scale(.99); }
+
+/* ── Trust bar ── */
+.trust-bar {
+  background: #fff;
+  border-bottom: 1px solid var(--gray-border);
+  padding: 16px 24px;
+}
+
+.trust-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trust-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--gray-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.trust-item .t-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.trust-item .t-sub { font-size: 11px; color: var(--text-muted); }
+
+/* ── Categories ── */
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.3px;
+}
+
+.section-link {
+  font-size: 13px;
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.section-link:hover { text-decoration: underline; }
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+}
+
+.category-card {
+  background: #fff;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 12px;
+  padding: 16px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, transform .15s;
+}
+
+.category-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 4px 16px rgba(11,79,168,.1);
+  transform: translateY(-2px);
+}
+
+.cat-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.cat-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+/* ── Promo banners ── */
+.banners-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.banner {
+  border-radius: 14px;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.banner-blue {
+  background: linear-gradient(120deg, var(--blue) 0%, var(--blue-light) 100%);
+  color: #fff;
+}
+
+.banner-orange {
+  background: linear-gradient(120deg, #e8580a 0%, #f5a623 100%);
+  color: #fff;
+}
+
+.banner-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.banner-sub { font-size: 13px; opacity: .8; margin-bottom: 16px; }
+
+.banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.2);
+  border: 1.5px solid rgba(255,255,255,.4);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.banner-emoji {
+  position: absolute;
+  right: 28px;
+  bottom: 16px;
+  font-size: 64px;
+  opacity: .25;
+}
+
+/* ── Popular brands ── */
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 10px;
+}
+
+.brand-card {
+  background: #fff;
+  border: 1.5px solid var(--gray-border);
+  border-radius: 10px;
+  padding: 14px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.brand-card:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 0 2px 10px rgba(11,79,168,.1);
+}
+
+/* ── Result card ── */
+.result-panel {
+  background: #f0f7ff;
+  border: 1.5px solid #c2d9f8;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 14px;
+  display: none;
+}
+
+.result-panel.visible { display: block; }
+
+.result-panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 10px;
+}
+
+.result-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.rp-item .key { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; }
+.rp-item .val { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* ── Footer ── */
+.footer {
+  background: #1a1f2e;
+  color: rgba(255,255,255,.6);
+  padding: 48px 24px 28px;
+  margin-top: 16px;
+}
+
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 36px;
+}
+
+.footer-logo { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.footer-logo span { color: var(--orange); }
+.footer-desc { font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+
+.footer-col-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 14px; }
+.footer-col a { display: block; font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 8px; }
+.footer-col a:hover { color: rgba(255,255,255,.9); }
+
+.footer-bottom {
+  max-width: 1280px;
+  margin: 0 auto;
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+/* ── Loading ── */
+.loading-overlay {
+  text-align: center;
+  padding: 24px 0 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.spin {
+  width: 24px; height: 24px;
+  border: 2.5px solid var(--gray-border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-links">
+      <a href="#">🚚 Free delivery over £45</a>
+      <a href="#">📦 Returns within 30 days</a>
+      <a href="#">📞 Customer Support</a>
+    </div>
+    <div class="topbar-trust">
+      <span class="stars">★★★★★</span>
+      <strong style="color:#fff">4.6</strong>
+      <span>· Trustpilot · 3.2M reviews</span>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-text">AUTODOC<span class="logo-dot">.</span></div>
+    </div>
+
+    <div class="header-search">
+      <input type="text" placeholder="Search for parts, make or model...">
+      <button>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <div class="header-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        My account
+      </div>
+      <div class="header-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+        Orders
+      </div>
+      <div class="header-action cart-action">
+        <span class="cart-badge">3</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Cart
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-item nav-all active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      All categories
+    </div>
+    <div class="nav-item">Engine parts</div>
+    <div class="nav-item">Brakes</div>
+    <div class="nav-item">Suspension</div>
+    <div class="nav-item">Filters</div>
+    <div class="nav-item">Body parts</div>
+    <div class="nav-item">Electrics</div>
+    <div class="nav-item">Oils & fluids</div>
+    <div class="nav-item">Tyres & wheels</div>
+    <div class="nav-item">Accessories</div>
+    <div class="nav-item">Sale 🔥</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge"><span></span> Over 6.7 million parts in stock</div>
+      <h1>Find the right parts<br>for <em>your car</em></h1>
+      <p class="hero-sub">Search by make, model and year — get exact-fit parts<br>delivered to your door. Fast. Affordable.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="num">6.7M+</div>
+          <div class="lbl">Parts available</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num">27</div>
+          <div class="lbl">Countries served</div>
+        </div>
+        <div class="hero-stat">
+          <div class="num">24M</div>
+          <div class="lbl">Happy customers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector card -->
+    <div class="selector-card">
+      <div class="selector-tabs">
+        <div class="selector-tab active">🚗 Select by car</div>
+        <div class="selector-tab">🔍 Search by part no.</div>
+        <div class="selector-tab">📋 VIN lookup</div>
+      </div>
+      <div class="selector-body">
+
+        <div id="loadingOverlay" class="loading-overlay">
+          <div class="spin"></div>
+          Loading vehicle database...
+        </div>
+
+        <div id="selectorContent" style="display:none">
+          <!-- Quick search -->
+          <div class="card-search-wrap">
+            <span class="card-search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </span>
+            <input
+              id="csInput"
+              class="card-search-input"
+              type="text"
+              placeholder="E.g. BMW 3er 2018 or 2005 Volvo S40..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="card-search-clear" id="csClear">×</button>
+            <div class="card-search-dropdown" id="csDropdown"></div>
+          </div>
+
+          <div class="card-or">or select step by step</div>
+
+          <div class="card-selects">
+            <div>
+              <div class="card-select-label">Make</div>
+              <div class="card-select-wrap">
+                <select id="csMaker">
+                  <option value="">— Select make —</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-row">
+              <div class="card-select-wrap">
+                <div class="card-select-label">Year</div>
+                <select id="csYear" disabled>
+                  <option value="">— Year —</option>
+                </select>
+              </div>
+              <div class="card-select-wrap">
+                <div class="card-select-label">Model</div>
+                <select id="csModel" disabled>
+                  <option value="">— Model —</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div class="card-select-label">Engine / Trim</div>
+              <div class="card-select-wrap">
+                <select id="csCar" disabled>
+                  <option value="">— Engine / Trim —</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-panel" id="csResult">
+            <div class="result-panel-title">Selected vehicle</div>
+            <div class="result-panel-grid" id="csResultGrid"></div>
+          </div>
+
+          <button class="find-btn" id="csFindBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Find parts for my car
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust bar -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <div class="trust-icon">🚚</div>
+      <div>
+        <div class="t-title">Free delivery</div>
+        <div class="t-sub">On orders over £45</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">↩️</div>
+      <div>
+        <div class="t-title">30-day returns</div>
+        <div class="t-sub">No questions asked</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">✅</div>
+      <div>
+        <div class="t-title">Genuine parts</div>
+        <div class="t-sub">OEM & aftermarket</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">💬</div>
+      <div>
+        <div class="t-title">Expert support</div>
+        <div class="t-sub">Mon–Sat 8am–8pm</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">🔒</div>
+      <div>
+        <div class="t-title">Secure payment</div>
+        <div class="t-sub">Visa · Mastercard · PayPal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Categories -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Shop by category</div>
+    <a class="section-link" href="#">View all categories →</a>
+  </div>
+  <div class="categories-grid">
+    <div class="category-card"><span class="cat-icon">🔧</span><div class="cat-name">Engine & Drivetrain</div></div>
+    <div class="category-card"><span class="cat-icon">🛞</span><div class="cat-name">Brakes & Clutch</div></div>
+    <div class="category-card"><span class="cat-icon">🔩</span><div class="cat-name">Suspension</div></div>
+    <div class="category-card"><span class="cat-icon">🌀</span><div class="cat-name">Filters</div></div>
+    <div class="category-card"><span class="cat-icon">💡</span><div class="cat-name">Electrics & Lighting</div></div>
+    <div class="category-card"><span class="cat-icon">🛢️</span><div class="cat-name">Oils & Fluids</div></div>
+    <div class="category-card"><span class="cat-icon">🏎️</span><div class="cat-name">Body & Exterior</div></div>
+    <div class="category-card"><span class="cat-icon">❄️</span><div class="cat-name">A/C & Heating</div></div>
+  </div>
+</div>
+
+<!-- Banners -->
+<div class="banners-grid">
+  <div class="banner banner-blue">
+    <div class="banner-title">Install guides & how-to videos</div>
+    <div class="banner-sub">Step-by-step tutorials for every repair job</div>
+    <div class="banner-btn">Browse guides →</div>
+    <div class="banner-emoji">🔧</div>
+  </div>
+  <div class="banner banner-orange">
+    <div class="banner-title">Up to 40% off this week</div>
+    <div class="banner-sub">Limited time deals on top brands</div>
+    <div class="banner-btn">Shop sale →</div>
+    <div class="banner-emoji">🔥</div>
+  </div>
+</div>
+
+<!-- Popular brands -->
+<div class="section" style="padding-top:0">
+  <div class="section-head">
+    <div class="section-title">Popular brands</div>
+    <a class="section-link" href="#">All brands →</a>
+  </div>
+  <div class="brands-grid">
+    <div class="brand-card">Bosch</div>
+    <div class="brand-card">Valeo</div>
+    <div class="brand-card">NGK</div>
+    <div class="brand-card">Febi</div>
+    <div class="brand-card">Sachs</div>
+    <div class="brand-card">Brembo</div>
+    <div class="brand-card">Lemförder</div>
+    <div class="brand-card">Mahle</div>
+    <div class="brand-card">Gates</div>
+    <div class="brand-card">Monroe</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">AUTODOC<span>.</span></div>
+      <div class="footer-desc">Europe's leading online retailer for car parts & accessories. Quality parts, expert advice, fast delivery.</div>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Customer service</div>
+      <a href="#">Track my order</a>
+      <a href="#">Returns & refunds</a>
+      <a href="#">Contact us</a>
+      <a href="#">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <a href="#">About AUTODOC</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Blog</a>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Legal</div>
+      <a href="#">Privacy policy</a>
+      <a href="#">Terms & conditions</a>
+      <a href="#">Cookie settings</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 AUTODOC. All rights reserved.</span>
+    <span>🇬🇧 United Kingdom · English</span>
+  </div>
+</footer>
+
+<script>
+let ALL_CARS = [], MAKERS = [];
+let csDebounce = null, csFocused = -1;
+
+fetch('cars_data.json')
+  .then(r => r.json())
+  .then(data => {
+    MAKERS = data.makers;
+    ALL_CARS = data.cars;
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('selectorContent').style.display = 'block';
+    initSelector();
+  });
+
+function initSelector() {
+  const selMaker = document.getElementById('csMaker');
+  MAKERS.forEach(m => selMaker.add(new Option(m.n, m.id)));
+
+  selMaker.addEventListener('change', onMakerChange);
+  document.getElementById('csYear').addEventListener('change', onYearChange);
+  document.getElementById('csModel').addEventListener('change', onModelChange);
+  document.getElementById('csCar').addEventListener('change', onCarChange);
+
+  const input = document.getElementById('csInput');
+  const clear = document.getElementById('csClear');
+
+  input.addEventListener('input', () => {
+    clear.style.display = input.value ? 'block' : 'none';
+    clearTimeout(csDebounce);
+    csDebounce = setTimeout(() => runSearch(input.value.trim()), 150);
+  });
+
+  input.addEventListener('keydown', onKey);
+
+  clear.addEventListener('click', () => {
+    input.value = ''; clear.style.display = 'none';
+    closeDD(); input.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.card-search-wrap')) closeDD();
+  });
+}
+
+function runSearch(q) {
+  const dd = document.getElementById('csDropdown');
+  if (q.length < 2) { closeDD(); return; }
+
+  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const LIMIT = 15;
+  let yearFilter = null;
+  const textTerms = [];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
+
+  if (!yearFilter && textTerms.join('').length < 2) { closeDD(); return; }
+
+  const results = [];
+  for (let i = 0; i < ALL_CARS.length && results.length < LIMIT + 1; i++) {
+    const c = ALL_CARS[i];
+    if (yearFilter) {
+      const yf = c[6], yt = c[7];
+      if (!yf || !(yf <= yearFilter && (yt === null || yt >= yearFilter))) continue;
+    }
+    if (textTerms.length > 0) {
+      const maker = MAKERS.find(m => m.id === c[0]);
+      const hay = `${maker?.n || ''} ${c[2]} ${c[4]} ${c[5] || ''}`.toLowerCase();
+      if (!textTerms.every(t => hay.includes(t))) continue;
+    }
+    results.push(c);
+  }
+
+  if (!results.length) {
+    dd.innerHTML = '<div class="cdd-empty">No vehicles found</div>';
+    dd.classList.add('open'); return;
+  }
+
+  const shown = results.slice(0, LIMIT);
+  const extra = results.length > LIMIT;
+
+  dd.innerHTML = shown.map((c, i) => {
+    const maker = MAKERS.find(m => m.id === c[0]);
+    const yRange = c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `from ${c[6]}` : '';
+    const mainText = `${maker?.n || ''} ${c[2]} · ${c[4]}`;
+    const subParts = [yRange, c[5] || '', c[8] ? `${c[8]} kW / ${c[9]} hp` : ''].filter(Boolean);
+    return `<div class="cdd-item" data-idx="${i}" onmousedown="csSelect(${i})">
+      <div class="cdd-main">${hl(mainText, textTerms)}</div>
+      ${subParts.length ? `<div class="cdd-sub">${yearFilter ? `<b style="color:var(--blue)">${yearFilter}</b> · ` : ''}${subParts.join(' · ')}</div>` : ''}
+    </div>`;
+  }).join('') + (extra ? `<div class="cdd-more">Refine your search for more results</div>` : '');
+
+  dd.classList.add('open');
+  csFocused = -1;
+  dd._r = shown;
+  dd._yf = yearFilter;
+}
+
+function hl(text, terms) {
+  let out = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  terms.forEach(t => {
+    out = out.replace(new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+  });
+  return out;
+}
+
+function onKey(e) {
+  const dd = document.getElementById('csDropdown');
+  if (!dd.classList.contains('open')) return;
+  const items = dd.querySelectorAll('.cdd-item');
+  if (e.key === 'ArrowDown') { e.preventDefault(); csFocused = Math.min(csFocused+1, items.length-1); updFocus(items); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); csFocused = Math.max(csFocused-1, 0); updFocus(items); }
+  else if (e.key === 'Enter' && csFocused >= 0) { e.preventDefault(); csSelect(csFocused); }
+  else if (e.key === 'Escape') closeDD();
+}
+
+function updFocus(items) {
+  items.forEach((el, i) => el.classList.toggle('focused', i === csFocused));
+  if (csFocused >= 0) items[csFocused].scrollIntoView({ block: 'nearest' });
+}
+
+function csSelect(idx) {
+  const dd = document.getElementById('csDropdown');
+  const car = dd._r?.[idx];
+  if (!car) return;
+  const yf = dd._yf;
+  closeDD();
+  document.getElementById('csInput').value = '';
+  document.getElementById('csClear').style.display = 'none';
+  fillCS(car, yf);
+}
+
+function closeDD() {
+  document.getElementById('csDropdown').classList.remove('open');
+  csFocused = -1;
+}
+
+function fillCS(car, yearFilter) {
+  const selMaker = document.getElementById('csMaker');
+  selMaker.value = car[0];
+  selMaker.dispatchEvent(new Event('change'));
+  const preferredYear = yearFilter || car[6] || (car[7] || new Date().getFullYear());
+  setTimeout(() => {
+    const selYear = document.getElementById('csYear');
+    if ([...selYear.options].some(o => +o.value === preferredYear)) selYear.value = preferredYear;
+    else {
+      const opts = [...selYear.options].map(o => +o.value).filter(Boolean);
+      const inRange = opts.filter(y => y >= (car[6]||0) && y <= (car[7]||9999));
+      selYear.value = inRange.length ? inRange[0] : opts[0];
+    }
+    selYear.dispatchEvent(new Event('change'));
+    setTimeout(() => {
+      document.getElementById('csModel').value = car[1];
+      document.getElementById('csModel').dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        document.getElementById('csCar').value = car[3];
+        document.getElementById('csCar').dispatchEvent(new Event('change'));
+      }, 0);
+    }, 0);
+  }, 0);
+}
+
+function onMakerChange() {
+  const makerId = +this.value;
+  resetCS(2);
+  if (!makerId) return;
+  const yearsSet = new Set();
+  ALL_CARS.filter(c => c[0] === makerId).forEach(c => {
+    if (!c[6]) return;
+    const end = c[7] || new Date().getFullYear();
+    for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) yearsSet.add(y);
+  });
+  const sel = document.getElementById('csYear');
+  const years = [...yearsSet].sort((a,b) => b-a);
+  sel.innerHTML = `<option value="">— Year (${years.length}) —</option>`;
+  years.forEach(y => sel.add(new Option(y, y)));
+  sel.disabled = false;
+}
+
+function onYearChange() {
+  const year = +this.value, makerId = +document.getElementById('csMaker').value;
+  resetCS(3);
+  if (!year) return;
+  const filtered = ALL_CARS.filter(c => {
+    if (c[0] !== makerId) return false;
+    const yf = c[6], yt = c[7];
+    return yf && yf <= year && (yt === null || yt >= year);
+  });
+  const modMap = new Map();
+  filtered.forEach(c => { if (!modMap.has(c[1])) modMap.set(c[1], c[2]); });
+  const models = [...modMap.entries()].sort((a,b) => a[1].localeCompare(b[1]));
+  const sel = document.getElementById('csModel');
+  sel.innerHTML = `<option value="">— Model (${models.length}) —</option>`;
+  models.forEach(([id, name]) => sel.add(new Option(name, id)));
+  sel.disabled = false;
+}
+
+function onModelChange() {
+  const modelId = +this.value, makerId = +document.getElementById('csMaker').value;
+  const year = +document.getElementById('csYear').value;
+  resetCS(4);
+  if (!modelId) return;
+  const filtered = ALL_CARS.filter(c => {
+    if (c[0] !== makerId || c[1] !== modelId) return false;
+    const yf = c[6], yt = c[7];
+    return yf && yf <= year && (yt === null || yt >= year);
+  });
+  const sel = document.getElementById('csCar');
+  sel.innerHTML = `<option value="">— Engine / Trim (${filtered.length}) —</option>`;
+  filtered.forEach(c => {
+    const kw = c[8] ? ` · ${c[8]} kW / ${c[9]} hp` : '';
+    const fuel = c[5] ? ` · ${c[5]}` : '';
+    sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
+  });
+  sel.disabled = false;
+}
+
+function onCarChange() {
+  const carId = +this.value;
+  if (!carId) { document.getElementById('csResult').classList.remove('visible'); return; }
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  const modelSel = document.getElementById('csModel');
+  const modelName = modelSel.options[modelSel.selectedIndex]?.text || '';
+  const yRange = car[6] && car[7] ? `${car[6]} – ${car[7]}` : car[6] ? `from ${car[6]}` : '—';
+  document.getElementById('csResultGrid').innerHTML = `
+    <div class="rp-item"><div class="key">Make</div><div class="val">${maker?.n||'—'}</div></div>
+    <div class="rp-item"><div class="key">Year</div><div class="val">${document.getElementById('csYear').value}</div></div>
+    <div class="rp-item"><div class="key">Model</div><div class="val">${modelName}</div></div>
+    <div class="rp-item"><div class="key">Production</div><div class="val">${yRange}</div></div>
+    <div class="rp-item"><div class="key">Trim</div><div class="val">${car[4]}</div></div>
+    <div class="rp-item"><div class="key">Fuel</div><div class="val">${car[5]||'—'}</div></div>
+    ${car[8] ? `<div class="rp-item"><div class="key">Power</div><div class="val">${car[8]} kW / ${car[9]} hp</div></div>` : ''}
+  `;
+  document.getElementById('csResult').classList.add('visible');
+}
+
+function resetCS(step) {
+  document.getElementById('csResult').classList.remove('visible');
+  if (step <= 2) { const s = document.getElementById('csYear'); s.innerHTML='<option value="">— Year —</option>'; s.disabled=true; }
+  if (step <= 3) { const s = document.getElementById('csModel'); s.innerHTML='<option value="">— Model —</option>'; s.disabled=true; }
+  if (step <= 4) { const s = document.getElementById('csCar'); s.innerHTML='<option value="">— Engine / Trim —</option>'; s.disabled=true; }
+}
+</script>
+</body>
+</html>
