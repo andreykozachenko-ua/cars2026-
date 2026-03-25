@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Подбор автомобиля</title>
+<title>Car Selector</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -391,12 +391,12 @@
 <body>
 
 <div class="card">
-  <h1>Подбор автомобиля</h1>
-  <p class="subtitle">Введите марку, модель или комплектацию для быстрого поиска</p>
+  <h1>Car Selector</h1>
+  <p class="subtitle">Type a make, model or trim for quick search</p>
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
-    Загрузка базы данных...
+    Loading database...
   </div>
 
   <div id="main" style="display:none">
@@ -412,7 +412,7 @@
         id="searchInput"
         class="search-input"
         type="text"
-        placeholder="Например: BMW 3er 2018 или Toyota Corolla..."
+        placeholder="E.g. BMW 3er 2018 or Toyota Corolla..."
         autocomplete="off"
         spellcheck="false"
       />
@@ -420,64 +420,64 @@
       <div class="search-dropdown" id="searchDropdown"></div>
     </div>
 
-    <div class="divider">или выберите пошагово</div>
+    <div class="divider">or select step by step</div>
 
     <!-- Steps indicator -->
     <div class="steps">
       <div class="step active" id="s1">
         <div class="step-dot">1</div>
-        <div class="step-label">Марка</div>
+        <div class="step-label">Make</div>
       </div>
       <div class="step" id="s2">
         <div class="step-dot">2</div>
-        <div class="step-label">Год</div>
+        <div class="step-label">Year</div>
       </div>
       <div class="step" id="s3">
         <div class="step-dot">3</div>
-        <div class="step-label">Модель</div>
+        <div class="step-label">Model</div>
       </div>
       <div class="step" id="s4">
         <div class="step-dot">4</div>
-        <div class="step-label">Двигатель</div>
+        <div class="step-label">Engine</div>
       </div>
     </div>
 
     <div class="fields">
       <div class="field">
-        <label>Производитель</label>
+        <label>Manufacturer</label>
         <select id="selMaker">
-          <option value="">— Выберите марку —</option>
+          <option value="">— Select make —</option>
         </select>
       </div>
 
       <div class="field">
-        <label>Год выпуска <span id="yearCount"></span></label>
+        <label>Year <span id="yearCount"></span></label>
         <select id="selYear" disabled>
-          <option value="">— Сначала выберите марку —</option>
+          <option value="">— Select make first —</option>
         </select>
       </div>
 
       <div class="field">
-        <label>Модель <span id="modelCount"></span></label>
+        <label>Model <span id="modelCount"></span></label>
         <select id="selModel" disabled>
-          <option value="">— Сначала выберите год —</option>
+          <option value="">— Select year first —</option>
         </select>
       </div>
 
       <div class="field">
-        <label>Двигатель / Комплектация <span id="carCount"></span></label>
+        <label>Engine / Trim <span id="carCount"></span></label>
         <select id="selCar" disabled>
-          <option value="">— Сначала выберите модель —</option>
+          <option value="">— Select model first —</option>
         </select>
       </div>
     </div>
 
     <div class="result" id="result">
-      <div class="result-title">Выбранный автомобиль</div>
+      <div class="result-title">Selected vehicle</div>
       <div class="result-grid" id="resultGrid"></div>
     </div>
 
-    <button class="reset-btn" id="resetBtn">Сбросить выбор</button>
+    <button class="reset-btn" id="resetBtn">Reset</button>
   </div>
 </div>
 
@@ -496,7 +496,7 @@ fetch('cars_data.json')
   })
   .catch(() => {
     document.getElementById('loading').innerHTML =
-      '<p style="color:#ef4444">Ошибка загрузки данных. Откройте файл через локальный сервер.</p>';
+      '<p style="color:#ef4444">Failed to load data. Open the file via a local server.</p>';
   });
 
 function init() {
@@ -555,7 +555,7 @@ function runSearch(q) {
   }
 
   if (!results.length) {
-    dd.innerHTML = '<div class="dd-empty">Ничего не найдено</div>';
+    dd.innerHTML = '<div class="dd-empty">No results found</div>';
     dd.classList.add('open');
     return;
   }
@@ -565,19 +565,19 @@ function runSearch(q) {
 
   dd.innerHTML = shown.map((c, i) => {
     const maker = MAKERS.find(m => m.id === c[0]);
-    const kw = c[8] ? ` · ${c[8]} кВт / ${c[9]} л.с.` : '';
-    const fuel = c[5] ? ` · ${fuelLabel(c[5])}` : '';
-    const yRange = c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `с ${c[6]}` : '';
+    const kw = c[8] ? ` · ${c[8]} kW / ${c[9]} hp` : '';
+    const fuel = c[5] ? ` · ${c[5]}` : '';
+    const yRange = c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `from ${c[6]}` : '';
 
     const mainText = `${maker?.n || ''} ${c[2]} · ${c[4]}`;
-    const subText = [yRange, fuel ? fuelLabel(c[5]) : '', c[8] ? `${c[8]} кВт / ${c[9]} л.с.` : '']
+    const subText = [yRange, fuel ? c[5] : '', c[8] ? `${c[8]} kW / ${c[9]} hp` : '']
       .filter(Boolean).join(' · ');
 
     return `<div class="dd-item" data-idx="${i}" onmousedown="selectResult(${i})">
       <div class="dd-main">${highlight(mainText, terms)}</div>
       ${subText ? `<div class="dd-sub">${subText}</div>` : ''}
     </div>`;
-  }).join('') + (extra ? `<div class="dd-more">Уточните запрос — найдено более ${LIMIT} результатов</div>` : '');
+  }).join('') + (extra ? `<div class="dd-more">Too many results — please refine your query</div>` : '');
 
   dd.classList.add('open');
   focusedIndex = -1;
@@ -701,11 +701,11 @@ function onMakerChange() {
 
   const years = [...yearsSet].sort((a,b) => b - a);
   const sel = document.getElementById('selYear');
-  sel.innerHTML = `<option value="">— Выберите год (${years.length}) —</option>`;
+  sel.innerHTML = `<option value="">— Select year (${years.length}) —</option>`;
   years.forEach(y => sel.add(new Option(y, y)));
   sel.disabled = false;
   document.getElementById('yearCount').innerHTML =
-    `<span class="count-badge">${years.length} вариантов</span>`;
+    `<span class="count-badge">${years.length} options</span>`;
   setStep(2);
 }
 
@@ -728,11 +728,11 @@ function onYearChange() {
   const models = [...modelsMap.entries()].sort((a,b) => a[1].localeCompare(b[1]));
 
   const sel = document.getElementById('selModel');
-  sel.innerHTML = `<option value="">— Выберите модель (${models.length}) —</option>`;
+  sel.innerHTML = `<option value="">— Select model (${models.length}) —</option>`;
   models.forEach(([id, name]) => sel.add(new Option(name, id)));
   sel.disabled = false;
   document.getElementById('modelCount').innerHTML =
-    `<span class="count-badge">${models.length} моделей</span>`;
+    `<span class="count-badge">${models.length} models</span>`;
   setStep(3);
 }
 
@@ -752,15 +752,15 @@ function onModelChange() {
   });
 
   const sel = document.getElementById('selCar');
-  sel.innerHTML = `<option value="">— Выберите двигатель (${filtered.length}) —</option>`;
+  sel.innerHTML = `<option value="">— Select engine (${filtered.length}) —</option>`;
   filtered.forEach(c => {
-    const kw = c[8] ? ` · ${c[8]} кВт / ${c[9]} л.с.` : '';
-    const fuel = c[5] ? ` · ${fuelLabel(c[5])}` : '';
+    const kw = c[8] ? ` · ${c[8]} kW / ${c[9]} hp` : '';
+    const fuel = c[5] ? ` · ${c[5]}` : '';
     sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
   });
   sel.disabled = false;
   document.getElementById('carCount').innerHTML =
-    `<span class="count-badge">${filtered.length} вариантов</span>`;
+    `<span class="count-badge">${filtered.length} options</span>`;
   setStep(4);
 }
 
@@ -776,36 +776,36 @@ function onCarChange() {
   const modelSel = document.getElementById('selModel');
   const modelName = modelSel.options[modelSel.selectedIndex]?.text || '';
   const yRange = car[6] && car[7] ? `${car[6]} – ${car[7]}`
-               : car[6] ? `с ${car[6]}` : '—';
+               : car[6] ? `from ${car[6]}` : '—';
 
   document.getElementById('resultGrid').innerHTML = `
     <div class="result-item">
-      <div class="key">Марка</div>
+      <div class="key">Make</div>
       <div class="val">${maker?.n || '—'}</div>
     </div>
     <div class="result-item">
-      <div class="key">Год выпуска</div>
+      <div class="key">Year</div>
       <div class="val">${document.getElementById('selYear').value}</div>
     </div>
     <div class="result-item">
-      <div class="key">Модель</div>
+      <div class="key">Model</div>
       <div class="val">${modelName}</div>
     </div>
     <div class="result-item">
-      <div class="key">Производство</div>
+      <div class="key">Production</div>
       <div class="val">${yRange}</div>
     </div>
     <div class="result-item">
-      <div class="key">Комплектация</div>
+      <div class="key">Trim</div>
       <div class="val">${car[4]}</div>
     </div>
     <div class="result-item">
-      <div class="key">Тип топлива</div>
-      <div class="val">${fuelLabel(car[5]) || '—'}</div>
+      <div class="key">Fuel type</div>
+      <div class="val">${car[5] || '—'}</div>
     </div>
     ${car[8] ? `<div class="result-item">
-      <div class="key">Мощность</div>
-      <div class="val">${car[8]} кВт / ${car[9]} л.с.</div>
+      <div class="key">Power</div>
+      <div class="val">${car[8]} kW / ${car[9]} hp</div>
     </div>` : ''}
   `;
   document.getElementById('result').classList.add('visible');
@@ -838,19 +838,19 @@ function resetFrom(step) {
   hideResult();
   if (step <= 2) {
     const sy = document.getElementById('selYear');
-    sy.innerHTML = '<option value="">— Сначала выберите марку —</option>';
+    sy.innerHTML = '<option value="">— Select make first —</option>';
     sy.disabled = true;
     document.getElementById('yearCount').innerHTML = '';
   }
   if (step <= 3) {
     const sm = document.getElementById('selModel');
-    sm.innerHTML = '<option value="">— Сначала выберите год —</option>';
+    sm.innerHTML = '<option value="">— Select year first —</option>';
     sm.disabled = true;
     document.getElementById('modelCount').innerHTML = '';
   }
   if (step <= 4) {
     const sc = document.getElementById('selCar');
-    sc.innerHTML = '<option value="">— Сначала выберите модель —</option>';
+    sc.innerHTML = '<option value="">— Select model first —</option>';
     sc.disabled = true;
     document.getElementById('carCount').innerHTML = '';
   }
