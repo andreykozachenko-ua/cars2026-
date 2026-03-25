@@ -542,16 +542,40 @@ function runSearch(q) {
   const dd = document.getElementById('searchDropdown');
   if (q.length < 2) { closeDropdown(); return; }
 
-  const ql = q.toLowerCase();
-  const terms = ql.split(/\s+/).filter(Boolean);
+  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
   const LIMIT = 20;
+
+  // Extract year if present anywhere in the query (e.g. "2005 volvo s40", "ford ranger 2006")
+  let yearFilter = null;
+  const textTerms = [];
+  parts.forEach(p => {
+    if (/^(19|20)\d{2}$/.test(p)) yearFilter = +p;
+    else textTerms.push(p);
+  });
+
+  // Need at least a year or 2+ chars of text
+  if (!yearFilter && textTerms.join('').length < 2) { closeDropdown(); return; }
+
   const results = [];
 
   for (let i = 0; i < ALL_CARS.length && results.length < LIMIT + 1; i++) {
     const c = ALL_CARS[i];
-    const maker = MAKERS.find(m => m.id === c[0]);
-    const hay = `${maker?.n || ''} ${c[2]} ${c[4]} ${c[5] || ''}`.toLowerCase();
-    if (terms.every(t => hay.includes(t))) results.push(c);
+
+    // Year range filter
+    if (yearFilter) {
+      const yf = c[6], yt = c[7];
+      if (!yf) continue;
+      if (!(yf <= yearFilter && (yt === null || yt >= yearFilter))) continue;
+    }
+
+    // Text filter
+    if (textTerms.length > 0) {
+      const maker = MAKERS.find(m => m.id === c[0]);
+      const hay = `${maker?.n || ''} ${c[2]} ${c[4]} ${c[5] || ''}`.toLowerCase();
+      if (!textTerms.every(t => hay.includes(t))) continue;
+    }
+
+    results.push(c);
   }
 
   if (!results.length) {
@@ -565,25 +589,22 @@ function runSearch(q) {
 
   dd.innerHTML = shown.map((c, i) => {
     const maker = MAKERS.find(m => m.id === c[0]);
-    const kw = c[8] ? ` · ${c[8]} kW / ${c[9]} hp` : '';
-    const fuel = c[5] ? ` · ${c[5]}` : '';
     const yRange = c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `from ${c[6]}` : '';
-
     const mainText = `${maker?.n || ''} ${c[2]} · ${c[4]}`;
-    const subText = [yRange, fuel ? c[5] : '', c[8] ? `${c[8]} kW / ${c[9]} hp` : '']
+    const subText = [yRange, c[5] || '', c[8] ? `${c[8]} kW / ${c[9]} hp` : '']
       .filter(Boolean).join(' · ');
 
     return `<div class="dd-item" data-idx="${i}" onmousedown="selectResult(${i})">
-      <div class="dd-main">${highlight(mainText, terms)}</div>
-      ${subText ? `<div class="dd-sub">${subText}</div>` : ''}
+      <div class="dd-main">${highlight(mainText, textTerms)}</div>
+      ${subText ? `<div class="dd-sub">${yearFilter ? `<b style="color:#818cf8">${yearFilter}</b> · ` : ''}${subText}</div>` : ''}
     </div>`;
   }).join('') + (extra ? `<div class="dd-more">Too many results — please refine your query</div>` : '');
 
   dd.classList.add('open');
   focusedIndex = -1;
 
-  // Store results for keyboard nav
   dd._results = shown;
+  dd._yearFilter = yearFilter;
 }
 
 function highlight(text, terms) {
@@ -630,30 +651,28 @@ function selectResult(idx) {
   const car = dd._results?.[idx];
   if (!car) return;
 
+  const yearFilter = dd._yearFilter;
   closeDropdown();
   document.getElementById('searchInput').value = '';
   document.getElementById('searchClear').style.display = 'none';
 
-  // Fill 4 selects automatically
-  fillSelects(car);
+  fillSelects(car, yearFilter);
 }
 
-function fillSelects(car) {
+function fillSelects(car, yearFilter) {
   // Step 1: Maker
   const selMaker = document.getElementById('selMaker');
   selMaker.value = car[0];
   selMaker.dispatchEvent(new Event('change'));
 
-  // Step 2: Year — pick yearFrom or any year in range
-  const year = car[6] || (car[7] ? car[7] : new Date().getFullYear());
+  // Step 2: Year — prefer yearFilter from search, then yearFrom
+  const preferredYear = yearFilter || car[6] || (car[7] ? car[7] : new Date().getFullYear());
 
   setTimeout(() => {
     const selYear = document.getElementById('selYear');
-    // Try exact year first, else pick closest available
-    if ([...selYear.options].some(o => +o.value === year)) {
-      selYear.value = year;
+    if ([...selYear.options].some(o => +o.value === preferredYear)) {
+      selYear.value = preferredYear;
     } else {
-      // pick the first available year in range
       const opts = [...selYear.options].map(o => +o.value).filter(Boolean);
       const inRange = opts.filter(y => y >= (car[6] || 0) && y <= (car[7] || 9999));
       selYear.value = inRange.length ? inRange[0] : opts[0];
