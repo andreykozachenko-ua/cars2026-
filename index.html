@@ -39,9 +39,144 @@
   .subtitle {
     font-size: 13px;
     color: #6b7280;
-    margin-bottom: 36px;
+    margin-bottom: 24px;
   }
 
+  /* ── Search ── */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 28px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    pointer-events: none;
+    display: flex;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 13px 40px 13px 42px;
+    background: #0f1117;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    color: #e8eaf0;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  .search-input::placeholder { color: #4b5563; }
+
+  .search-input:focus {
+    border-color: #3b5bdb;
+    box-shadow: 0 0 0 3px rgba(59,91,219,.15);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+    display: none;
+  }
+
+  .search-clear:hover { color: #9ca3af; }
+
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  }
+
+  .search-dropdown.open { display: block; }
+
+  .search-dropdown::-webkit-scrollbar { width: 4px; }
+  .search-dropdown::-webkit-scrollbar-track { background: transparent; }
+  .search-dropdown::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 4px; }
+
+  .dd-item {
+    padding: 11px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #1e2230;
+    transition: background .15s;
+  }
+
+  .dd-item:last-child { border-bottom: none; }
+  .dd-item:hover, .dd-item.focused { background: #222538; }
+
+  .dd-main {
+    font-size: 14px;
+    color: #e8eaf0;
+    line-height: 1.4;
+  }
+
+  .dd-main mark {
+    background: none;
+    color: #818cf8;
+    font-weight: 600;
+  }
+
+  .dd-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  .dd-empty {
+    padding: 16px;
+    text-align: center;
+    color: #4b5563;
+    font-size: 14px;
+  }
+
+  .dd-more {
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #4b5563;
+    background: #16192280;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    color: #2a2d3a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: #4b5563;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #2a2d3a;
+  }
+
+  /* ── Steps ── */
   .steps {
     display: flex;
     gap: 0;
@@ -257,7 +392,7 @@
 
 <div class="card">
   <h1>Подбор автомобиля</h1>
-  <p class="subtitle">Выберите параметры последовательно</p>
+  <p class="subtitle">Введите марку, модель или комплектацию для быстрого поиска</p>
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
@@ -265,6 +400,29 @@
   </div>
 
   <div id="main" style="display:none">
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <span class="search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </span>
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="Например: BMW 3er 2018 или Toyota Corolla..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="search-clear" id="searchClear">×</button>
+      <div class="search-dropdown" id="searchDropdown"></div>
+    </div>
+
+    <div class="divider">или выберите пошагово</div>
+
+    <!-- Steps indicator -->
     <div class="steps">
       <div class="step active" id="s1">
         <div class="step-dot">1</div>
@@ -326,8 +484,9 @@
 <script>
 let ALL_CARS = [];
 let MAKERS = [];
+let searchDebounce = null;
+let focusedIndex = -1;
 
-// Загрузка данных
 fetch('cars_data.json')
   .then(r => r.json())
   .then(data => {
@@ -345,49 +504,208 @@ function init() {
   document.getElementById('main').style.display = 'block';
 
   const selMaker = document.getElementById('selMaker');
-  MAKERS.forEach(m => {
-    const opt = new Option(m.n, m.id);
-    selMaker.add(opt);
-  });
+  MAKERS.forEach(m => selMaker.add(new Option(m.n, m.id)));
 
   selMaker.addEventListener('change', onMakerChange);
   document.getElementById('selYear').addEventListener('change', onYearChange);
   document.getElementById('selModel').addEventListener('change', onModelChange);
   document.getElementById('selCar').addEventListener('change', onCarChange);
   document.getElementById('resetBtn').addEventListener('click', reset);
+
+  // Search
+  const input = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('searchClear');
+
+  input.addEventListener('input', () => {
+    clearBtn.style.display = input.value ? 'block' : 'none';
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => runSearch(input.value.trim()), 150);
+  });
+
+  input.addEventListener('keydown', onSearchKey);
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    clearBtn.style.display = 'none';
+    closeDropdown();
+    input.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) closeDropdown();
+  });
 }
+
+// ── Search logic ──
+
+function runSearch(q) {
+  const dd = document.getElementById('searchDropdown');
+  if (q.length < 2) { closeDropdown(); return; }
+
+  const ql = q.toLowerCase();
+  const terms = ql.split(/\s+/).filter(Boolean);
+  const LIMIT = 20;
+  const results = [];
+
+  for (let i = 0; i < ALL_CARS.length && results.length < LIMIT + 1; i++) {
+    const c = ALL_CARS[i];
+    const maker = MAKERS.find(m => m.id === c[0]);
+    const hay = `${maker?.n || ''} ${c[2]} ${c[4]} ${c[5] || ''}`.toLowerCase();
+    if (terms.every(t => hay.includes(t))) results.push(c);
+  }
+
+  if (!results.length) {
+    dd.innerHTML = '<div class="dd-empty">Ничего не найдено</div>';
+    dd.classList.add('open');
+    return;
+  }
+
+  const shown = results.slice(0, LIMIT);
+  const extra = results.length > LIMIT;
+
+  dd.innerHTML = shown.map((c, i) => {
+    const maker = MAKERS.find(m => m.id === c[0]);
+    const kw = c[8] ? ` · ${c[8]} кВт / ${c[9]} л.с.` : '';
+    const fuel = c[5] ? ` · ${fuelLabel(c[5])}` : '';
+    const yRange = c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `с ${c[6]}` : '';
+
+    const mainText = `${maker?.n || ''} ${c[2]} · ${c[4]}`;
+    const subText = [yRange, fuel ? fuelLabel(c[5]) : '', c[8] ? `${c[8]} кВт / ${c[9]} л.с.` : '']
+      .filter(Boolean).join(' · ');
+
+    return `<div class="dd-item" data-idx="${i}" onmousedown="selectResult(${i})">
+      <div class="dd-main">${highlight(mainText, terms)}</div>
+      ${subText ? `<div class="dd-sub">${subText}</div>` : ''}
+    </div>`;
+  }).join('') + (extra ? `<div class="dd-more">Уточните запрос — найдено более ${LIMIT} результатов</div>` : '');
+
+  dd.classList.add('open');
+  focusedIndex = -1;
+
+  // Store results for keyboard nav
+  dd._results = shown;
+}
+
+function highlight(text, terms) {
+  let out = escHtml(text);
+  terms.forEach(t => {
+    const re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    out = out.replace(re, '<mark>$1</mark>');
+  });
+  return out;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function onSearchKey(e) {
+  const dd = document.getElementById('searchDropdown');
+  if (!dd.classList.contains('open')) return;
+  const items = dd.querySelectorAll('.dd-item');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
+    updateFocus(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusedIndex = Math.max(focusedIndex - 1, 0);
+    updateFocus(items);
+  } else if (e.key === 'Enter' && focusedIndex >= 0) {
+    e.preventDefault();
+    selectResult(focusedIndex);
+  } else if (e.key === 'Escape') {
+    closeDropdown();
+  }
+}
+
+function updateFocus(items) {
+  items.forEach((el, i) => el.classList.toggle('focused', i === focusedIndex));
+  if (focusedIndex >= 0) items[focusedIndex].scrollIntoView({ block: 'nearest' });
+}
+
+function selectResult(idx) {
+  const dd = document.getElementById('searchDropdown');
+  const car = dd._results?.[idx];
+  if (!car) return;
+
+  closeDropdown();
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+
+  // Fill 4 selects automatically
+  fillSelects(car);
+}
+
+function fillSelects(car) {
+  // Step 1: Maker
+  const selMaker = document.getElementById('selMaker');
+  selMaker.value = car[0];
+  selMaker.dispatchEvent(new Event('change'));
+
+  // Step 2: Year — pick yearFrom or any year in range
+  const year = car[6] || (car[7] ? car[7] : new Date().getFullYear());
+
+  setTimeout(() => {
+    const selYear = document.getElementById('selYear');
+    // Try exact year first, else pick closest available
+    if ([...selYear.options].some(o => +o.value === year)) {
+      selYear.value = year;
+    } else {
+      // pick the first available year in range
+      const opts = [...selYear.options].map(o => +o.value).filter(Boolean);
+      const inRange = opts.filter(y => y >= (car[6] || 0) && y <= (car[7] || 9999));
+      selYear.value = inRange.length ? inRange[0] : opts[0];
+    }
+    selYear.dispatchEvent(new Event('change'));
+
+    setTimeout(() => {
+      // Step 3: Model
+      const selModel = document.getElementById('selModel');
+      selModel.value = car[1];
+      selModel.dispatchEvent(new Event('change'));
+
+      setTimeout(() => {
+        // Step 4: Car
+        const selCar = document.getElementById('selCar');
+        selCar.value = car[3];
+        selCar.dispatchEvent(new Event('change'));
+      }, 0);
+    }, 0);
+  }, 0);
+}
+
+function closeDropdown() {
+  const dd = document.getElementById('searchDropdown');
+  dd.classList.remove('open');
+  focusedIndex = -1;
+}
+
+// ── Step selects ──
 
 function onMakerChange() {
   const makerId = +this.value;
   resetFrom(2);
-
   if (!makerId) { setStep(1); return; }
   setStep(1, true);
 
-  // Все записи этого производителя
   const makerCars = ALL_CARS.filter(c => c[0] === makerId);
-
-  // Собираем уникальные годы из диапазона
   const yearsSet = new Set();
   makerCars.forEach(c => {
     const yf = c[6], yt = c[7];
     if (!yf) return;
     const end = yt || new Date().getFullYear();
-    for (let y = yf; y <= Math.min(end, new Date().getFullYear()); y++) {
-      yearsSet.add(y);
-    }
+    for (let y = yf; y <= Math.min(end, new Date().getFullYear()); y++) yearsSet.add(y);
   });
 
   const years = [...yearsSet].sort((a,b) => b - a);
-
   const sel = document.getElementById('selYear');
   sel.innerHTML = `<option value="">— Выберите год (${years.length}) —</option>`;
   years.forEach(y => sel.add(new Option(y, y)));
   sel.disabled = false;
-
   document.getElementById('yearCount').innerHTML =
     `<span class="count-badge">${years.length} вариантов</span>`;
-
   setStep(2);
 }
 
@@ -395,11 +713,9 @@ function onYearChange() {
   const year = +this.value;
   const makerId = +document.getElementById('selMaker').value;
   resetFrom(3);
-
   if (!year) { setStep(2); return; }
   setStep(2, true);
 
-  // Фильтруем: диапазон производства включает выбранный год
   const filtered = ALL_CARS.filter(c => {
     if (c[0] !== makerId) return false;
     const yf = c[6], yt = c[7];
@@ -407,22 +723,16 @@ function onYearChange() {
     return yf <= year && (yt === null || yt >= year);
   });
 
-  // Уникальные модели
   const modelsMap = new Map();
-  filtered.forEach(c => {
-    if (!modelsMap.has(c[1])) modelsMap.set(c[1], c[2]);
-  });
-
+  filtered.forEach(c => { if (!modelsMap.has(c[1])) modelsMap.set(c[1], c[2]); });
   const models = [...modelsMap.entries()].sort((a,b) => a[1].localeCompare(b[1]));
 
   const sel = document.getElementById('selModel');
   sel.innerHTML = `<option value="">— Выберите модель (${models.length}) —</option>`;
   models.forEach(([id, name]) => sel.add(new Option(name, id)));
   sel.disabled = false;
-
   document.getElementById('modelCount').innerHTML =
     `<span class="count-badge">${models.length} моделей</span>`;
-
   setStep(3);
 }
 
@@ -431,11 +741,9 @@ function onModelChange() {
   const makerId = +document.getElementById('selMaker').value;
   const year    = +document.getElementById('selYear').value;
   resetFrom(4);
-
   if (!modelId) { setStep(3); return; }
   setStep(3, true);
 
-  // Фильтруем по марке + год + модель
   const filtered = ALL_CARS.filter(c => {
     if (c[0] !== makerId || c[1] !== modelId) return false;
     const yf = c[6], yt = c[7];
@@ -451,10 +759,8 @@ function onModelChange() {
     sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
   });
   sel.disabled = false;
-
   document.getElementById('carCount').innerHTML =
     `<span class="count-badge">${filtered.length} вариантов</span>`;
-
   setStep(4);
 }
 
@@ -464,16 +770,13 @@ function onCarChange() {
 
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
-
   setStep(4, true);
 
   const maker = MAKERS.find(m => m.id === car[0]);
   const modelSel = document.getElementById('selModel');
   const modelName = modelSel.options[modelSel.selectedIndex]?.text || '';
-
-  const yRange = car[6] && car[7]
-    ? `${car[6]} – ${car[7]}`
-    : car[6] ? `с ${car[6]}` : '—';
+  const yRange = car[6] && car[7] ? `${car[6]} – ${car[7]}`
+               : car[6] ? `с ${car[6]}` : '—';
 
   document.getElementById('resultGrid').innerHTML = `
     <div class="result-item">
@@ -500,8 +803,7 @@ function onCarChange() {
       <div class="key">Тип топлива</div>
       <div class="val">${fuelLabel(car[5]) || '—'}</div>
     </div>
-    ${car[8] ? `
-    <div class="result-item">
+    ${car[8] ? `<div class="result-item">
       <div class="key">Мощность</div>
       <div class="val">${car[8]} кВт / ${car[9]} л.с.</div>
     </div>` : ''}
@@ -509,21 +811,16 @@ function onCarChange() {
   document.getElementById('result').classList.add('visible');
 }
 
+// ── Helpers ──
+
 function fuelLabel(f) {
   const map = {
-    'Petrol': 'Бензин',
-    'Diesel': 'Дизель',
-    'Electric': 'Электро',
-    'Petrol/Electric': 'Гибрид (бензин/электро)',
-    'Diesel/Electro': 'Гибрид (дизель/электро)',
+    'Petrol': 'Бензин', 'Diesel': 'Дизель', 'Electric': 'Электро',
+    'Petrol/Electric': 'Гибрид (бензин/электро)', 'Diesel/Electro': 'Гибрид (дизель/электро)',
     'Petrol/Liquified Petroleum Gas (LPG)': 'Бензин/ГАЗ (LPG)',
     'Petrol/Compressed Natural Gas (CNG)': 'Бензин/КПГ (CNG)',
-    'Petrol/Ethanol': 'Бензин/Этанол',
-    'Ethanol': 'Этанол',
-    'CNG': 'КПГ (CNG)',
-    'LPG': 'ГАЗ (LPG)',
-    'Hydrogen': 'Водород',
-    'Mixture': 'Смесь',
+    'Petrol/Ethanol': 'Бензин/Этанол', 'Ethanol': 'Этанол',
+    'CNG': 'КПГ (CNG)', 'LPG': 'ГАЗ (LPG)', 'Hydrogen': 'Водород', 'Mixture': 'Смесь',
   };
   return map[f] || f;
 }
@@ -565,6 +862,9 @@ function hideResult() {
 
 function reset() {
   document.getElementById('selMaker').value = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  closeDropdown();
   resetFrom(2);
   setStep(1);
 }
