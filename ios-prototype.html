@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Finder — iOS Prototype</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:   #007AFF;
+  --green:  #34C759;
+  --red:    #FF3B30;
+  --orange: #FF9500;
+  --gray:   #8E8E93;
+  --bg:     #F2F2F7;
+  --card:   #FFFFFF;
+  --text:   #000000;
+  --text2:  rgba(60,60,67,.6);
+  --sep:    rgba(60,60,67,.12);
+  --fill:   rgba(120,120,128,.12);
+  --fill2:  rgba(120,120,128,.16);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  background: radial-gradient(ellipse at top, #1c2a4a 0%, #0a0a14 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* ── Phone frame ─────────────────────────────────── */
+.phone-device {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.phone-frame {
+  background: linear-gradient(145deg, #2a2a2c, #1a1a1c, #2e2e30);
+  border-radius: 56px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08),
+    0 0 0 3px #111,
+    0 50px 100px rgba(0,0,0,.7),
+    0 20px 40px rgba(0,0,0,.4);
+  position: relative;
+}
+
+/* Side buttons */
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  left: -3px; top: 120px;
+  width: 3px; height: 34px;
+  background: #2a2a2c;
+  border-radius: 3px 0 0 3px;
+  box-shadow: 0 46px 0 #2a2a2c, 0 92px 0 #2a2a2c;
+}
+.phone-frame::after {
+  content: '';
+  position: absolute;
+  right: -3px; top: 160px;
+  width: 3px; height: 72px;
+  background: #2a2a2c;
+  border-radius: 0 3px 3px 0;
+}
+
+.phone-screen {
+  width: 393px;
+  height: 852px;
+  background: var(--bg);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #000;
+  border-radius: 18px;
+  z-index: 200;
+}
+
+/* Status bar */
+.status-bar {
+  flex-shrink: 0;
+  height: 59px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 30px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+  position: relative;
+  z-index: 10;
+}
+
+.status-time { font-size: 15px; font-weight: 700; color: var(--text); }
+.status-icons { display: flex; align-items: center; gap: 6px; color: var(--text); font-size: 12px; }
+.status-icons svg { width: 16px; height: 12px; }
+
+/* Screens container */
+.screens-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  display: none;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active { display: block; }
+.screen.slide-in-right  { animation: slideInR .3s ease; }
+.screen.slide-in-left   { animation: slideInL .3s ease; }
+
+@keyframes slideInR { from { transform: translateX(100%); opacity: .8; } }
+@keyframes slideInL { from { transform: translateX(-100%); opacity: .8; } }
+
+/* Tab bar */
+.tab-bar {
+  flex-shrink: 0;
+  height: 83px;
+  background: rgba(249,249,249,.94);
+  backdrop-filter: blur(20px);
+  border-top: .5px solid var(--sep);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: opacity .1s;
+  padding: 4px 0;
+}
+
+.tab:active { opacity: .6; }
+
+.tab svg { width: 24px; height: 24px; }
+
+.tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--gray);
+  letter-spacing: .1px;
+}
+
+.tab.active .tab-label { color: var(--blue); }
+.tab.active svg { color: var(--blue); }
+.tab svg { color: var(--gray); }
+
+/* ── Navigation bar ── */
+.nav-bar {
+  background: rgba(249,249,249,.94);
+  backdrop-filter: blur(20px);
+  border-bottom: .5px solid var(--sep);
+  padding: 12px 20px 10px;
+  position: sticky; top: 0; z-index: 50;
+}
+
+.nav-large-title {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.5px;
+  line-height: 1.1;
+}
+
+.nav-title {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+}
+
+/* ── iOS Search bar ── */
+.search-bar-wrap { padding: 8px 16px 10px; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--fill);
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.search-bar svg { width: 16px; height: 16px; color: var(--gray); flex-shrink: 0; }
+.search-bar-text { font-size: 17px; color: var(--gray); }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.section { padding: 0 16px 16px; }
+.section-title {
+  font-size: 20px; font-weight: 700; color: var(--text);
+  padding: 16px 0 10px;
+  letter-spacing: -.3px;
+}
+.section-title-sm {
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: .5px;
+  padding: 20px 0 8px;
+}
+
+/* ── iOS List rows ── */
+.list-row {
+  display: flex; align-items: center;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer;
+  transition: background .1s;
+  gap: 12px;
+}
+.list-row:last-child { border-bottom: none; }
+.list-row:active { background: var(--fill); }
+
+.list-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 18px;
+}
+
+.list-body { flex: 1; min-width: 0; }
+.list-title { font-size: 17px; color: var(--text); }
+.list-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
+
+.list-chevron {
+  color: var(--gray);
+  font-size: 14px; font-weight: 600;
+}
+
+.list-badge {
+  background: var(--fill2);
+  color: var(--gray);
+  font-size: 12px; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px;
+}
+
+/* ── Selector card ── */
+.selector-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 16px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+.selector-card-title {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+
+.sel-field { margin-bottom: 10px; }
+.sel-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+
+.sel-select {
+  width: 100%; padding: 11px 14px;
+  background: var(--fill);
+  border: none; border-radius: 10px;
+  font-size: 15px; color: var(--text);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+  outline: none; cursor: pointer;
+  font-family: inherit;
+}
+
+.sel-row { display: flex; gap: 10px; }
+.sel-row .sel-field { flex: 1; }
+
+.find-btn {
+  width: 100%; padding: 14px;
+  background: var(--blue); border: none; border-radius: 12px;
+  color: #fff; font-size: 17px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  margin-top: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity .15s;
+}
+.find-btn:active { opacity: .8; }
+.find-btn:disabled { opacity: .4; }
+
+/* ── Result in selector ── */
+.car-result {
+  background: rgba(0,122,255,.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  display: none;
+}
+.car-result.show { display: block; }
+.car-result-name { font-size: 15px; font-weight: 600; color: var(--blue); }
+.car-result-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+/* ── Search screen ── */
+.search-input-wrap {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px 8px;
+  background: var(--bg);
+  position: sticky; top: 0; z-index: 50;
+}
+
+.search-input-box {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  background: var(--fill); border-radius: 12px; padding: 9px 12px;
+}
+
+.search-input-box input {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 17px; color: var(--text); font-family: inherit;
+}
+
+.search-input-box input::placeholder { color: var(--gray); }
+.search-input-box svg { width: 16px; height: 16px; color: var(--gray); flex-shrink: 0; }
+
+.search-cancel {
+  font-size: 17px; color: var(--blue); background: none; border: none;
+  cursor: pointer; font-family: inherit; white-space: nowrap; padding: 4px 0;
+}
+
+.search-suggestion {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer;
+  transition: background .1s;
+}
+.search-suggestion:active { background: var(--fill); }
+
+.suggestion-icon {
+  width: 36px; height: 36px; background: var(--fill);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.suggestion-icon svg { width: 18px; height: 18px; color: var(--blue); }
+
+.suggestion-main { font-size: 15px; color: var(--text); }
+.suggestion-main mark { background: none; color: var(--blue); font-weight: 600; }
+.suggestion-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.suggestion-chevron { color: var(--gray); font-size: 13px; margin-left: auto; }
+
+.suggestions-more {
+  padding: 12px 16px; text-align: center;
+  font-size: 13px; color: var(--text2);
+  background: var(--card);
+}
+
+.recent-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: var(--card);
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer;
+}
+.recent-item:last-child { border-bottom: none; }
+.recent-icon { color: var(--gray); }
+.recent-icon svg { width: 16px; height: 16px; }
+.recent-text { font-size: 17px; color: var(--text); flex: 1; }
+.recent-clear { color: var(--gray); }
+.recent-clear svg { width: 16px; height: 16px; }
+
+/* ── Garage screen ── */
+.garage-car {
+  background: var(--card);
+  border-radius: 16px;
+  margin: 0 16px 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.garage-car-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+.garage-car-make { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+.garage-car-model { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
+.garage-car-trim { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+.garage-car-year {
+  background: var(--fill);
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 15px; font-weight: 700; color: var(--text);
+}
+
+.garage-car-footer {
+  display: flex; gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: .5px solid var(--sep);
+}
+
+.garage-btn {
+  flex: 1; padding: 10px;
+  border-radius: 10px; border: none;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: opacity .15s;
+}
+.garage-btn:active { opacity: .7; }
+.garage-btn-primary { background: var(--blue); color: #fff; }
+.garage-btn-ghost { background: var(--fill); color: var(--text); }
+
+.add-car-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 0 16px; padding: 14px;
+  background: var(--card); border-radius: 12px;
+  font-size: 17px; font-weight: 600; color: var(--blue);
+  cursor: pointer; border: none; font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+/* ── Results screen ── */
+.results-car-bar {
+  background: var(--card);
+  margin: 12px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.results-car-dot {
+  width: 10px; height: 10px;
+  background: var(--green); border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.results-car-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.results-car-change { font-size: 13px; color: var(--blue); }
+
+.filter-scroll {
+  display: flex; gap: 8px;
+  overflow-x: auto; padding: 0 16px 12px;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  padding: 6px 16px;
+  border-radius: 20px; border: none;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  font-family: inherit; flex-shrink: 0;
+  transition: all .15s;
+  background: var(--fill); color: var(--text);
+}
+.filter-chip.active { background: var(--blue); color: #fff; }
+
+.part-card {
+  background: var(--card);
+  border-radius: 14px;
+  margin: 0 16px 10px;
+  padding: 14px;
+  display: flex; gap: 12px;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  cursor: pointer;
+  transition: opacity .1s;
+}
+.part-card:active { opacity: .8; }
+
+.part-img {
+  width: 64px; height: 64px; border-radius: 10px;
+  background: var(--fill); display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0;
+}
+
+.part-body { flex: 1; min-width: 0; }
+.part-brand { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+.part-name { font-size: 15px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.part-compat { font-size: 12px; color: var(--green); margin-top: 3px; font-weight: 500; }
+.part-price { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 6px; }
+.part-price-old { font-size: 13px; color: var(--text2); text-decoration: line-through; margin-left: 6px; font-weight: 400; }
+
+.cart-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--blue); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; margin-top: 4px;
+}
+.cart-btn svg { width: 18px; height: 18px; }
+
+/* ── Spinner / Loading ── */
+.screen-loader {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 12px;
+}
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--fill2);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 14px; color: var(--text2); }
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 32px; text-align: center; gap: 10px;
+}
+.empty-icon { font-size: 52px; }
+.empty-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.empty-sub { font-size: 15px; color: var(--text2); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="phone-device">
+  <div class="phone-frame">
+    <div class="phone-screen">
+      <div class="dynamic-island"></div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="status-icons">
+          <svg viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".4"/><rect x="4.5" y="3" width="3" height="9" rx="1" opacity=".6"/><rect x="9" y="1.5" width="3" height="10.5" rx="1" opacity=".8"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+          <svg viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.1 1.2 4.9 0 8 0s5.9 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z" opacity=".4"/><path d="M8 5.6c-1.5 0-2.9.6-3.9 1.6L2.4 5.5C3.8 4.1 5.8 3.2 8 3.2s4.2.9 5.6 2.3L11.9 7.2C10.9 6.2 9.5 5.6 8 5.6z" opacity=".7"/><path d="M8 8.8c-.8 0-1.5.3-2 .8L4.5 8.1C5.4 7.2 6.6 6.6 8 6.6s2.6.6 3.5 1.5L9.9 9.6C9.5 9.1 8.8 8.8 8 8.8z"/><circle cx="8" cy="12" r="1.5"/></svg>
+          <svg viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".35"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="currentColor"/><path d="M23 4v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <!-- Screens -->
+      <div class="screens-wrap">
+
+        <!-- ── HOME SCREEN ── -->
+        <div class="screen active" id="screen-home">
+          <div class="nav-bar">
+            <div class="nav-large-title">Car Finder</div>
+          </div>
+          <div class="search-bar-wrap">
+            <div class="search-bar" onclick="switchTab(1)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <span class="search-bar-text">Make, model or year...</span>
+            </div>
+          </div>
+
+          <!-- Selector card -->
+          <div class="section-title" style="padding-left:16px;padding-right:16px;padding-top:4px">Select Your Car</div>
+
+          <div class="selector-card" id="homeSelectorCard">
+            <div id="homeLoader" class="screen-loader" style="padding:20px">
+              <div class="spinner"></div>
+              <div class="loader-text">Loading database...</div>
+            </div>
+            <div id="homeSelector" style="display:none">
+              <div class="sel-field">
+                <div class="sel-label">Make</div>
+                <select class="sel-select" id="hsMaker"><option value="">Select make</option></select>
+              </div>
+              <div class="sel-row">
+                <div class="sel-field">
+                  <div class="sel-label">Year</div>
+                  <select class="sel-select" id="hsYear" disabled><option value="">Year</option></select>
+                </div>
+                <div class="sel-field">
+                  <div class="sel-label">Model</div>
+                  <select class="sel-select" id="hsModel" disabled><option value="">Model</option></select>
+                </div>
+              </div>
+              <div class="sel-field">
+                <div class="sel-label">Engine / Trim</div>
+                <select class="sel-select" id="hsCar" disabled><option value="">Engine / Trim</option></select>
+              </div>
+              <div class="car-result" id="hsResult">
+                <div class="car-result-name" id="hsResultName"></div>
+                <div class="car-result-meta" id="hsResultMeta"></div>
+              </div>
+              <button class="find-btn" id="hsFindBtn" onclick="goToResults()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Find Parts
+              </button>
+            </div>
+          </div>
+
+          <!-- My Garage -->
+          <div class="section-title" style="padding-left:16px;padding-right:16px;padding-top:0px">My Garage</div>
+          <div id="homeGarage" style="padding:0 16px 24px"></div>
+        </div>
+
+        <!-- ── SEARCH SCREEN ── -->
+        <div class="screen" id="screen-search">
+          <div class="search-input-wrap">
+            <div class="search-input-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="searchInput" type="text" placeholder="Make, model or year..." autocomplete="off" spellcheck="false">
+            </div>
+            <button class="search-cancel" onclick="switchTab(0)">Cancel</button>
+          </div>
+
+          <!-- Results / recent -->
+          <div id="searchResults">
+            <div class="section-title-sm" style="padding-left:16px;padding-right:16px">Recent</div>
+            <div class="card" style="margin:0 16px">
+              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">BMW 3er 2018</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">Toyota Corolla 2020</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+            </div>
+            <div id="searchDropdownList"></div>
+          </div>
+        </div>
+
+        <!-- ── GARAGE SCREEN ── -->
+        <div class="screen" id="screen-garage">
+          <div class="nav-bar">
+            <div class="nav-large-title">My Garage</div>
+          </div>
+          <div style="height:12px"></div>
+          <div id="garageList"></div>
+          <button class="add-car-btn" onclick="switchTab(0)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add car
+          </button>
+          <div style="height:20px"></div>
+        </div>
+
+        <!-- ── RESULTS SCREEN ── -->
+        <div class="screen" id="screen-results">
+          <div class="nav-bar">
+            <div class="nav-title">Parts</div>
+          </div>
+          <div class="results-car-bar" id="resultCarBar">
+            <div class="results-car-dot"></div>
+            <div class="results-car-name" id="resultCarName">Select a car first</div>
+            <div class="results-car-change" onclick="switchTab(0)">Change</div>
+          </div>
+          <div class="filter-scroll" id="filterChips"></div>
+          <div id="partsList"></div>
+          <div style="height:16px"></div>
+        </div>
+
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <div class="tab active" id="tab-0" onclick="switchTab(0)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab" id="tab-1" onclick="switchTab(1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span class="tab-label">Search</span>
+        </div>
+        <div class="tab" id="tab-2" onclick="switchTab(2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <span class="tab-label">Garage</span>
+        </div>
+        <div class="tab" id="tab-3" onclick="switchTab(3)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span class="tab-label">Results</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let ALL_CARS = [], MAKERS = [];
+let currentTab = 0;
+let selectedCar = null;
+let garage = JSON.parse(localStorage.getItem('ios_garage') || '[]');
+let searchDebounce;
+
+const PARTS_DATA = [
+  { cat: 'Brakes', icon: '🛞', brand: 'Brembo', name: 'Front Brake Pads Set', price: '£34.99', old: '£52.00' },
+  { cat: 'Brakes', icon: '🛞', brand: 'ATE',    name: 'Brake Disc Front', price: '£28.50', old: null },
+  { cat: 'Engine', icon: '🔧', brand: 'Bosch',  name: 'Spark Plug Set × 4', price: '£18.90', old: '£24.00' },
+  { cat: 'Engine', icon: '🔧', brand: 'Mahle',  name: 'Oil Filter', price: '£7.49', old: null },
+  { cat: 'Engine', icon: '🔧', brand: 'Mann',   name: 'Air Filter', price: '£11.20', old: '£16.00' },
+  { cat: 'Filters',icon: '🌀', brand: 'Bosch',  name: 'Fuel Filter', price: '£14.30', old: null },
+  { cat: 'Filters',icon: '🌀', brand: 'Mahle',  name: 'Cabin Air Filter', price: '£9.99', old: '£13.50' },
+  { cat: 'Suspension', icon: '🔩', brand: 'Sachs', name: 'Shock Absorber Front', price: '£62.00', old: null },
+  { cat: 'Suspension', icon: '🔩', brand: 'Lemförder', name: 'Control Arm', price: '£44.80', old: '£68.00' },
+  { cat: 'Electrics', icon: '💡', brand: 'Bosch', name: 'Alternator', price: '£89.00', old: '£120.00' },
+];
+
+// ── Load data ─────────────────────────────────────────────────
+
+fetch('cars_data.json')
+  .then(r => r.json())
+  .then(data => {
+    MAKERS = data.makers;
+    ALL_CARS = data.cars;
+    initHomeSelector();
+  });
+
+// ── Tab switching ─────────────────────────────────────────────
+
+function switchTab(idx) {
+  const screens = ['home', 'search', 'garage', 'results'];
+  const prev = currentTab;
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-in-right','slide-in-left'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+  const target = document.getElementById('screen-' + screens[idx]);
+  target.classList.add('active', idx > prev ? 'slide-in-right' : 'slide-in-left');
+  document.getElementById('tab-' + idx).classList.add('active');
+
+  currentTab = idx;
+
+  if (idx === 1) setTimeout(() => document.getElementById('searchInput').focus(), 300);
+  if (idx === 2) renderGarage();
+  if (idx === 3) renderResults();
+}
+
+// ── Home Selector ─────────────────────────────────────────────
+
+function initHomeSelector() {
+  document.getElementById('homeLoader').style.display = 'none';
+  document.getElementById('homeSelector').style.display = 'block';
+
+  const sel = document.getElementById('hsMaker');
+  MAKERS.forEach(m => sel.add(new Option(m.n, m.id)));
+
+  sel.addEventListener('change', hsOnMaker);
+  document.getElementById('hsYear').addEventListener('change', hsOnYear);
+  document.getElementById('hsModel').addEventListener('change', hsOnModel);
+  document.getElementById('hsCar').addEventListener('change', hsOnCar);
+
+  renderHomeGarage();
+}
+
+function hsOnMaker() {
+  const makerId = +this.value;
+  hsReset(2);
+  if (!makerId) return;
+
+  const yearsSet = new Set();
+  ALL_CARS.filter(c => c[0] === makerId).forEach(c => {
+    if (!c[6]) return;
+    const end = c[7] || new Date().getFullYear();
+    for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) yearsSet.add(y);
+  });
+
+  const sel = document.getElementById('hsYear');
+  const years = [...yearsSet].sort((a,b) => b-a);
+  sel.innerHTML = `<option value="">Year (${years.length})</option>`;
+  years.forEach(y => sel.add(new Option(y, y)));
+  sel.disabled = false;
+}
+
+function hsOnYear() {
+  const year = +this.value, makerId = +document.getElementById('hsMaker').value;
+  hsReset(3);
+  if (!year) return;
+
+  const filtered = ALL_CARS.filter(c => c[0] === makerId && c[6] && c[6] <= year && (c[7] === null || c[7] >= year));
+  const map = new Map();
+  filtered.forEach(c => { if (!map.has(c[1])) map.set(c[1], c[2]); });
+  const models = [...map.entries()].sort((a,b) => a[1].localeCompare(b[1]));
+
+  const sel = document.getElementById('hsModel');
+  sel.innerHTML = `<option value="">Model (${models.length})</option>`;
+  models.forEach(([id, name]) => sel.add(new Option(name, id)));
+  sel.disabled = false;
+}
+
+function hsOnModel() {
+  const modelId = +this.value;
+  const makerId = +document.getElementById('hsMaker').value;
+  const year = +document.getElementById('hsYear').value;
+  hsReset(4);
+  if (!modelId) return;
+
+  const filtered = ALL_CARS.filter(c =>
+    c[0] === makerId && c[1] === modelId && c[6] && c[6] <= year && (c[7] === null || c[7] >= year)
+  );
+  const sel = document.getElementById('hsCar');
+  sel.innerHTML = `<option value="">Engine / Trim (${filtered.length})</option>`;
+  filtered.forEach(c => {
+    const kw = c[8] ? ` · ${c[8]} kW` : '';
+    const fuel = c[5] ? ` · ${c[5].split('/')[0]}` : '';
+    sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
+  });
+  sel.disabled = false;
+}
+
+function hsOnCar() {
+  const carId = +this.value;
+  const result = document.getElementById('hsResult');
+  if (!carId) { result.classList.remove('show'); selectedCar = null; return; }
+
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  selectedCar = car;
+
+  document.getElementById('hsResultName').textContent = `${maker?.n} ${car[2]} · ${car[4]}`;
+  document.getElementById('hsResultMeta').textContent = `${car[5] || ''}${car[8] ? ' · ' + car[8] + ' kW / ' + car[9] + ' hp' : ''} · ${car[6] || ''}${car[7] ? '–' + car[7] : '+'}`;
+  result.classList.add('show');
+
+  // Auto-save to garage
+  saveToGarage(car);
+}
+
+function hsReset(step) {
+  const res = document.getElementById('hsResult');
+  res.classList.remove('show');
+  selectedCar = null;
+  if (step <= 2) { const s = document.getElementById('hsYear'); s.innerHTML='<option value="">Year</option>'; s.disabled=true; }
+  if (step <= 3) { const s = document.getElementById('hsModel'); s.innerHTML='<option value="">Model</option>'; s.disabled=true; }
+  if (step <= 4) { const s = document.getElementById('hsCar'); s.innerHTML='<option value="">Engine / Trim</option>'; s.disabled=true; }
+}
+
+// ── Garage ────────────────────────────────────────────────────
+
+function saveToGarage(car) {
+  const maker = MAKERS.find(m => m.id === car[0]);
+  const entry = { carId: car[3], makerId: car[0], makerName: maker?.n, modelName: car[2], carName: car[4], fuel: car[5], yearFrom: car[6], yearTo: car[7], kw: car[8], hp: car[9] };
+  if (!garage.find(g => g.carId === car[3])) {
+    garage.unshift(entry);
+    if (garage.length > 5) garage.pop();
+    localStorage.setItem('ios_garage', JSON.stringify(garage));
+    renderHomeGarage();
+  }
+}
+
+function renderHomeGarage() {
+  const el = document.getElementById('homeGarage');
+  if (!garage.length) {
+    el.innerHTML = `<div class="card" style="padding:20px;text-align:center;color:var(--text2)">No saved cars yet.<br>Select a car above to save it.</div>`;
+    return;
+  }
+  el.innerHTML = garage.slice(0,2).map(g => `
+    <div class="garage-car" style="margin:0 0 10px">
+      <div class="garage-car-header">
+        <div>
+          <div class="garage-car-make">${g.makerName}</div>
+          <div class="garage-car-model">${g.modelName}</div>
+          <div class="garage-car-trim">${g.carName}${g.kw ? ' · ' + g.kw + ' kW' : ''}</div>
+        </div>
+        <div class="garage-car-year">${g.yearFrom || '—'}</div>
+      </div>
+      <div class="garage-car-footer">
+        <button class="garage-btn garage-btn-primary" onclick="selectGarageCar(${g.carId})">Find Parts</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderGarage() {
+  const el = document.getElementById('garageList');
+  if (!garage.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🚗</div><div class="empty-title">No cars yet</div><div class="empty-sub">Add your car to quickly find the right parts</div></div>`;
+    return;
+  }
+  el.innerHTML = garage.map((g, i) => `
+    <div class="garage-car">
+      <div class="garage-car-header">
+        <div>
+          <div class="garage-car-make">${g.makerName}</div>
+          <div class="garage-car-model">${g.modelName}</div>
+          <div class="garage-car-trim">${g.carName}${g.kw ? ' · ' + g.kw + ' kW / ' + g.hp + ' hp' : ''}${g.fuel ? ' · ' + g.fuel.split('/')[0] : ''}</div>
+        </div>
+        <div class="garage-car-year">${g.yearFrom || '—'}</div>
+      </div>
+      <div class="garage-car-footer">
+        <button class="garage-btn garage-btn-primary" onclick="selectGarageCar(${g.carId})">Find Parts</button>
+        <button class="garage-btn garage-btn-ghost" onclick="removeGarageCar(${i})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function selectGarageCar(carId) {
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  selectedCar = car;
+  switchTab(3);
+}
+
+function removeGarageCar(idx) {
+  garage.splice(idx, 1);
+  localStorage.setItem('ios_garage', JSON.stringify(garage));
+  renderGarage();
+  renderHomeGarage();
+}
+
+// ── Search ────────────────────────────────────────────────────
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => runSearch(this.value.trim()), 150);
+});
+
+function runSearch(q) {
+  const list = document.getElementById('searchDropdownList');
+  if (q.length < 2) { list.innerHTML = ''; return; }
+
+  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
+  let yearFilter = null;
+  const textTerms = [];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
+
+  const results = [];
+  for (let i = 0; i < ALL_CARS.length && results.length < 12; i++) {
+    const c = ALL_CARS[i];
+    if (yearFilter && (c[6] > yearFilter || (c[7] !== null && c[7] < yearFilter))) continue;
+    if (textTerms.length) {
+      const maker = MAKERS.find(m => m.id === c[0]);
+      const hay = `${maker?.n||''} ${c[2]} ${c[4]}`.toLowerCase();
+      if (!textTerms.every(t => hay.includes(t))) continue;
+    }
+    results.push(c);
+  }
+
+  if (!results.length) {
+    list.innerHTML = `<div class="suggestions-more">No vehicles found</div>`;
+    return;
+  }
+
+  list.innerHTML = `<div class="card" style="margin:8px 16px">` +
+    results.map((c, i) => {
+      const maker = MAKERS.find(m => m.id === c[0]);
+      const main = hl(`${maker?.n||''} ${c[2]} · ${c[4]}`, textTerms);
+      const sub = [c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'', c[5]?c[5].split('/')[0]:'', c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
+      return `<div class="search-suggestion" onclick="pickSearchResult(${c[3]})">
+        <div class="suggestion-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="suggestion-main">${main}</div>
+          <div class="suggestion-sub">${sub}</div>
+        </div>
+        <span class="suggestion-chevron">›</span>
+      </div>`;
+    }).join('') + `</div>` +
+    (results.length === 12 ? `<div class="suggestions-more">Showing top 12 — refine your search</div>` : '');
+}
+
+function pickSearchResult(carId) {
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  selectedCar = car;
+  saveToGarage(car);
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchDropdownList').innerHTML = '';
+  switchTab(3);
+}
+
+function hl(text, terms) {
+  let out = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  terms.forEach(t => { out = out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); });
+  return out;
+}
+
+// ── Results ───────────────────────────────────────────────────
+
+let activeFilter = 'All';
+
+function renderResults() {
+  const carBar = document.getElementById('resultCarName');
+  if (selectedCar) {
+    const maker = MAKERS.find(m => m.id === selectedCar[0]);
+    carBar.textContent = `${maker?.n} ${selectedCar[2]} · ${selectedCar[4]}`;
+  } else {
+    carBar.textContent = 'No car selected';
+  }
+
+  const cats = ['All', ...new Set(PARTS_DATA.map(p => p.cat))];
+  document.getElementById('filterChips').innerHTML = cats.map(c =>
+    `<button class="filter-chip ${c===activeFilter?'active':''}" onclick="filterParts('${c}')">${c}</button>`
+  ).join('');
+
+  renderParts();
+}
+
+function filterParts(cat) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.toggle('active', b.textContent === cat));
+  renderParts();
+}
+
+function renderParts() {
+  const parts = activeFilter === 'All' ? PARTS_DATA : PARTS_DATA.filter(p => p.cat === activeFilter);
+  document.getElementById('partsList').innerHTML = parts.map(p => `
+    <div class="part-card">
+      <div class="part-img">${p.icon}</div>
+      <div class="part-body">
+        <div class="part-brand">${p.brand}</div>
+        <div class="part-name">${p.name}</div>
+        <div class="part-compat">✓ Fits your car</div>
+        <div><span class="part-price">${p.price}</span>${p.old?`<span class="part-price-old">${p.old}</span>`:''}</div>
+      </div>
+      <button class="cart-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></button>
+    </div>`).join('');
+}
+
+function goToResults() {
+  if (!selectedCar) return;
+  switchTab(3);
+}
+</script>
+</body>
+</html>
