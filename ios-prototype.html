@@ -678,126 +678,113 @@ body {
           <div class="nav-bar">
             <div class="nav-large-title">Car Finder</div>
           </div>
-          <div class="search-bar-wrap">
-            <div class="search-bar" onclick="switchTab(1)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <span class="search-bar-text">Make, model or year...</span>
-            </div>
-          </div>
 
-          <!-- Selector card -->
-          <div class="section-title" style="padding-left:16px;padding-right:16px;padding-top:4px">Select Your Car</div>
-
-          <div class="selector-card" id="homeSelectorCard">
-            <div id="homeLoader" class="screen-loader" style="padding:20px">
-              <div class="spinner"></div>
-              <div class="loader-text">Loading database...</div>
+          <!-- Main card: Reg / Select Car tabs -->
+          <div class="selector-card" style="margin-top:12px">
+            <!-- Home segmented control -->
+            <div class="seg-control" style="margin:0 0 14px">
+              <button class="seg-btn active" id="home-seg-reg" onclick="switchHomeSeg('reg')">Reg Number</button>
+              <button class="seg-btn" id="home-seg-car" onclick="switchHomeSeg('car')">Select Car</button>
             </div>
-            <div id="homeSelector" style="display:none">
-              <div class="sel-field">
-                <div class="sel-label">Make</div>
-                <select class="sel-select" id="hsMaker"><option value="">Select make</option></select>
+
+            <!-- Reg Number panel -->
+            <div id="home-panel-reg">
+              <div class="uk-plate-wrap">
+                <div class="uk-plate-badge">
+                  <span class="uk-plate-stars">★★★★★★★★★★★★</span>
+                  <span class="uk-plate-gb">GB</span>
+                </div>
+                <input class="uk-plate-input" id="regInput" type="text" placeholder="AB12 CDE" maxlength="8" autocomplete="off" spellcheck="false">
               </div>
-              <div class="sel-row">
+              <button class="reg-lookup-btn" onclick="lookupReg()">Look Up Vehicle</button>
+
+              <!-- Result -->
+              <div class="reg-result" id="regResult">
+                <div class="reg-result-header">
+                  <div class="reg-result-plate" id="regResultPlate"></div>
+                  <div class="reg-result-car">
+                    <div class="reg-result-name" id="regResultName"></div>
+                    <div class="reg-result-sub" id="regResultSub"></div>
+                  </div>
+                  <div class="reg-result-check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                </div>
+                <div class="reg-result-rows" id="regResultRows"></div>
+                <div class="reg-result-footer">
+                  <button class="reg-find-btn reg-find-btn-primary" onclick="regFindParts()">Find Parts</button>
+                  <button class="reg-find-btn reg-find-btn-ghost" id="regSaveBtn" onclick="saveRegCar()">Save to Garage</button>
+                </div>
+              </div>
+
+              <!-- Not found -->
+              <div id="regNotFound" style="display:none;margin-top:12px">
+                <div class="empty-state" style="padding:24px 8px">
+                  <div class="empty-icon">🔍</div>
+                  <div class="empty-title">Not found</div>
+                  <div class="empty-sub">No vehicle found for this registration.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Select Car panel -->
+            <div id="home-panel-car" style="display:none">
+              <div id="homeLoader" class="screen-loader" style="padding:20px">
+                <div class="spinner"></div>
+                <div class="loader-text">Loading database...</div>
+              </div>
+              <div id="homeSelector" style="display:none">
                 <div class="sel-field">
-                  <div class="sel-label">Year</div>
-                  <select class="sel-select" id="hsYear" disabled><option value="">Year</option></select>
+                  <div class="sel-label">Make</div>
+                  <select class="sel-select" id="hsMaker"><option value="">Select make</option></select>
+                </div>
+                <div class="sel-row">
+                  <div class="sel-field">
+                    <div class="sel-label">Year</div>
+                    <select class="sel-select" id="hsYear" disabled><option value="">Year</option></select>
+                  </div>
+                  <div class="sel-field">
+                    <div class="sel-label">Model</div>
+                    <select class="sel-select" id="hsModel" disabled><option value="">Model</option></select>
+                  </div>
                 </div>
                 <div class="sel-field">
-                  <div class="sel-label">Model</div>
-                  <select class="sel-select" id="hsModel" disabled><option value="">Model</option></select>
+                  <div class="sel-label">Engine / Trim</div>
+                  <select class="sel-select" id="hsCar" disabled><option value="">Engine / Trim</option></select>
                 </div>
+                <div class="car-result" id="hsResult">
+                  <div class="car-result-name" id="hsResultName"></div>
+                  <div class="car-result-meta" id="hsResultMeta"></div>
+                </div>
+                <button class="find-btn" id="hsFindBtn" onclick="goToResults()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Find Parts
+                </button>
               </div>
-              <div class="sel-field">
-                <div class="sel-label">Engine / Trim</div>
-                <select class="sel-select" id="hsCar" disabled><option value="">Engine / Trim</option></select>
-              </div>
-              <div class="car-result" id="hsResult">
-                <div class="car-result-name" id="hsResultName"></div>
-                <div class="car-result-meta" id="hsResultMeta"></div>
-              </div>
-              <button class="find-btn" id="hsFindBtn" onclick="goToResults()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                Find Parts
-              </button>
             </div>
           </div>
 
           <!-- My Garage -->
-          <div class="section-title" style="padding-left:16px;padding-right:16px;padding-top:0px">My Garage</div>
+          <div class="section-title" style="padding-left:16px;padding-right:16px;padding-top:4px">My Garage</div>
           <div id="homeGarage" style="padding:0 16px 24px"></div>
         </div>
 
         <!-- ── SEARCH SCREEN ── -->
         <div class="screen" id="screen-search">
-          <!-- Cancel row -->
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
-            <div style="font-size:17px;font-weight:600;color:var(--text)">Search</div>
+          <div class="search-input-wrap">
+            <div class="search-input-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="searchInput" type="text" placeholder="Make, model or year..." autocomplete="off" spellcheck="false">
+            </div>
             <button class="search-cancel" onclick="switchTab(0)">Cancel</button>
           </div>
-
-          <!-- Segmented control -->
-          <div class="seg-control">
-            <button class="seg-btn active" id="seg-reg" onclick="switchSeg('reg')">Reg Number</button>
-            <button class="seg-btn" id="seg-car" onclick="switchSeg('car')">Make &amp; Model</button>
-          </div>
-
-          <!-- Reg Number panel -->
-          <div id="panel-reg" class="reg-panel">
-            <div class="uk-plate-wrap">
-              <div class="uk-plate-badge">
-                <span class="uk-plate-stars">★★★★★★★★★★★★</span>
-                <span class="uk-plate-gb">GB</span>
-              </div>
-              <input class="uk-plate-input" id="regInput" type="text" placeholder="AB12 CDE" maxlength="8" autocomplete="off" spellcheck="false">
+          <div id="searchResults">
+            <div class="section-title-sm" style="padding-left:16px;padding-right:16px">Recent</div>
+            <div class="card" style="margin:0 16px">
+              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">BMW 3er 2018</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">Toyota Corolla 2020</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
             </div>
-            <button class="reg-lookup-btn" onclick="lookupReg()">Look Up Vehicle</button>
-
-            <!-- Mock result -->
-            <div class="reg-result" id="regResult">
-              <div class="reg-result-header">
-                <div class="reg-result-plate" id="regResultPlate">AB12 CDE</div>
-                <div class="reg-result-car">
-                  <div class="reg-result-name" id="regResultName"></div>
-                  <div class="reg-result-sub" id="regResultSub"></div>
-                </div>
-                <div class="reg-result-check">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </div>
-              <div class="reg-result-rows" id="regResultRows"></div>
-              <div class="reg-result-footer">
-                <button class="reg-find-btn reg-find-btn-primary" onclick="regFindParts()">Find Parts</button>
-                <button class="reg-find-btn reg-find-btn-ghost" onclick="saveRegCar()">Save to Garage</button>
-              </div>
-            </div>
-
-            <!-- Not found -->
-            <div id="regNotFound" style="display:none;margin-top:16px">
-              <div class="empty-state" style="padding:32px 16px">
-                <div class="empty-icon">🔍</div>
-                <div class="empty-title">Not found</div>
-                <div class="empty-sub">No vehicle found for this registration. Check the plate and try again.</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Make & Model panel -->
-          <div id="panel-car" style="display:none">
-            <div class="search-input-wrap" style="position:static;padding:0 16px 8px">
-              <div class="search-input-box" style="flex:1">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                <input id="searchInput" type="text" placeholder="Make, model or year..." autocomplete="off" spellcheck="false">
-              </div>
-            </div>
-            <div id="searchResults">
-              <div class="section-title-sm" style="padding-left:16px;padding-right:16px">Recent</div>
-              <div class="card" style="margin:0 16px">
-                <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">BMW 3er 2018</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
-                <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">Toyota Corolla 2020</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
-              </div>
-              <div id="searchDropdownList"></div>
-            </div>
+            <div id="searchDropdownList"></div>
           </div>
         </div>
 
@@ -900,16 +887,20 @@ function switchTab(idx) {
 
   currentTab = idx;
 
-  if (idx === 1) setTimeout(() => {
-    const regActive = document.getElementById('seg-reg').classList.contains('active');
-    if (regActive) document.getElementById('regInput').focus();
-    else document.getElementById('searchInput').focus();
-  }, 300);
+  if (idx === 1) setTimeout(() => document.getElementById('searchInput').focus(), 300);
   if (idx === 2) renderGarage();
   if (idx === 3) renderResults();
 }
 
 // ── Home Selector ─────────────────────────────────────────────
+
+function switchHomeSeg(seg) {
+  document.getElementById('home-seg-reg').classList.toggle('active', seg === 'reg');
+  document.getElementById('home-seg-car').classList.toggle('active', seg === 'car');
+  document.getElementById('home-panel-reg').style.display = seg === 'reg' ? 'block' : 'none';
+  document.getElementById('home-panel-car').style.display = seg === 'car' ? 'block' : 'none';
+  if (seg === 'reg') setTimeout(() => document.getElementById('regInput').focus(), 100);
+}
 
 function initHomeSelector() {
   document.getElementById('homeLoader').style.display = 'none';
@@ -1080,17 +1071,6 @@ function removeGarageCar(idx) {
   renderHomeGarage();
 }
 
-// ── Segmented control ─────────────────────────────────────────
-
-function switchSeg(seg) {
-  document.getElementById('seg-reg').classList.toggle('active', seg === 'reg');
-  document.getElementById('seg-car').classList.toggle('active', seg === 'car');
-  document.getElementById('panel-reg').style.display = seg === 'reg' ? 'block' : 'none';
-  document.getElementById('panel-car').style.display = seg === 'car' ? 'block' : 'none';
-  if (seg === 'car') setTimeout(() => document.getElementById('searchInput').focus(), 100);
-  if (seg === 'reg') setTimeout(() => document.getElementById('regInput').focus(), 100);
-}
-
 // ── UK Reg lookup ─────────────────────────────────────────────
 
 // Mock DVLA database keyed by normalised plate
@@ -1185,7 +1165,7 @@ function saveRegCar() {
   }) || ALL_CARS[0];
   if (car) saveToGarage(car);
   // Visual feedback
-  const btn = event.target;
+  const btn = document.getElementById('regSaveBtn');
   btn.textContent = '✓ Saved'; btn.style.color = 'var(--green)';
   setTimeout(() => { btn.textContent = 'Save to Garage'; btn.style.color = ''; }, 2000);
 }
