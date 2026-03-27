@@ -323,6 +323,51 @@ body {
 .car-result-name { font-size: 15px; font-weight: 600; color: var(--blue); }
 .car-result-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
 
+/* ── Home selected car header ── */
+.home-car-header {
+  background: linear-gradient(135deg, #1c3557 0%, #0d1f35 100%);
+  padding: 14px 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  position: relative;
+}
+.home-car-art {
+  width: 100px; height: 64px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.home-car-lines { flex: 1; min-width: 0; }
+.home-car-line1 {
+  font-size: 19px; font-weight: 800; color: #fff;
+  letter-spacing: -.4px; line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.home-car-line2 {
+  font-size: 13px; color: rgba(255,255,255,.65); margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.home-car-line3 { margin-top: 7px; }
+.home-car-reg {
+  display: inline-flex; align-items: center; gap: 0;
+  background: #F5C518; border: 1.5px solid #111;
+  border-radius: 5px; overflow: hidden;
+  font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+}
+.home-car-reg-badge-gb {
+  background: #003DA5; padding: 2px 5px;
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 8px; font-weight: 900; color: #fff; letter-spacing: .5px;
+  line-height: 1.3;
+}
+.home-car-reg-text {
+  padding: 2px 8px; font-size: 14px; font-weight: 900;
+  color: #111; letter-spacing: 2px;
+}
+.home-car-change {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 13px; color: rgba(255,255,255,.55);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  padding: 4px 0;
+}
+
 /* ── Segmented control ── */
 .seg-control {
   display: flex;
@@ -675,8 +720,10 @@ body {
 
         <!-- ── HOME SCREEN ── -->
         <div class="screen active" id="screen-home">
-          <div class="nav-bar">
-            <div class="nav-large-title">Car Finder</div>
+          <div id="homeNavArea">
+            <div class="nav-bar">
+              <div class="nav-large-title">Car Finder</div>
+            </div>
           </div>
 
           <!-- Autocomplete search bar -->
@@ -861,6 +908,7 @@ body {
 let ALL_CARS = [], MAKERS = [];
 let currentTab = 0;
 let selectedCar = null;
+let selectedRegPlate = null;
 let garage = JSON.parse(localStorage.getItem('ios_garage') || '[]');
 let searchDebounce;
 
@@ -905,6 +953,66 @@ function switchTab(idx) {
   if (idx === 1) setTimeout(() => document.getElementById('searchInput').focus(), 300);
   if (idx === 2) renderGarage();
   if (idx === 3) renderResults();
+}
+
+// ── Home header ───────────────────────────────────────────────
+
+function updateHomeHeader() {
+  const area = document.getElementById('homeNavArea');
+  if (!selectedCar) {
+    area.innerHTML = `<div class="nav-bar"><div class="nav-large-title">Car Finder</div></div>`;
+    return;
+  }
+  const maker = MAKERS.find(m => m.id === selectedCar[0]);
+  const line1 = `${maker?.n || ''} ${selectedCar[2]}`;
+  const line2parts = [
+    selectedCar[4],
+    selectedCar[8] ? `${selectedCar[8]} kW` : '',
+    selectedCar[6] ? `${selectedCar[6]}${selectedCar[7] ? '–' + selectedCar[7] : '+'}` : ''
+  ].filter(Boolean);
+  const line2 = line2parts.join(' · ');
+
+  const regHTML = selectedRegPlate
+    ? `<div class="home-car-reg">
+        <div class="home-car-reg-badge-gb"><span style="font-size:6px">★★★</span>GB</div>
+        <div class="home-car-reg-text">${selectedRegPlate}</div>
+       </div>`
+    : `<div style="font-size:12px;color:rgba(255,255,255,.5)">${selectedCar[5] || ''}</div>`;
+
+  area.innerHTML = `
+    <div class="home-car-header">
+      <div class="home-car-art">
+        <svg viewBox="0 0 110 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 38 L6 31 Q6 29 8 28 L20 28 L36 16 Q41 11 52 11 L70 11 Q80 11 86 18 L100 28 L104 28 Q106 28 106 30 L106 38 Z"
+            fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M38 27 L50 15 Q54 11 61 11 L70 11 L80 18 L80 27 Z"
+            fill="rgba(120,190,255,.35)" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+          <path d="M82 27 L82 19 L86 19 L92 27 Z"
+            fill="rgba(120,190,255,.25)" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+          <circle cx="28" cy="38" r="9" fill="#0d1f35" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>
+          <circle cx="28" cy="38" r="5" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+          <circle cx="28" cy="38" r="2" fill="rgba(255,255,255,.3)"/>
+          <circle cx="86" cy="38" r="9" fill="#0d1f35" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>
+          <circle cx="86" cy="38" r="5" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+          <circle cx="86" cy="38" r="2" fill="rgba(255,255,255,.3)"/>
+          <rect x="7" y="29" width="3" height="6" rx="1" fill="rgba(255,90,90,.8)"/>
+          <ellipse cx="102" cy="31" rx="4" ry="3" fill="rgba(255,240,120,.7)"/>
+          <line x1="10" y1="47" x2="100" y2="47" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="home-car-lines">
+        <div class="home-car-line1">${line1}</div>
+        <div class="home-car-line2">${line2}</div>
+        <div class="home-car-line3">${regHTML}</div>
+      </div>
+      <button class="home-car-change" onclick="clearSelectedCar()">Change</button>
+    </div>`;
+}
+
+function clearSelectedCar() {
+  selectedCar = null;
+  selectedRegPlate = null;
+  updateHomeHeader();
 }
 
 // ── Home Selector ─────────────────────────────────────────────
@@ -1001,7 +1109,8 @@ function hsOnCar() {
   document.getElementById('hsResultMeta').textContent = `${car[5] || ''}${car[8] ? ' · ' + car[8] + ' kW / ' + car[9] + ' hp' : ''} · ${car[6] || ''}${car[7] ? '–' + car[7] : '+'}`;
   result.classList.add('show');
 
-  // Auto-save to garage
+  selectedRegPlate = null;
+  updateHomeHeader();
   saveToGarage(car);
 }
 
@@ -1076,6 +1185,8 @@ function selectGarageCar(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
   selectedCar = car;
+  selectedRegPlate = null;
+  updateHomeHeader();
   switchTab(3);
 }
 
@@ -1162,13 +1273,17 @@ function showRegResult(plate, info) {
 
 function regFindParts() {
   if (!regCarData) return;
-  // Find a matching car in our data or use mock
   const car = ALL_CARS.find(c => {
     const m = MAKERS.find(mk => mk.id === c[0]);
     return m && m.n.toLowerCase() === regCarData.make.toLowerCase() &&
            c[2].toLowerCase().includes(regCarData.model.toLowerCase().split(' ')[0]);
   }) || ALL_CARS[0];
-  if (car) { selectedCar = car; saveToGarage(car); }
+  if (car) {
+    selectedCar = car;
+    selectedRegPlate = document.getElementById('regResultPlate').textContent;
+    updateHomeHeader();
+    saveToGarage(car);
+  }
   switchTab(3);
 }
 
@@ -1247,6 +1362,8 @@ function pickHomeResult(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
   selectedCar = car;
+  selectedRegPlate = null;
+  updateHomeHeader();
   saveToGarage(car);
   clearHomeSearch();
   switchTab(3);
@@ -1306,6 +1423,8 @@ function pickSearchResult(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
   selectedCar = car;
+  selectedRegPlate = null;
+  updateHomeHeader();
   saveToGarage(car);
   document.getElementById('searchInput').value = '';
   document.getElementById('searchDropdownList').innerHTML = '';
