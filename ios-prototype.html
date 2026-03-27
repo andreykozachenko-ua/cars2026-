@@ -323,12 +323,129 @@ body {
 .car-result-name { font-size: 15px; font-weight: 600; color: var(--blue); }
 .car-result-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
 
+/* ── Segmented control ── */
+.seg-control {
+  display: flex;
+  background: var(--fill);
+  border-radius: 9px;
+  padding: 2px;
+  margin: 10px 16px 8px;
+}
+.seg-btn {
+  flex: 1; padding: 7px 4px;
+  border: none; background: transparent;
+  border-radius: 7px; font-size: 13px; font-weight: 600;
+  color: var(--text2); cursor: pointer; font-family: inherit;
+  transition: all .2s;
+}
+.seg-btn.active {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+
+/* ── UK Reg plate ── */
+.reg-panel { padding: 0 16px 8px; }
+
+.uk-plate-wrap {
+  display: flex; align-items: center;
+  background: #F5C518;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+  overflow: hidden;
+  height: 62px;
+}
+
+.uk-plate-badge {
+  width: 38px; height: 100%;
+  background: #003DA5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  flex-shrink: 0;
+}
+.uk-plate-stars { font-size: 8px; color: #FFD700; letter-spacing: 1px; line-height: 1; }
+.uk-plate-gb { font-size: 12px; font-weight: 900; color: #fff; letter-spacing: 1px; line-height: 1; }
+
+.uk-plate-input {
+  flex: 1; border: none; background: transparent;
+  font-size: 32px; font-weight: 900;
+  color: #1a1a1a; text-align: center;
+  letter-spacing: 4px; text-transform: uppercase;
+  outline: none; font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+  padding: 0 8px;
+}
+.uk-plate-input::placeholder { color: rgba(26,26,26,.35); letter-spacing: 2px; }
+
+.reg-lookup-btn {
+  width: 100%; margin-top: 12px; padding: 14px;
+  background: var(--blue); border: none; border-radius: 12px;
+  color: #fff; font-size: 17px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: opacity .15s;
+}
+.reg-lookup-btn:active { opacity: .8; }
+
+/* Reg result card */
+.reg-result {
+  background: var(--card); border-radius: 14px;
+  margin-top: 14px; overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  display: none;
+}
+.reg-result.show { display: block; }
+
+.reg-result-header {
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: .5px solid var(--sep);
+}
+.reg-result-plate {
+  background: #F5C518; border: 2px solid #1a1a1a;
+  border-radius: 6px; padding: 3px 10px;
+  font-size: 15px; font-weight: 900; color: #1a1a1a;
+  letter-spacing: 3px; font-family: 'Arial Black', sans-serif;
+  flex-shrink: 0;
+}
+.reg-result-car { flex: 1; }
+.reg-result-name { font-size: 16px; font-weight: 700; color: var(--text); }
+.reg-result-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.reg-result-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--green); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.reg-result-check svg { width: 16px; height: 16px; color: #fff; }
+
+.reg-result-rows { }
+.reg-result-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px;
+  border-bottom: .5px solid var(--sep);
+  font-size: 14px;
+}
+.reg-result-row:last-child { border-bottom: none; }
+.reg-result-label { color: var(--text2); }
+.reg-result-val { font-weight: 600; color: var(--text); }
+
+.reg-result-footer {
+  padding: 12px 16px;
+  display: flex; gap: 8px;
+  border-top: .5px solid var(--sep);
+}
+.reg-find-btn {
+  flex: 1; padding: 12px;
+  border-radius: 10px; border: none;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.reg-find-btn-primary { background: var(--blue); color: #fff; }
+.reg-find-btn-ghost { background: var(--fill); color: var(--text); }
+
 /* ── Search screen ── */
 .search-input-wrap {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 16px 8px;
   background: var(--bg);
-  position: sticky; top: 0; z-index: 50;
 }
 
 .search-input-box {
@@ -613,22 +730,74 @@ body {
 
         <!-- ── SEARCH SCREEN ── -->
         <div class="screen" id="screen-search">
-          <div class="search-input-wrap">
-            <div class="search-input-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input id="searchInput" type="text" placeholder="Make, model or year..." autocomplete="off" spellcheck="false">
-            </div>
+          <!-- Cancel row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 0">
+            <div style="font-size:17px;font-weight:600;color:var(--text)">Search</div>
             <button class="search-cancel" onclick="switchTab(0)">Cancel</button>
           </div>
 
-          <!-- Results / recent -->
-          <div id="searchResults">
-            <div class="section-title-sm" style="padding-left:16px;padding-right:16px">Recent</div>
-            <div class="card" style="margin:0 16px">
-              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">BMW 3er 2018</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
-              <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">Toyota Corolla 2020</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+          <!-- Segmented control -->
+          <div class="seg-control">
+            <button class="seg-btn active" id="seg-reg" onclick="switchSeg('reg')">Reg Number</button>
+            <button class="seg-btn" id="seg-car" onclick="switchSeg('car')">Make &amp; Model</button>
+          </div>
+
+          <!-- Reg Number panel -->
+          <div id="panel-reg" class="reg-panel">
+            <div class="uk-plate-wrap">
+              <div class="uk-plate-badge">
+                <span class="uk-plate-stars">★★★★★★★★★★★★</span>
+                <span class="uk-plate-gb">GB</span>
+              </div>
+              <input class="uk-plate-input" id="regInput" type="text" placeholder="AB12 CDE" maxlength="8" autocomplete="off" spellcheck="false">
             </div>
-            <div id="searchDropdownList"></div>
+            <button class="reg-lookup-btn" onclick="lookupReg()">Look Up Vehicle</button>
+
+            <!-- Mock result -->
+            <div class="reg-result" id="regResult">
+              <div class="reg-result-header">
+                <div class="reg-result-plate" id="regResultPlate">AB12 CDE</div>
+                <div class="reg-result-car">
+                  <div class="reg-result-name" id="regResultName"></div>
+                  <div class="reg-result-sub" id="regResultSub"></div>
+                </div>
+                <div class="reg-result-check">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+              <div class="reg-result-rows" id="regResultRows"></div>
+              <div class="reg-result-footer">
+                <button class="reg-find-btn reg-find-btn-primary" onclick="regFindParts()">Find Parts</button>
+                <button class="reg-find-btn reg-find-btn-ghost" onclick="saveRegCar()">Save to Garage</button>
+              </div>
+            </div>
+
+            <!-- Not found -->
+            <div id="regNotFound" style="display:none;margin-top:16px">
+              <div class="empty-state" style="padding:32px 16px">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-title">Not found</div>
+                <div class="empty-sub">No vehicle found for this registration. Check the plate and try again.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Make & Model panel -->
+          <div id="panel-car" style="display:none">
+            <div class="search-input-wrap" style="position:static;padding:0 16px 8px">
+              <div class="search-input-box" style="flex:1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input id="searchInput" type="text" placeholder="Make, model or year..." autocomplete="off" spellcheck="false">
+              </div>
+            </div>
+            <div id="searchResults">
+              <div class="section-title-sm" style="padding-left:16px;padding-right:16px">Recent</div>
+              <div class="card" style="margin:0 16px">
+                <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">BMW 3er 2018</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+                <div class="recent-item"><span class="recent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="recent-text">Toyota Corolla 2020</span><span class="recent-clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span></div>
+              </div>
+              <div id="searchDropdownList"></div>
+            </div>
           </div>
         </div>
 
@@ -731,7 +900,11 @@ function switchTab(idx) {
 
   currentTab = idx;
 
-  if (idx === 1) setTimeout(() => document.getElementById('searchInput').focus(), 300);
+  if (idx === 1) setTimeout(() => {
+    const regActive = document.getElementById('seg-reg').classList.contains('active');
+    if (regActive) document.getElementById('regInput').focus();
+    else document.getElementById('searchInput').focus();
+  }, 300);
   if (idx === 2) renderGarage();
   if (idx === 3) renderResults();
 }
@@ -905,6 +1078,116 @@ function removeGarageCar(idx) {
   localStorage.setItem('ios_garage', JSON.stringify(garage));
   renderGarage();
   renderHomeGarage();
+}
+
+// ── Segmented control ─────────────────────────────────────────
+
+function switchSeg(seg) {
+  document.getElementById('seg-reg').classList.toggle('active', seg === 'reg');
+  document.getElementById('seg-car').classList.toggle('active', seg === 'car');
+  document.getElementById('panel-reg').style.display = seg === 'reg' ? 'block' : 'none';
+  document.getElementById('panel-car').style.display = seg === 'car' ? 'block' : 'none';
+  if (seg === 'car') setTimeout(() => document.getElementById('searchInput').focus(), 100);
+  if (seg === 'reg') setTimeout(() => document.getElementById('regInput').focus(), 100);
+}
+
+// ── UK Reg lookup ─────────────────────────────────────────────
+
+// Mock DVLA database keyed by normalised plate
+const MOCK_DVLA = {
+  'AB12CDE': { make:'Ford',    model:'Focus',   trim:'1.0 EcoBoost 100ps Zetec', year:2012, fuel:'Petrol', kw:74, hp:100, colour:'Silver', mot:'2025-11-18' },
+  'LK68ABC': { make:'Vauxhall',model:'Astra',   trim:'1.4T 150ps SRi', year:2018, fuel:'Petrol', kw:110, hp:150, colour:'Black', mot:'2025-07-04' },
+  'CE19XYZ': { make:'BMW',     model:'320d',    trim:'2.0d 190ps M Sport', year:2019, fuel:'Diesel', kw:140, hp:190, colour:'White', mot:'2026-01-22' },
+  'YD65MNP': { make:'Toyota',  model:'Corolla', trim:'1.8 VVT-i Hybrid Icon', year:2015, fuel:'Hybrid', kw:100, hp:136, colour:'Blue',  mot:'2025-09-30' },
+  'SG22RFT': { make:'Kia',     model:'Sportage', trim:'1.6T HEV GT-Line S', year:2022, fuel:'Hybrid', kw:132, hp:180, colour:'Red',   mot:'2027-03-14' },
+};
+
+let regCarData = null;
+
+// Auto-format & uppercase
+document.getElementById('regInput').addEventListener('input', function() {
+  let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (v.length > 4) v = v.slice(0,4) + ' ' + v.slice(4,7);
+  this.value = v;
+  document.getElementById('regResult').classList.remove('show');
+  document.getElementById('regNotFound').style.display = 'none';
+  regCarData = null;
+});
+
+document.getElementById('regInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupReg();
+});
+
+function lookupReg() {
+  const raw = document.getElementById('regInput').value.replace(/\s/g,'').toUpperCase();
+  if (raw.length < 2) return;
+
+  document.getElementById('regResult').classList.remove('show');
+  document.getElementById('regNotFound').style.display = 'none';
+  regCarData = null;
+
+  // Try mock DB
+  const found = MOCK_DVLA[raw];
+  if (found) {
+    showRegResult(raw, found);
+  } else {
+    // Try matching against real cars_data by make prefix
+    const prefix = raw.slice(0,2).toLowerCase();
+    const match = ALL_CARS.find(c => {
+      const m = MAKERS.find(mk => mk.id === c[0]);
+      return m && m.n.toLowerCase().startsWith(prefix[0]);
+    });
+    if (match && ALL_CARS.length) {
+      const maker = MAKERS.find(m => m.id === match[0]);
+      showRegResult(raw, {
+        make: maker?.n, model: match[2], trim: match[4],
+        year: match[6] || 2018, fuel: match[5] || 'Petrol',
+        kw: match[8], hp: match[9], colour: 'Unknown', mot: '2025-12-01'
+      });
+    } else {
+      document.getElementById('regNotFound').style.display = 'block';
+    }
+  }
+}
+
+function showRegResult(plate, info) {
+  regCarData = info;
+  const formatted = plate.length >= 5 ? plate.slice(0,4) + ' ' + plate.slice(4) : plate;
+  document.getElementById('regResultPlate').textContent = formatted;
+  document.getElementById('regResultName').textContent = `${info.make} ${info.model}`;
+  document.getElementById('regResultSub').textContent = `${info.year} · ${info.trim}`;
+  document.getElementById('regResultRows').innerHTML = [
+    ['Fuel type', info.fuel],
+    ['Power', info.kw ? `${info.kw} kW / ${info.hp} hp` : '—'],
+    ['Colour', info.colour],
+    ['MOT expiry', info.mot],
+  ].map(([l,v]) => `<div class="reg-result-row"><span class="reg-result-label">${l}</span><span class="reg-result-val">${v}</span></div>`).join('');
+  document.getElementById('regResult').classList.add('show');
+}
+
+function regFindParts() {
+  if (!regCarData) return;
+  // Find a matching car in our data or use mock
+  const car = ALL_CARS.find(c => {
+    const m = MAKERS.find(mk => mk.id === c[0]);
+    return m && m.n.toLowerCase() === regCarData.make.toLowerCase() &&
+           c[2].toLowerCase().includes(regCarData.model.toLowerCase().split(' ')[0]);
+  }) || ALL_CARS[0];
+  if (car) { selectedCar = car; saveToGarage(car); }
+  switchTab(3);
+}
+
+function saveRegCar() {
+  if (!regCarData) return;
+  const car = ALL_CARS.find(c => {
+    const m = MAKERS.find(mk => mk.id === c[0]);
+    return m && m.n.toLowerCase() === regCarData.make.toLowerCase();
+  }) || ALL_CARS[0];
+  if (car) saveToGarage(car);
+  // Visual feedback
+  const btn = event.target;
+  btn.textContent = '✓ Saved'; btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'Save to Garage'; btn.style.color = ''; }, 2000);
 }
 
 // ── Search ────────────────────────────────────────────────────
