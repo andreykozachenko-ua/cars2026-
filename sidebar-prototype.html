@@ -19,56 +19,34 @@ body {
   padding: 14px 24px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.demo-logo {
-  font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
-}
+.demo-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
 .demo-logo span { color: #e8a020; }
-
 .demo-nav { display: flex; gap: 24px; }
-.demo-nav a {
-  color: rgba(255,255,255,.65); font-size: 14px; text-decoration: none;
-  transition: color .2s;
-}
-.demo-nav a:hover { color: #fff; }
+.demo-nav a { color: rgba(255,255,255,.6); font-size: 14px; text-decoration: none; }
 
 .demo-hero {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-  padding: 64px 24px;
-  text-align: center;
-  color: #fff;
+  padding: 64px 24px; text-align: center; color: #fff;
 }
-.demo-hero h1 {
-  font-size: 42px; font-weight: 800; letter-spacing: -1px;
-  margin-bottom: 12px;
-}
+.demo-hero h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
 .demo-hero h1 span { color: #e8a020; }
-.demo-hero p {
-  font-size: 18px; color: rgba(255,255,255,.65);
-  margin-bottom: 36px;
-}
+.demo-hero p { font-size: 18px; color: rgba(255,255,255,.6); margin-bottom: 36px; }
 
 .open-btn {
   display: inline-flex; align-items: center; gap: 10px;
-  background: #e8a020; color: #fff;
-  border: none; border-radius: 10px;
-  padding: 16px 32px;
-  font-size: 17px; font-weight: 700;
-  cursor: pointer; font-family: inherit;
-  transition: background .2s, transform .1s;
+  background: #e8a020; color: #fff; border: none; border-radius: 10px;
+  padding: 16px 32px; font-size: 17px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background .2s;
   box-shadow: 0 4px 20px rgba(232,160,32,.4);
 }
 .open-btn:hover { background: #d4911a; }
-.open-btn:active { transform: scale(.98); }
 .open-btn svg { width: 20px; height: 20px; }
 
-.demo-content {
+.demo-cards {
   max-width: 960px; margin: 48px auto; padding: 0 24px;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px;
 }
-.demo-card {
-  background: #fff; border-radius: 12px; padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-}
+.demo-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
 .demo-card-icon { font-size: 28px; margin-bottom: 10px; }
 .demo-card h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
 .demo-card p { font-size: 13px; color: #666; line-height: 1.5; }
@@ -76,305 +54,317 @@ body {
 /* ── Overlay ────────────────────────────────────────────── */
 .overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  backdrop-filter: blur(3px);
-  z-index: 100;
-  opacity: 0; pointer-events: none;
-  transition: opacity .3s ease;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(3px);
+  z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity .3s;
 }
 .overlay.open { opacity: 1; pointer-events: all; }
 
-/* ── Sidebar ────────────────────────────────────────────── */
+/* ── Sidebar shell ──────────────────────────────────────── */
 .sidebar {
-  position: fixed;
-  top: 0; right: 0; bottom: 0;
-  width: 420px;
-  background: #fff;
-  z-index: 101;
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 420px; z-index: 101;
   display: flex; flex-direction: column;
   transform: translateX(100%);
   transition: transform .35s cubic-bezier(.32,.72,0,1);
   box-shadow: -8px 0 40px rgba(0,0,0,.15);
+  background: #fff;
+  overflow: hidden;
 }
 .sidebar.open { transform: translateX(0); }
+@media (max-width: 480px) { .sidebar { width: 100%; } }
 
-@media (max-width: 480px) {
-  .sidebar { width: 100%; }
-}
-
-/* Sidebar header */
-.sb-header {
-  flex-shrink: 0;
-  padding: 20px 20px 16px;
+/* Sidebar top header — always visible */
+.sb-topbar {
+  flex-shrink: 0; height: 56px;
+  display: flex; align-items: center;
   border-bottom: 1px solid #eee;
-  display: flex; align-items: center; justify-content: space-between;
-  background: #fff;
+  position: relative; background: #fff; z-index: 10;
 }
-.sb-title { font-size: 20px; font-weight: 800; color: #1a1a2e; letter-spacing: -.4px; }
-.sb-close {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: #f0f2f5; border: none; cursor: pointer;
+.sb-back-btn {
+  width: 56px; height: 56px;
   display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
-  color: #555;
+  border: none; background: none; cursor: pointer; color: #0f3460;
+  font-size: 15px; font-weight: 600; gap: 4px;
+  transition: opacity .15s; flex-shrink: 0;
 }
-.sb-close:hover { background: #e0e2e5; }
-.sb-close svg { width: 16px; height: 16px; }
-
-/* Sidebar body — scrollable */
-.sb-body {
-  flex: 1; overflow-y: auto;
-  padding: 20px;
-  scrollbar-width: thin;
-  scrollbar-color: #ddd transparent;
+.sb-back-btn:hover { opacity: .7; }
+.sb-back-btn svg { width: 18px; height: 18px; }
+.sb-topbar-title {
+  flex: 1; text-align: center;
+  font-size: 17px; font-weight: 700; color: #1a1a2e;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding: 0 4px;
 }
-
-/* Sidebar footer */
-.sb-footer {
+.sb-close-btn {
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; cursor: pointer; color: #888;
   flex-shrink: 0;
-  padding: 16px 20px;
-  border-top: 1px solid #eee;
-  background: #fff;
+}
+.sb-close-btn:hover { color: #333; }
+.sb-close-btn svg { width: 18px; height: 18px; }
+
+/* ── Panels container ───────────────────────────────────── */
+.panels-wrap {
+  flex: 1; position: relative; overflow: hidden;
 }
 
-/* ── Section label ── */
+.panel {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  background: #fff;
+  transition: transform .32s cubic-bezier(.32,.72,0,1);
+  scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent;
+}
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+/* Main panel: always base */
+#panel-main { transform: translateX(0); }
+#panel-main.pushed { transform: translateX(-30%); }
+
+/* Step panels: start off-screen to the right */
+.panel-step { transform: translateX(100%); }
+.panel-step.active { transform: translateX(0); }
+
+/* ── Sidebar footer ─────────────────────────────────────── */
+.sb-footer {
+  flex-shrink: 0; padding: 14px 16px;
+  border-top: 1px solid #eee; background: #fff;
+}
+
+/* ── Main panel content ─────────────────────────────────── */
+.sb-body { padding: 16px; }
+
 .sb-section-label {
-  font-size: 11px; font-weight: 700; color: #999;
+  font-size: 11px; font-weight: 700; color: #aaa;
   text-transform: uppercase; letter-spacing: .8px;
   margin-bottom: 10px;
 }
 
-.sb-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 18px 0;
-  color: #bbb; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
-}
-.sb-divider::before, .sb-divider::after {
-  content: ''; flex: 1; height: 1px; background: #eee;
-}
-
-/* ── UK Reg input ── */
+/* UK Reg */
 .uk-plate-wrap {
   display: flex; align-items: center;
-  background: #F5C518;
-  border-radius: 8px;
-  border: 2px solid #1a1a1a;
-  overflow: hidden;
-  height: 58px;
-  margin-bottom: 10px;
+  background: #F5C518; border-radius: 8px; border: 2px solid #1a1a1a;
+  overflow: hidden; height: 56px; margin-bottom: 10px;
 }
 .uk-plate-badge {
-  width: 36px; height: 100%;
-  background: #003DA5;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1px;
+  width: 36px; height: 100%; background: #003DA5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   flex-shrink: 0;
 }
-.uk-plate-stars { font-size: 7px; color: #FFD700; letter-spacing: 1px; line-height: 1; }
+.uk-plate-stars { font-size: 7px; color: #FFD700; letter-spacing: 1px; }
 .uk-plate-gb { font-size: 11px; font-weight: 900; color: #fff; letter-spacing: 1px; }
 .uk-plate-input {
   flex: 1; border: none; background: transparent;
-  font-size: 28px; font-weight: 900; color: #1a1a1a;
+  font-size: 26px; font-weight: 900; color: #1a1a1a;
   text-align: center; letter-spacing: 4px; text-transform: uppercase;
-  outline: none; font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
-  padding: 0 8px;
+  outline: none; font-family: 'Arial Black', sans-serif; padding: 0 6px;
 }
-.uk-plate-input::placeholder { color: rgba(26,26,26,.3); letter-spacing: 2px; font-size: 22px; }
+.uk-plate-input::placeholder { color: rgba(26,26,26,.3); letter-spacing: 2px; font-size: 20px; }
 
-.reg-lookup-btn {
-  width: 100%; padding: 12px;
+.reg-btn {
+  width: 100%; padding: 11px;
   background: #1a1a2e; border: none; border-radius: 8px;
-  color: #fff; font-size: 15px; font-weight: 700;
+  color: #fff; font-size: 14px; font-weight: 700;
   cursor: pointer; font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: background .15s;
 }
-.reg-lookup-btn:hover { background: #0f3460; }
+.reg-btn:hover { background: #0f3460; }
 
 /* Reg result */
 .reg-result {
   display: none; margin-top: 12px;
-  border: 1.5px solid #e0f0e0; border-radius: 10px; overflow: hidden;
-  background: #f8fff8;
+  border: 1.5px solid #d1fad7; border-radius: 10px; overflow: hidden; background: #f6fff7;
 }
 .reg-result.show { display: block; }
 .reg-result-header {
-  padding: 12px 14px;
-  display: flex; align-items: center; gap: 12px;
-  border-bottom: 1px solid #e0f0e0;
+  padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #d1fad7;
 }
-.reg-result-plate {
-  background: #F5C518; border: 1.5px solid #1a1a1a;
-  border-radius: 5px; padding: 3px 10px;
-  font-size: 13px; font-weight: 900; color: #1a1a1a;
-  letter-spacing: 3px; font-family: 'Arial Black', sans-serif;
-  flex-shrink: 0;
+.rr-plate {
+  background: #F5C518; border: 1.5px solid #111; border-radius: 4px;
+  padding: 2px 8px; font-size: 12px; font-weight: 900; color: #111;
+  letter-spacing: 2px; font-family: 'Arial Black', sans-serif; flex-shrink: 0;
 }
-.reg-result-car { flex: 1; }
-.reg-result-name { font-size: 15px; font-weight: 700; color: #1a1a2e; }
-.reg-result-sub { font-size: 12px; color: #666; margin-top: 2px; }
-.reg-result-ok {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: #22c55e; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+.rr-car { flex: 1; }
+.rr-name { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+.rr-sub { font-size: 12px; color: #666; margin-top: 1px; }
+.rr-check {
+  width: 24px; height: 24px; border-radius: 50%; background: #22c55e;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.reg-result-ok svg { width: 14px; height: 14px; color: #fff; }
-.reg-result-rows { }
-.reg-result-row {
+.rr-check svg { width: 13px; height: 13px; color: #fff; }
+.rr-row {
   display: flex; justify-content: space-between;
-  padding: 8px 14px; border-bottom: 1px solid #e8f5e8;
-  font-size: 13px;
+  padding: 7px 12px; border-bottom: 1px solid #e8f5e8; font-size: 12px;
 }
-.reg-result-row:last-child { border-bottom: none; }
-.reg-result-label { color: #888; }
-.reg-result-val { font-weight: 600; color: #1a1a2e; }
+.rr-row:last-child { border-bottom: none; }
+.rr-label { color: #888; }
+.rr-val { font-weight: 600; color: #1a1a2e; }
 
-.reg-not-found {
-  display: none; margin-top: 10px;
-  padding: 12px 14px; background: #fff5f5;
-  border: 1.5px solid #ffd0d0; border-radius: 8px;
-  font-size: 13px; color: #c0392b;
-  display: flex; align-items: center; gap: 8px;
+.reg-err {
+  display: none; margin-top: 10px; padding: 10px 12px;
+  background: #fff5f5; border: 1.5px solid #ffd0d0; border-radius: 8px;
+  font-size: 13px; color: #c0392b; align-items: center; gap: 8px;
 }
 
-/* ── Autocomplete search ── */
-.search-wrap {
-  position: relative;
+/* Autocomplete */
+.sb-divider {
+  display: flex; align-items: center; gap: 10px; margin: 16px 0;
+  color: #ccc; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
 }
+.sb-divider::before,.sb-divider::after { content:''; flex:1; height:1px; background:#eee; }
+
 .search-box {
   display: flex; align-items: center; gap: 8px;
-  border: 1.5px solid #e0e0e0; border-radius: 8px;
-  padding: 10px 12px; background: #fafafa;
-  transition: border-color .15s;
+  border: 1.5px solid #e8e8e8; border-radius: 8px;
+  padding: 10px 12px; background: #fafafa; transition: border-color .15s;
 }
 .search-box:focus-within { border-color: #0f3460; background: #fff; }
-.search-box svg { width: 16px; height: 16px; color: #999; flex-shrink: 0; }
+.search-box svg { width: 15px; height: 15px; color: #aaa; flex-shrink: 0; }
 .search-box input {
   flex: 1; border: none; background: transparent; outline: none;
   font-size: 15px; color: #1a1a2e; font-family: inherit;
 }
-.search-box input::placeholder { color: #aaa; }
-.search-clear {
-  background: none; border: none; cursor: pointer;
-  color: #bbb; padding: 0; display: none;
-  line-height: 1;
-}
-.search-clear:hover { color: #888; }
-.search-clear svg { width: 16px; height: 16px; }
+.search-box input::placeholder { color: #bbb; }
 
-.autocomplete-dropdown {
-  position: absolute; left: 0; right: 0; top: calc(100% + 6px);
-  background: #fff; border: 1.5px solid #e8e8e8; border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.1);
-  z-index: 200; overflow: hidden;
-  max-height: 280px; overflow-y: auto;
+.ac-dropdown {
+  display: none; margin-top: 6px; background: #fff;
+  border: 1.5px solid #eee; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow: hidden;
 }
 .ac-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; cursor: pointer;
-  border-bottom: 1px solid #f5f5f5;
-  transition: background .1s;
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s;
 }
 .ac-item:last-child { border-bottom: none; }
-.ac-item:hover { background: #f8f9ff; }
-.ac-item-icon {
-  width: 32px; height: 32px; border-radius: 8px; background: #f0f2f5;
+.ac-item:hover { background: #f5f8ff; }
+.ac-icon {
+  width: 30px; height: 30px; border-radius: 7px; background: #f0f2f5;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.ac-item-icon svg { width: 16px; height: 16px; color: #0f3460; }
-.ac-item-body { flex: 1; min-width: 0; }
-.ac-item-main { font-size: 14px; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ac-item-main mark { background: none; color: #0f3460; font-weight: 700; }
-.ac-item-sub { font-size: 12px; color: #888; margin-top: 1px; }
-.ac-item-chevron { color: #ccc; font-size: 14px; }
-.ac-more { padding: 9px 14px; text-align: center; font-size: 12px; color: #999; background: #fafafa; }
+.ac-icon svg { width: 15px; height: 15px; color: #0f3460; }
+.ac-name { font-size: 13px; color: #1a1a2e; }
+.ac-name mark { background: none; color: #0f3460; font-weight: 700; }
+.ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
+.ac-more { padding: 8px 12px; text-align: center; font-size: 12px; color: #aaa; background: #fafafa; }
 
-/* ── Step-by-step selector ── */
-.step-field { margin-bottom: 10px; }
-.step-label {
-  font-size: 11px; font-weight: 700; color: #999;
-  text-transform: uppercase; letter-spacing: .6px;
-  margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+/* ── Step rows (main panel) ─────────────────────────────── */
+.steps-list { border: 1.5px solid #eee; border-radius: 10px; overflow: hidden; }
+
+.step-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 14px; cursor: pointer;
+  background: #fff; border-bottom: 1px solid #f0f0f0;
+  transition: background .1s;
 }
-.step-num {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #e8e8e8; color: #999;
-  font-size: 10px; font-weight: 800;
+.step-row:last-child { border-bottom: none; }
+.step-row:hover { background: #fafbff; }
+.step-row.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+.step-bubble {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: background .2s, color .2s;
+  font-size: 12px; font-weight: 800;
+  background: #f0f2f5; color: #aaa;
+  transition: background .2s, color .2s;
 }
-.step-num.done { background: #0f3460; color: #fff; }
-.step-num.active { background: #e8a020; color: #fff; }
+.step-bubble.active { background: #e8a020; color: #fff; }
+.step-bubble.done { background: #0f3460; color: #fff; }
+.step-bubble.done::after { content: '✓'; font-size: 13px; }
+.step-bubble.done .step-num-text { display: none; }
 
-.step-select {
-  width: 100%; padding: 11px 36px 11px 12px;
-  border: 1.5px solid #e0e0e0; border-radius: 8px;
+.step-row-body { flex: 1; min-width: 0; }
+.step-row-label { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .5px; }
+.step-row-value { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-top: 2px; }
+.step-row-value.placeholder { color: #bbb; font-weight: 400; }
+
+.step-chevron { color: #ccc; font-size: 18px; flex-shrink: 0; }
+.step-row.has-value .step-chevron { color: #0f3460; }
+
+/* ── Step panel (list screen) ───────────────────────────── */
+.step-search-bar {
+  padding: 12px 16px; background: #fff;
+  border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 5;
+}
+.step-search-inner {
+  display: flex; align-items: center; gap: 8px;
+  background: #f0f2f5; border-radius: 8px; padding: 9px 12px;
+}
+.step-search-inner svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
+.step-search-inner input {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 15px; color: #1a1a2e; font-family: inherit;
+}
+.step-search-inner input::placeholder { color: #bbb; }
+
+.step-list-items { }
+
+.step-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px; cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  background: #fff; transition: background .1s;
   font-size: 15px; color: #1a1a2e;
-  background: #fafafa;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-  outline: none; cursor: pointer; font-family: inherit;
-  transition: border-color .15s, background .15s;
 }
-.step-select:focus { border-color: #0f3460; background: #fff; }
-.step-select:disabled { color: #bbb; cursor: not-allowed; background: #f8f8f8; }
-.step-select.filled { border-color: #0f3460; background: #fff; color: #1a1a2e; font-weight: 600; }
+.step-list-item:last-child { border-bottom: none; }
+.step-list-item:hover { background: #f5f8ff; }
+.step-list-item.selected { color: #0f3460; font-weight: 700; background: #f0f5ff; }
+.step-list-item-check { color: #0f3460; font-size: 16px; opacity: 0; }
+.step-list-item.selected .step-list-item-check { opacity: 1; }
+.step-list-item-sub { font-size: 12px; color: #999; margin-top: 2px; font-weight: 400; }
 
-/* ── Selected car result ── */
-.car-selected-card {
-  display: none;
-  background: linear-gradient(135deg, #1a1a2e, #0f3460);
-  border-radius: 10px; padding: 14px 16px; margin-bottom: 4px;
-}
-.car-selected-card.show { display: block; }
-.car-selected-make { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .6px; }
-.car-selected-model { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.3px; margin-top: 2px; }
-.car-selected-trim { font-size: 13px; color: rgba(255,255,255,.7); margin-top: 3px; }
-.car-selected-meta {
-  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
-}
-.car-meta-badge {
-  background: rgba(255,255,255,.12); border-radius: 6px;
-  padding: 3px 10px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85);
+.step-empty {
+  padding: 40px 16px; text-align: center; color: #bbb; font-size: 14px;
 }
 
-/* ── CTA button ── */
-.find-parts-btn {
-  width: 100%; padding: 15px;
+.step-count-badge {
+  font-size: 12px; color: #aaa; font-weight: 400;
+}
+
+/* ── Footer / selected car ──────────────────────────────── */
+.selected-car-card {
+  display: none; background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;
+}
+.selected-car-card.show { display: block; }
+.sc-make { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .5px; }
+.sc-model { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+.sc-trim { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 2px; }
+.sc-badges { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.sc-badge {
+  background: rgba(255,255,255,.12); border-radius: 5px;
+  padding: 2px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8);
+}
+
+.find-btn {
+  width: 100%; padding: 14px;
   background: #e8a020; border: none; border-radius: 10px;
-  color: #fff; font-size: 17px; font-weight: 800;
+  color: #fff; font-size: 16px; font-weight: 800;
   cursor: pointer; font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: background .15s, transform .1s;
-  letter-spacing: -.2px;
+  transition: background .15s; letter-spacing: -.2px;
 }
-.find-parts-btn:hover { background: #d4911a; }
-.find-parts-btn:active { transform: scale(.99); }
-.find-parts-btn:disabled { background: #ddd; cursor: not-allowed; }
-.find-parts-btn svg { width: 20px; height: 20px; }
+.find-btn:hover { background: #d4911a; }
+.find-btn:disabled { background: #ddd; cursor: not-allowed; }
+.find-btn svg { width: 18px; height: 18px; }
 
-.spinner {
-  width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,.3);
-  border-top-color: #fff; border-radius: 50%;
-  animation: spin .7s linear infinite; flex-shrink: 0;
-}
+.spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<!-- ── Demo page ─────────────────────────────────────────── -->
+<!-- Demo page -->
 <div class="demo-header">
   <div class="demo-logo">auto<span>DOC</span></div>
   <nav class="demo-nav">
-    <a href="#">Cars</a>
-    <a href="#">Trucks</a>
-    <a href="#">Motorbikes</a>
-    <a href="#">Brands</a>
+    <a href="#">Cars</a><a href="#">Trucks</a><a href="#">Motorbikes</a><a href="#">Brands</a>
   </nav>
 </div>
-
 <div class="demo-hero">
   <h1>Find parts for <span>your car</span></h1>
   <p>Over 4 million spare parts in stock. Fast delivery across Europe.</p>
@@ -383,321 +373,402 @@ body {
     Select Your Vehicle
   </button>
 </div>
-
-<div class="demo-content">
-  <div class="demo-card">
-    <div class="demo-card-icon">🔍</div>
-    <h3>Reg Number Lookup</h3>
-    <p>Enter your UK registration plate and we'll find your car instantly from DVLA data.</p>
-  </div>
-  <div class="demo-card">
-    <div class="demo-card-icon">🚗</div>
-    <h3>Step-by-Step Selector</h3>
-    <p>Select Make, Year, Model and Engine to narrow down the exact parts that fit.</p>
-  </div>
-  <div class="demo-card">
-    <div class="demo-card-icon">⚡</div>
-    <h3>Instant Match</h3>
-    <p>Every part in our catalogue is checked for compatibility with your exact vehicle.</p>
-  </div>
+<div class="demo-cards">
+  <div class="demo-card"><div class="demo-card-icon">🔍</div><h3>Reg Number Lookup</h3><p>Enter your UK registration plate and we'll find your car instantly.</p></div>
+  <div class="demo-card"><div class="demo-card-icon">🚗</div><h3>Step-by-Step Selector</h3><p>Tap each step to open a searchable list and pick from thousands of options.</p></div>
+  <div class="demo-card"><div class="demo-card-icon">⚡</div><h3>Instant Match</h3><p>Every part is checked for compatibility with your exact vehicle.</p></div>
 </div>
 
-<!-- ── Overlay ─────────────────────────────────────────────── -->
+<!-- Overlay -->
 <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
 
-  <!-- Header -->
-  <div class="sb-header">
-    <div class="sb-title">Select Your Vehicle</div>
-    <button class="sb-close" onclick="closeSidebar()">
+  <!-- Top bar -->
+  <div class="sb-topbar">
+    <button class="sb-back-btn" id="backBtn" onclick="goBack()" style="visibility:hidden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sb-topbar-title" id="topbarTitle">Select Your Vehicle</div>
+    <button class="sb-close-btn" onclick="closeSidebar()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
 
-  <!-- Body -->
-  <div class="sb-body">
+  <!-- Panels -->
+  <div class="panels-wrap">
 
-    <!-- Reg Number -->
-    <div class="sb-section-label">By Registration Number</div>
-    <div class="uk-plate-wrap">
-      <div class="uk-plate-badge">
-        <span class="uk-plate-stars">★★★★</span>
-        <span class="uk-plate-gb">GB</span>
-      </div>
-      <input class="uk-plate-input" id="regInput" type="text" placeholder="AB12 CDE"
-        maxlength="8" autocomplete="off" spellcheck="false">
-    </div>
-    <button class="reg-lookup-btn" onclick="lookupReg()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      Look Up Vehicle
-    </button>
+    <!-- MAIN PANEL -->
+    <div class="panel" id="panel-main">
+      <div class="sb-body">
 
-    <!-- Reg result -->
-    <div class="reg-result" id="regResult">
-      <div class="reg-result-header">
-        <div class="reg-result-plate" id="regResultPlate"></div>
-        <div class="reg-result-car">
-          <div class="reg-result-name" id="regResultName"></div>
-          <div class="reg-result-sub" id="regResultSub"></div>
+        <!-- Reg number -->
+        <div class="sb-section-label">By Registration Number</div>
+        <div class="uk-plate-wrap">
+          <div class="uk-plate-badge">
+            <span class="uk-plate-stars">★★★★</span>
+            <span class="uk-plate-gb">GB</span>
+          </div>
+          <input class="uk-plate-input" id="regInput" type="text" placeholder="AB12 CDE" maxlength="8" autocomplete="off" spellcheck="false">
         </div>
-        <div class="reg-result-ok">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-      <div id="regResultRows"></div>
-    </div>
-
-    <div id="regNotFound" style="display:none; margin-top:10px; padding:10px 14px; background:#fff5f5; border:1.5px solid #ffd0d0; border-radius:8px; font-size:13px; color:#c0392b; display:flex; align-items:center; gap:8px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      No vehicle found for this registration.
-    </div>
-
-    <!-- Search -->
-    <div class="sb-divider">or search by name</div>
-    <div class="sb-section-label">Quick Search</div>
-    <div class="search-wrap">
-      <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="searchInput" type="text" placeholder="e.g. BMW 3er, Golf 2018..." autocomplete="off" spellcheck="false">
-        <button class="search-clear" id="searchClear" onclick="clearSearch()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <button class="reg-btn" onclick="lookupReg()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Look Up Vehicle
         </button>
+
+        <div class="reg-result" id="regResult">
+          <div class="reg-result-header">
+            <div class="rr-plate" id="rrPlate"></div>
+            <div class="rr-car"><div class="rr-name" id="rrName"></div><div class="rr-sub" id="rrSub"></div></div>
+            <div class="rr-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div id="rrRows"></div>
+        </div>
+        <div class="reg-err" id="regErr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          No vehicle found for this registration.
+        </div>
+
+        <!-- Autocomplete -->
+        <div class="sb-divider">or search by name</div>
+        <div class="sb-section-label">Quick Search</div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="text" placeholder="e.g. BMW 3er, Golf 2018…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ac-dropdown" id="acDropdown"></div>
+
+        <!-- Step rows -->
+        <div class="sb-divider">or select step by step</div>
+        <div class="sb-section-label">Manual Selection</div>
+        <div class="steps-list">
+          <div class="step-row disabled" id="row-make" onclick="openStep('make')">
+            <div class="step-bubble active" id="bub-make"><span class="step-num-text">1</span></div>
+            <div class="step-row-body">
+              <div class="step-row-label">Make</div>
+              <div class="step-row-value placeholder" id="val-make">Select make</div>
+            </div>
+            <div class="step-chevron">›</div>
+          </div>
+          <div class="step-row disabled" id="row-year" onclick="openStep('year')">
+            <div class="step-bubble" id="bub-year"><span class="step-num-text">2</span></div>
+            <div class="step-row-body">
+              <div class="step-row-label">Year</div>
+              <div class="step-row-value placeholder" id="val-year">Select year</div>
+            </div>
+            <div class="step-chevron">›</div>
+          </div>
+          <div class="step-row disabled" id="row-model" onclick="openStep('model')">
+            <div class="step-bubble" id="bub-model"><span class="step-num-text">3</span></div>
+            <div class="step-row-body">
+              <div class="step-row-label">Model</div>
+              <div class="step-row-value placeholder" id="val-model">Select model</div>
+            </div>
+            <div class="step-chevron">›</div>
+          </div>
+          <div class="step-row disabled" id="row-engine" onclick="openStep('engine')">
+            <div class="step-bubble" id="bub-engine"><span class="step-num-text">4</span></div>
+            <div class="step-row-body">
+              <div class="step-row-label">Engine / Trim</div>
+              <div class="step-row-value placeholder" id="val-engine">Select engine</div>
+            </div>
+            <div class="step-chevron">›</div>
+          </div>
+        </div>
+
       </div>
-      <div class="autocomplete-dropdown" id="acDropdown" style="display:none"></div>
+    </div><!-- /panel-main -->
+
+    <!-- STEP PANEL (shared for all steps) -->
+    <div class="panel panel-step" id="panel-step">
+      <div class="step-search-bar">
+        <div class="step-search-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stepSearchInput" type="text" placeholder="Search…" autocomplete="off">
+        </div>
+      </div>
+      <div class="step-list-items" id="stepListItems"></div>
     </div>
 
-    <!-- Step selector -->
-    <div class="sb-divider">or select step by step</div>
-    <div class="sb-section-label">Manual Selection</div>
-
-    <div class="step-field">
-      <div class="step-label">
-        <span class="step-num" id="num1">1</span> Make
-      </div>
-      <select class="step-select" id="selMake" onchange="onMake()">
-        <option value="">Select make...</option>
-      </select>
-    </div>
-
-    <div class="step-field">
-      <div class="step-label">
-        <span class="step-num" id="num2">2</span> Year
-      </div>
-      <select class="step-select" id="selYear" disabled onchange="onYear()">
-        <option value="">Select year...</option>
-      </select>
-    </div>
-
-    <div class="step-field">
-      <div class="step-label">
-        <span class="step-num" id="num3">3</span> Model
-      </div>
-      <select class="step-select" id="selModel" disabled onchange="onModel()">
-        <option value="">Select model...</option>
-      </select>
-    </div>
-
-    <div class="step-field">
-      <div class="step-label">
-        <span class="step-num" id="num4">4</span> Engine / Trim
-      </div>
-      <select class="step-select" id="selEngine" disabled onchange="onEngine()">
-        <option value="">Select engine...</option>
-      </select>
-    </div>
-
-  </div>
+  </div><!-- /panels-wrap -->
 
   <!-- Footer -->
   <div class="sb-footer">
-    <div class="car-selected-card" id="selectedCard">
-      <div class="car-selected-make" id="selMakeName"></div>
-      <div class="car-selected-model" id="selModelName"></div>
-      <div class="car-selected-trim" id="selTrimName"></div>
-      <div class="car-selected-meta" id="selMeta"></div>
+    <div class="selected-car-card" id="selectedCard">
+      <div class="sc-make" id="sc-make"></div>
+      <div class="sc-model" id="sc-model"></div>
+      <div class="sc-trim" id="sc-trim"></div>
+      <div class="sc-badges" id="sc-badges"></div>
     </div>
-    <button class="find-parts-btn" id="findBtn" disabled onclick="findParts()">
+    <button class="find-btn" id="findBtn" disabled onclick="findParts()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       Find Parts
     </button>
   </div>
-</div>
+
+</div><!-- /sidebar -->
 
 <script>
 let ALL_CARS = [], MAKERS = [];
 let selectedCar = null;
-let searchDebounce;
-let acVisible = false;
+let stepState = { make: null, year: null, model: null, engine: null };
+let currentStep = null;
+let stepItems = [];
+let searchDebounce, stepSearchDebounce;
 
 // ── Load data ────────────────────────────────────────────
-const findBtn = document.getElementById('findBtn');
+document.getElementById('findBtn').innerHTML = '<div class="spinner"></div> Loading…';
 
-// Show spinner while loading
-findBtn.innerHTML = '<div class="spinner"></div> Loading database…';
+fetch('cars_data.json').then(r => r.json()).then(data => {
+  MAKERS = data.makers;
+  ALL_CARS = data.cars;
+  document.getElementById('row-make').classList.remove('disabled');
+  resetFindBtn();
+});
 
-fetch('cars_data.json')
-  .then(r => r.json())
-  .then(data => {
-    MAKERS = data.makers;
-    ALL_CARS = data.cars;
-    initMakes();
-    findBtn.disabled = true;
-    findBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Parts`;
-  });
-
-// ── Sidebar ──────────────────────────────────────────────
+// ── Sidebar open/close ───────────────────────────────────
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeSidebar() {
+  goToMain();
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
   document.body.style.overflow = '';
-  hideAc();
 }
 
-// ── Reg lookup ───────────────────────────────────────────
-const MOCK_DVLA = {
-  'AB12CDE': { make:'Ford',    model:'Focus',   trim:'1.0 EcoBoost 100ps Zetec',   year:2012, fuel:'Petrol', kw:74,  hp:100, colour:'Silver',  mot:'2025-11-18' },
-  'LK68ABC': { make:'Vauxhall',model:'Astra',   trim:'1.4T 150ps SRi',              year:2018, fuel:'Petrol', kw:110, hp:150, colour:'Black',   mot:'2025-07-04' },
-  'CE19XYZ': { make:'BMW',     model:'320d',    trim:'2.0d 190ps M Sport',          year:2019, fuel:'Diesel', kw:140, hp:190, colour:'White',   mot:'2026-01-22' },
-  'YD65MNP': { make:'Toyota',  model:'Corolla', trim:'1.8 VVT-i Hybrid Icon',       year:2015, fuel:'Hybrid', kw:100, hp:136, colour:'Blue',    mot:'2025-09-30' },
-  'SG22RFT': { make:'Kia',     model:'Sportage',trim:'1.6T HEV GT-Line S',          year:2022, fuel:'Hybrid', kw:132, hp:180, colour:'Red',     mot:'2027-03-14' },
-};
+// ── Panel navigation ─────────────────────────────────────
+function openStep(step) {
+  currentStep = step;
+  document.getElementById('panel-main').classList.add('pushed');
+  document.getElementById('panel-step').classList.add('active');
+  document.getElementById('backBtn').style.visibility = 'visible';
+  document.getElementById('stepSearchInput').value = '';
 
-let regCarData = null;
+  const titles = { make:'Select Make', year:'Select Year', model:'Select Model', engine:'Select Engine / Trim' };
+  document.getElementById('topbarTitle').textContent = titles[step];
 
-document.getElementById('regInput').addEventListener('input', function() {
-  let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if (v.length > 4) v = v.slice(0,4) + ' ' + v.slice(4,7);
-  this.value = v;
-  document.getElementById('regResult').classList.remove('show');
-  document.getElementById('regNotFound').style.display = 'none';
-  regCarData = null;
-});
+  buildStepList('');
+  setTimeout(() => document.getElementById('stepSearchInput').focus(), 350);
+}
 
-document.getElementById('regInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') lookupReg();
-});
+function goBack() {
+  document.getElementById('panel-main').classList.remove('pushed');
+  document.getElementById('panel-step').classList.remove('active');
+  document.getElementById('backBtn').style.visibility = 'hidden';
+  document.getElementById('topbarTitle').textContent = 'Select Your Vehicle';
+  currentStep = null;
+}
 
-function lookupReg() {
-  const raw = document.getElementById('regInput').value.replace(/\s/g,'').toUpperCase();
-  if (raw.length < 2) return;
-  document.getElementById('regResult').classList.remove('show');
-  document.getElementById('regNotFound').style.display = 'none';
+function goToMain() {
+  if (currentStep) goBack();
+}
 
-  const found = MOCK_DVLA[raw];
-  if (found) {
-    showRegResult(raw, found);
-  } else {
-    const match = ALL_CARS.find(c => {
-      const m = MAKERS.find(mk => mk.id === c[0]);
-      return m && m.n[0].toLowerCase() === raw[0].toLowerCase();
+// ── Build step list ──────────────────────────────────────
+function buildStepList(filter) {
+  const f = filter.toLowerCase();
+  let items = [];
+
+  if (currentStep === 'make') {
+    items = MAKERS
+      .filter(m => !f || m.n.toLowerCase().includes(f))
+      .sort((a,b) => a.n.localeCompare(b.n))
+      .map(m => ({ id: m.id, label: m.n }));
+
+  } else if (currentStep === 'year') {
+    const makerId = stepState.make;
+    const years = new Set();
+    ALL_CARS.filter(c => c[0] === makerId).forEach(c => {
+      if (!c[6]) return;
+      const end = c[7] || new Date().getFullYear();
+      for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) years.add(y);
     });
-    if (match && ALL_CARS.length) {
-      const maker = MAKERS.find(m => m.id === match[0]);
-      showRegResult(raw, { make: maker?.n, model: match[2], trim: match[4], year: match[6]||2018, fuel: match[5]||'Petrol', kw: match[8], hp: match[9], colour: 'Unknown', mot: '2025-12-01' });
-    } else {
-      document.getElementById('regNotFound').style.display = 'flex';
-    }
-  }
-}
+    items = [...years].sort((a,b) => b-a)
+      .filter(y => !f || String(y).includes(f))
+      .map(y => ({ id: y, label: String(y) }));
 
-function showRegResult(plate, info) {
-  regCarData = info;
-  const fmt = plate.length >= 5 ? plate.slice(0,4) + ' ' + plate.slice(4) : plate;
-  document.getElementById('regResultPlate').textContent = fmt;
-  document.getElementById('regResultName').textContent = `${info.make} ${info.model}`;
-  document.getElementById('regResultSub').textContent = `${info.year} · ${info.trim}`;
-  document.getElementById('regResultRows').innerHTML = [
-    ['Fuel','fuelType', info.fuel],
-    ['Power','power', info.kw ? `${info.kw} kW / ${info.hp} hp` : '—'],
-    ['Colour','colour', info.colour],
-    ['MOT expiry','mot', info.mot],
-  ].map(([l,,v]) => `<div class="reg-result-row"><span class="reg-result-label">${l}</span><span class="reg-result-val">${v}</span></div>`).join('');
-  document.getElementById('regResult').classList.add('show');
+  } else if (currentStep === 'model') {
+    const makerId = stepState.make, year = stepState.year;
+    const map = new Map();
+    ALL_CARS.filter(c => c[0]===makerId && c[6]&&c[6]<=year&&(c[7]===null||c[7]>=year))
+      .forEach(c => { if (!map.has(c[1])) map.set(c[1], c[2]); });
+    items = [...map.entries()]
+      .sort((a,b) => a[1].localeCompare(b[1]))
+      .filter(([,name]) => !f || name.toLowerCase().includes(f))
+      .map(([id, name]) => ({ id, label: name }));
 
-  // Auto-fill selected car
-  const car = ALL_CARS.find(c => {
-    const m = MAKERS.find(mk => mk.id === c[0]);
-    return m && m.n.toLowerCase() === info.make.toLowerCase();
-  }) || ALL_CARS[0];
-  setSelectedCar(car, fmt);
-}
-
-// ── Autocomplete ─────────────────────────────────────────
-document.getElementById('searchInput').addEventListener('input', function() {
-  document.getElementById('searchClear').style.display = this.value ? 'block' : 'none';
-  clearTimeout(searchDebounce);
-  searchDebounce = setTimeout(() => runSearch(this.value.trim()), 150);
-});
-
-document.getElementById('searchInput').addEventListener('focus', function() {
-  if (this.value.trim().length >= 2) runSearch(this.value.trim());
-});
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-wrap')) hideAc();
-});
-
-function clearSearch() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchClear').style.display = 'none';
-  hideAc();
-}
-
-function hideAc() {
-  document.getElementById('acDropdown').style.display = 'none';
-  acVisible = false;
-}
-
-function runSearch(q) {
-  const dd = document.getElementById('acDropdown');
-  if (q.length < 2) { hideAc(); return; }
-
-  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
-  let yearFilter = null;
-  const textTerms = [];
-  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
-
-  const results = [];
-  for (let i = 0; i < ALL_CARS.length && results.length < 10; i++) {
-    const c = ALL_CARS[i];
-    if (yearFilter && (c[6] > yearFilter || (c[7] !== null && c[7] < yearFilter))) continue;
-    if (textTerms.length) {
-      const maker = MAKERS.find(m => m.id === c[0]);
-      const hay = `${maker?.n||''} ${c[2]} ${c[4]}`.toLowerCase();
-      if (!textTerms.every(t => hay.includes(t))) continue;
-    }
-    results.push(c);
+  } else if (currentStep === 'engine') {
+    const makerId = stepState.make, year = stepState.year, modelId = stepState.model;
+    items = ALL_CARS
+      .filter(c => c[0]===makerId && c[1]===modelId && c[6]&&c[6]<=year&&(c[7]===null||c[7]>=year))
+      .filter(c => !f || `${c[4]} ${c[5]||''} ${c[8]||''}`.toLowerCase().includes(f))
+      .map(c => ({
+        id: c[3],
+        label: c[4],
+        sub: [c[5]?c[5].split('/')[0]:'', c[8]?c[8]+' kW / '+c[9]+' hp':'', c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
+      }));
   }
 
-  if (!results.length) {
-    dd.style.display = 'block';
-    dd.innerHTML = `<div class="ac-more">No vehicles found</div>`;
+  stepItems = items;
+  renderStepList(items);
+}
+
+function renderStepList(items) {
+  const container = document.getElementById('stepListItems');
+  if (!items.length) {
+    container.innerHTML = `<div class="step-empty">No results found</div>`;
     return;
   }
 
-  dd.style.display = 'block';
-  dd.innerHTML = results.map(c => {
-    const maker = MAKERS.find(m => m.id === c[0]);
-    const main = hl(`${maker?.n||''} ${c[2]} · ${c[4]}`, textTerms);
-    const sub = [c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'', c[5]?c[5].split('/')[0]:'', c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
-    return `<div class="ac-item" onclick="pickAcResult(${c[3]})">
-      <div class="ac-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-      <div class="ac-item-body">
-        <div class="ac-item-main">${main}</div>
-        <div class="ac-item-sub">${sub}</div>
+  // Which value is currently selected for this step?
+  const currentVal = stepState[currentStep];
+
+  container.innerHTML = items.map(item => {
+    const isSelected = item.id == currentVal;
+    return `<div class="step-list-item ${isSelected?'selected':''}" onclick="pickStepItem(${JSON.stringify(item.id)})">
+      <div style="flex:1;min-width:0">
+        <div>${item.label}</div>
+        ${item.sub ? `<div class="step-list-item-sub">${item.sub}</div>` : ''}
       </div>
-      <span class="ac-item-chevron">›</span>
+      <span class="step-list-item-check">✓</span>
     </div>`;
-  }).join('') +
-  (results.length === 10 ? `<div class="ac-more">Showing top 10 — refine your search</div>` : '');
-  acVisible = true;
+  }).join('');
+}
+
+// ── Pick item ────────────────────────────────────────────
+function pickStepItem(id) {
+  if (currentStep === 'make') {
+    const maker = MAKERS.find(m => m.id === id);
+    stepState = { make: id, year: null, model: null, engine: null };
+    setRowValue('make', maker.n, true);
+    setRowValue('year', 'Select year', false);
+    setRowValue('model', 'Select model', false);
+    setRowValue('engine', 'Select engine', false);
+    updateBubbles();
+    enableRows();
+    setSelectedCar(null);
+    goBack();
+
+  } else if (currentStep === 'year') {
+    stepState.year = id;
+    stepState.model = null;
+    stepState.engine = null;
+    setRowValue('year', String(id), true);
+    setRowValue('model', 'Select model', false);
+    setRowValue('engine', 'Select engine', false);
+    updateBubbles();
+    setSelectedCar(null);
+    goBack();
+
+  } else if (currentStep === 'model') {
+    const modelName = stepItems.find(i => i.id === id)?.label || '';
+    stepState.model = id;
+    stepState.engine = null;
+    setRowValue('model', modelName, true);
+    setRowValue('engine', 'Select engine', false);
+    updateBubbles();
+    setSelectedCar(null);
+    goBack();
+
+  } else if (currentStep === 'engine') {
+    const car = ALL_CARS.find(c => c[3] === id);
+    if (!car) return;
+    stepState.engine = id;
+    setRowValue('engine', car[4], true);
+    updateBubbles();
+    setSelectedCar(car, null);
+    goBack();
+  }
+}
+
+function setRowValue(step, text, hasValue) {
+  const el = document.getElementById('val-' + step);
+  el.textContent = text;
+  el.className = 'step-row-value' + (hasValue ? '' : ' placeholder');
+  document.getElementById('row-' + step).classList.toggle('has-value', hasValue);
+}
+
+function updateBubbles() {
+  const steps = ['make','year','model','engine'];
+  steps.forEach((s, i) => {
+    const bub = document.getElementById('bub-' + s);
+    bub.innerHTML = `<span class="step-num-text">${i+1}</span>`;
+    if (stepState[s]) {
+      bub.className = 'step-bubble done';
+    } else if (stepState[steps[i-1]] || i === 0) {
+      bub.className = 'step-bubble active';
+    } else {
+      bub.className = 'step-bubble';
+    }
+  });
+}
+
+function enableRows() {
+  document.getElementById('row-year').classList.toggle('disabled', !stepState.make);
+  document.getElementById('row-model').classList.toggle('disabled', !stepState.year);
+  document.getElementById('row-engine').classList.toggle('disabled', !stepState.model);
+}
+
+// ── Step search ──────────────────────────────────────────
+document.getElementById('stepSearchInput').addEventListener('input', function() {
+  clearTimeout(stepSearchDebounce);
+  stepSearchDebounce = setTimeout(() => buildStepList(this.value.trim()), 120);
+});
+
+// ── Autocomplete ─────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => runAc(this.value.trim()), 150);
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box') && !e.target.closest('.ac-dropdown'))
+    document.getElementById('acDropdown').style.display = 'none';
+});
+
+function runAc(q) {
+  const dd = document.getElementById('acDropdown');
+  if (q.length < 2) { dd.style.display='none'; return; }
+
+  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
+  let yf = null; const tt = [];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yf=+p) : tt.push(p));
+
+  const res = [];
+  for (let i = 0; i < ALL_CARS.length && res.length < 8; i++) {
+    const c = ALL_CARS[i];
+    if (yf && (c[6]>yf||(c[7]!==null&&c[7]<yf))) continue;
+    if (tt.length) {
+      const m = MAKERS.find(mk => mk.id===c[0]);
+      if (!tt.every(t => `${m?.n||''} ${c[2]} ${c[4]}`.toLowerCase().includes(t))) continue;
+    }
+    res.push(c);
+  }
+
+  if (!res.length) { dd.style.display='block'; dd.innerHTML=`<div class="ac-more">No vehicles found</div>`; return; }
+
+  dd.style.display = 'block';
+  dd.innerHTML = res.map(c => {
+    const m = MAKERS.find(mk => mk.id===c[0]);
+    const main = hl(`${m?.n||''} ${c[2]} · ${c[4]}`, tt);
+    const sub = [c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'', c[5]?c[5].split('/')[0]:'', c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
+    return `<div class="ac-item" onclick="pickAc(${c[3]})">
+      <div class="ac-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div>
+      <span style="color:#ccc;font-size:14px">›</span>
+    </div>`;
+  }).join('') + (res.length===8 ? `<div class="ac-more">Showing top 8 — refine your search</div>` : '');
+}
+
+function pickAc(carId) {
+  const car = ALL_CARS.find(c => c[3]===carId);
+  if (!car) return;
+  document.getElementById('acDropdown').style.display='none';
+  document.getElementById('searchInput').value='';
+  setSelectedCar(car, null);
 }
 
 function hl(text, terms) {
@@ -706,143 +777,93 @@ function hl(text, terms) {
   return out;
 }
 
-function pickAcResult(carId) {
-  const car = ALL_CARS.find(c => c[3] === carId);
-  if (!car) return;
-  const maker = MAKERS.find(m => m.id === car[0]);
-  document.getElementById('searchInput').value = `${maker?.n} ${car[2]} · ${car[4]}`;
-  document.getElementById('searchClear').style.display = 'block';
-  hideAc();
-  setSelectedCar(car, null);
+// ── Reg lookup ───────────────────────────────────────────
+const MOCK_DVLA = {
+  'AB12CDE':{ make:'Ford',    model:'Focus',   trim:'1.0 EcoBoost 100ps Zetec',  year:2012,fuel:'Petrol',kw:74, hp:100,colour:'Silver', mot:'2025-11-18'},
+  'LK68ABC':{ make:'Vauxhall',model:'Astra',   trim:'1.4T 150ps SRi',            year:2018,fuel:'Petrol',kw:110,hp:150,colour:'Black',  mot:'2025-07-04'},
+  'CE19XYZ':{ make:'BMW',     model:'320d',    trim:'2.0d 190ps M Sport',        year:2019,fuel:'Diesel',kw:140,hp:190,colour:'White',  mot:'2026-01-22'},
+  'YD65MNP':{ make:'Toyota',  model:'Corolla', trim:'1.8 VVT-i Hybrid Icon',     year:2015,fuel:'Hybrid',kw:100,hp:136,colour:'Blue',   mot:'2025-09-30'},
+  'SG22RFT':{ make:'Kia',     model:'Sportage',trim:'1.6T HEV GT-Line S',        year:2022,fuel:'Hybrid',kw:132,hp:180,colour:'Red',    mot:'2027-03-14'},
+};
+let regData = null;
+
+document.getElementById('regInput').addEventListener('input', function() {
+  let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (v.length > 4) v = v.slice(0,4)+' '+v.slice(4,7);
+  this.value = v;
+  document.getElementById('regResult').classList.remove('show');
+  document.getElementById('regErr').style.display='none';
+  regData = null;
+});
+document.getElementById('regInput').addEventListener('keydown', e => { if(e.key==='Enter') lookupReg(); });
+
+function lookupReg() {
+  const raw = document.getElementById('regInput').value.replace(/\s/g,'').toUpperCase();
+  if (raw.length < 2) return;
+  document.getElementById('regResult').classList.remove('show');
+  document.getElementById('regErr').style.display='none';
+
+  const found = MOCK_DVLA[raw];
+  if (found) { showRegResult(raw, found); return; }
+
+  const match = ALL_CARS.find(c => { const m=MAKERS.find(mk=>mk.id===c[0]); return m&&m.n[0].toLowerCase()===raw[0].toLowerCase(); });
+  if (match) {
+    const maker = MAKERS.find(m=>m.id===match[0]);
+    showRegResult(raw, {make:maker?.n,model:match[2],trim:match[4],year:match[6]||2018,fuel:match[5]||'Petrol',kw:match[8],hp:match[9],colour:'Unknown',mot:'2025-12-01'});
+  } else {
+    document.getElementById('regErr').style.display='flex';
+  }
 }
 
-// ── Step selector ─────────────────────────────────────────
-function initMakes() {
-  const sel = document.getElementById('selMake');
-  MAKERS.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => sel.add(new Option(m.n, m.id)));
+function showRegResult(plate, info) {
+  regData = info;
+  const fmt = plate.length>=5 ? plate.slice(0,4)+' '+plate.slice(4) : plate;
+  document.getElementById('rrPlate').textContent = fmt;
+  document.getElementById('rrName').textContent = `${info.make} ${info.model}`;
+  document.getElementById('rrSub').textContent = `${info.year} · ${info.trim}`;
+  document.getElementById('rrRows').innerHTML = [
+    ['Fuel',info.fuel],['Power',info.kw?`${info.kw} kW / ${info.hp} hp`:'—'],
+    ['Colour',info.colour],['MOT expiry',info.mot]
+  ].map(([l,v])=>`<div class="rr-row"><span class="rr-label">${l}</span><span class="rr-val">${v}</span></div>`).join('');
+  document.getElementById('regResult').classList.add('show');
+
+  const car = ALL_CARS.find(c=>{const m=MAKERS.find(mk=>mk.id===c[0]);return m&&m.n.toLowerCase()===info.make.toLowerCase();})||ALL_CARS[0];
+  setSelectedCar(car, fmt);
 }
 
-function onMake() {
-  const makerId = +document.getElementById('selMake').value;
-  resetStep(2);
-  updateNums();
-  if (!makerId) return;
-
-  const years = new Set();
-  ALL_CARS.filter(c => c[0] === makerId).forEach(c => {
-    if (!c[6]) return;
-    const end = c[7] || new Date().getFullYear();
-    for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) years.add(y);
-  });
-  const sel = document.getElementById('selYear');
-  sel.innerHTML = `<option value="">Year (${years.size})</option>`;
-  [...years].sort((a,b) => b-a).forEach(y => sel.add(new Option(y, y)));
-  sel.disabled = false;
-  document.getElementById('selMake').classList.add('filled');
-}
-
-function onYear() {
-  const year = +document.getElementById('selYear').value;
-  const makerId = +document.getElementById('selMake').value;
-  resetStep(3);
-  updateNums();
-  if (!year) return;
-
-  const map = new Map();
-  ALL_CARS.filter(c => c[0]===makerId && c[6]&&c[6]<=year&&(c[7]===null||c[7]>=year))
-    .forEach(c => { if (!map.has(c[1])) map.set(c[1], c[2]); });
-  const models = [...map.entries()].sort((a,b) => a[1].localeCompare(b[1]));
-  const sel = document.getElementById('selModel');
-  sel.innerHTML = `<option value="">Model (${models.length})</option>`;
-  models.forEach(([id, name]) => sel.add(new Option(name, id)));
-  sel.disabled = false;
-  document.getElementById('selYear').classList.add('filled');
-}
-
-function onModel() {
-  const modelId = +document.getElementById('selModel').value;
-  const makerId = +document.getElementById('selMake').value;
-  const year = +document.getElementById('selYear').value;
-  resetStep(4);
-  updateNums();
-  if (!modelId) return;
-
-  const filtered = ALL_CARS.filter(c =>
-    c[0]===makerId && c[1]===modelId && c[6]&&c[6]<=year&&(c[7]===null||c[7]>=year)
-  );
-  const sel = document.getElementById('selEngine');
-  sel.innerHTML = `<option value="">Engine / Trim (${filtered.length})</option>`;
-  filtered.forEach(c => {
-    const label = [c[4], c[5]?c[5].split('/')[0]:'', c[8]?c[8]+' kW':''].filter(Boolean).join(' · ');
-    sel.add(new Option(label, c[3]));
-  });
-  sel.disabled = false;
-  document.getElementById('selModel').classList.add('filled');
-}
-
-function onEngine() {
-  const carId = +document.getElementById('selEngine').value;
-  if (!carId) { setSelectedCar(null); return; }
-  const car = ALL_CARS.find(c => c[3] === carId);
-  document.getElementById('selEngine').classList.add('filled');
-  updateNums();
-  setSelectedCar(car, null);
-}
-
-function resetStep(from) {
-  if (from <= 2) { const s=document.getElementById('selYear');   s.innerHTML='<option value="">Select year...</option>';   s.disabled=true; s.classList.remove('filled'); }
-  if (from <= 3) { const s=document.getElementById('selModel');  s.innerHTML='<option value="">Select model...</option>';  s.disabled=true; s.classList.remove('filled'); }
-  if (from <= 4) { const s=document.getElementById('selEngine'); s.innerHTML='<option value="">Select engine...</option>'; s.disabled=true; s.classList.remove('filled'); }
-  setSelectedCar(null);
-}
-
-function updateNums() {
-  const make  = document.getElementById('selMake').value;
-  const year  = document.getElementById('selYear').value;
-  const model = document.getElementById('selModel').value;
-  const eng   = document.getElementById('selEngine').value;
-  const set = (id, state) => {
-    const el = document.getElementById(id);
-    el.className = 'step-num' + (state==='done' ? ' done' : state==='active' ? ' active' : '');
-  };
-  set('num1', make  ? 'done' : 'active');
-  set('num2', year  ? 'done' : make  ? 'active' : '');
-  set('num3', model ? 'done' : year  ? 'active' : '');
-  set('num4', eng   ? 'done' : model ? 'active' : '');
-}
-
-// ── Selected car ──────────────────────────────────────────
+// ── Selected car ─────────────────────────────────────────
 function setSelectedCar(car, regPlate) {
   selectedCar = car;
   const card = document.getElementById('selectedCard');
-  const btn  = document.getElementById('findBtn');
+  if (!car) { card.classList.remove('show'); resetFindBtn(); return; }
 
-  if (!car) {
-    card.classList.remove('show');
-    btn.disabled = true;
-    return;
-  }
-
-  const maker = MAKERS.find(m => m.id === car[0]);
-  document.getElementById('selMakeName').textContent = maker?.n || '';
-  document.getElementById('selModelName').textContent = car[2];
-  document.getElementById('selTrimName').textContent = car[4];
-
-  const meta = [];
-  if (car[8]) meta.push(`${car[8]} kW / ${car[9]} hp`);
-  if (car[5]) meta.push(car[5].split('/')[0]);
-  if (car[6]) meta.push(`${car[6]}${car[7] ? '–' + car[7] : '+'}`);
-  if (regPlate) meta.push(regPlate);
-  document.getElementById('selMeta').innerHTML = meta.map(m => `<span class="car-meta-badge">${m}</span>`).join('');
-
+  const maker = MAKERS.find(m=>m.id===car[0]);
+  document.getElementById('sc-make').textContent = maker?.n||'';
+  document.getElementById('sc-model').textContent = car[2];
+  document.getElementById('sc-trim').textContent = car[4];
+  const badges = [];
+  if (car[8]) badges.push(`${car[8]} kW`);
+  if (car[5]) badges.push(car[5].split('/')[0]);
+  if (car[6]) badges.push(String(car[6])+(car[7]?'–'+car[7]:'+'));
+  if (regPlate) badges.push(regPlate);
+  document.getElementById('sc-badges').innerHTML = badges.map(b=>`<span class="sc-badge">${b}</span>`).join('');
   card.classList.add('show');
+
+  const btn = document.getElementById('findBtn');
   btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Parts`;
+}
+
+function resetFindBtn() {
+  const btn = document.getElementById('findBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Parts`;
 }
 
 function findParts() {
   if (!selectedCar) return;
-  const maker = MAKERS.find(m => m.id === selectedCar[0]);
-  alert(`✓ Finding parts for:\n${maker?.n} ${selectedCar[2]} · ${selectedCar[4]}\n\n(In production this would redirect to the parts catalogue)`);
+  const maker = MAKERS.find(m=>m.id===selectedCar[0]);
+  alert(`✓ Finding parts for:\n${maker?.n} ${selectedCar[2]} · ${selectedCar[4]}\n\n(Would redirect to parts catalogue)`);
 }
 </script>
 </body>
