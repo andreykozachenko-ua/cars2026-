@@ -106,21 +106,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
 .ac-more { padding: 8px 12px; text-align: center; font-size: 12px; color: #aaa; background: #fafafa; }
 
-/* Step rows */
-.steps-list { border: 1.5px solid #eee; border-radius: 10px; overflow: hidden; }
-.step-row { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; background: #fff; border-bottom: 1px solid #f0f0f0; transition: background .1s; }
-.step-row:last-child { border-bottom: none; }
-.step-row:hover:not(.disabled) { background: #fafbff; }
-.step-row.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
-.step-bubble { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: #f0f2f5; color: #aaa; transition: background .2s, color .2s; }
-.step-bubble.active { background: #e8a020; color: #fff; }
-.step-bubble.done { background: #0f3460; color: #fff; font-size: 13px; }
-.step-row-body { flex: 1; min-width: 0; }
-.step-row-lbl { font-size: 11px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: .5px; }
-.step-row-val { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-top: 2px; }
-.step-row-val.ph { color: #bbb; font-weight: 400; }
-.step-chev { color: #ccc; font-size: 20px; line-height: 1; flex-shrink: 0; }
-.step-row.filled .step-chev { color: #0f3460; }
+/* Selector entry button */
+.selector-entry-btn {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1.5px solid #e8e8e8; border-radius: 12px;
+  padding: 14px 16px; cursor: pointer; font-family: inherit;
+  text-align: left; transition: border-color .15s, background .15s;
+}
+.selector-entry-btn:hover { border-color: #0f3460; background: #f5f8ff; }
+.selector-entry-btn.has-selection { border-color: #0f3460; background: #f0f5ff; }
+
+.seb-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: #f0f5ff; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.seb-icon svg { width: 20px; height: 20px; color: #0f3460; }
+.selector-entry-btn.has-selection .seb-icon { background: #0f3460; }
+.selector-entry-btn.has-selection .seb-icon svg { color: #fff; }
+
+.seb-body { flex: 1; min-width: 0; }
+.seb-title { font-size: 15px; font-weight: 600; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seb-steps {
+  display: flex; align-items: center; gap: 4px; margin-top: 4px;
+  font-size: 12px; color: #aaa; flex-wrap: nowrap; overflow: hidden;
+}
+.seb-steps span { white-space: nowrap; }
+.seb-steps span.done { color: #0f3460; font-weight: 600; }
+.seb-arrow { color: #ddd !important; font-size: 11px; }
+.seb-chev { color: #ccc; font-size: 20px; line-height: 1; flex-shrink: 0; }
 
 /* ── Step panel ── */
 /* Trail (selected steps breadcrumb) */
@@ -250,40 +264,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="ac-drop" id="acDrop"></div>
 
         <div class="sb-divider">or select step by step</div>
-        <div class="sb-label">Manual Selection</div>
-        <div class="steps-list">
-          <div class="step-row" id="row-make" onclick="openStep('make')">
-            <div class="step-bubble active" id="bub-make">1</div>
-            <div class="step-row-body">
-              <div class="step-row-lbl">Make</div>
-              <div class="step-row-val ph" id="val-make">Select make</div>
-            </div>
-            <div class="step-chev">›</div>
+        <button class="selector-entry-btn" id="selectorEntryBtn" onclick="openStep('make')">
+          <div class="seb-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
           </div>
-          <div class="step-row disabled" id="row-year" onclick="openStep('year')">
-            <div class="step-bubble" id="bub-year">2</div>
-            <div class="step-row-body">
-              <div class="step-row-lbl">Year</div>
-              <div class="step-row-val ph" id="val-year">Select year</div>
+          <div class="seb-body">
+            <div class="seb-title" id="sebTitle">Select by Make, Year, Model…</div>
+            <div class="seb-steps">
+              <span id="seb-make">Make</span>
+              <span class="seb-arrow">›</span>
+              <span id="seb-year">Year</span>
+              <span class="seb-arrow">›</span>
+              <span id="seb-model">Model</span>
+              <span class="seb-arrow">›</span>
+              <span id="seb-engine">Engine</span>
             </div>
-            <div class="step-chev">›</div>
           </div>
-          <div class="step-row disabled" id="row-model" onclick="openStep('model')">
-            <div class="step-bubble" id="bub-model">3</div>
-            <div class="step-row-body">
-              <div class="step-row-lbl">Model</div>
-              <div class="step-row-val ph" id="val-model">Select model</div>
-            </div>
-            <div class="step-chev">›</div>
-          </div>
-          <div class="step-row disabled" id="row-engine" onclick="openStep('engine')">
-            <div class="step-bubble" id="bub-engine">4</div>
-            <div class="step-row-body">
-              <div class="step-row-lbl">Engine / Trim</div>
-              <div class="step-row-val ph" id="val-engine">Select engine</div>
-            </div>
-            <div class="step-chev">›</div>
-          </div>
+          <div class="seb-chev">›</div>
+        </button>
+
+        <!-- hidden state holders used by JS -->
+        <div style="display:none">
+          <span id="val-make"></span><span id="val-year"></span>
+          <span id="val-model"></span><span id="val-engine"></span>
+          <span id="bub-make"></span><span id="bub-year"></span>
+          <span id="bub-model"></span><span id="bub-engine"></span>
+          <span id="row-make"></span><span id="row-year"></span>
+          <span id="row-model"></span><span id="row-engine"></span>
         </div>
 
       </div>
@@ -595,25 +602,37 @@ function pickItem(id) {
 
 // ── Step row helpers ──────────────────────────────────────
 function setRowValue(step, text, filled) {
-  const el = document.getElementById('val-' + step);
-  el.textContent = text;
-  el.className = 'step-row-val' + (filled ? '' : ' ph');
-  document.getElementById('row-' + step).classList.toggle('filled', filled);
+  // store in hidden spans for getStateLabel()
+  document.getElementById('val-' + step).textContent = filled ? text : '';
+  updateSelectorBtn();
 }
 
-function updateBubbles() {
-  STEPS.forEach((s,i) => {
-    const b = document.getElementById('bub-' + s);
-    if (state[s]) { b.className='step-bubble done'; b.textContent='✓'; }
-    else if (state[STEPS[i-1]]||i===0) { b.className='step-bubble active'; b.textContent=i+1; }
-    else { b.className='step-bubble'; b.textContent=i+1; }
+function updateBubbles() { updateSelectorBtn(); }
+function enableRows()     { updateSelectorBtn(); }
+
+function updateSelectorBtn() {
+  const btn = document.getElementById('selectorEntryBtn');
+  const labels = { make: 'Make', year: 'Year', model: 'Model', engine: 'Engine' };
+  const anyDone = STEPS.some(s => state[s]);
+
+  btn.classList.toggle('has-selection', anyDone);
+
+  // Title line
+  const titleEl = document.getElementById('sebTitle');
+  if (anyDone) {
+    const parts = STEPS.map(s => document.getElementById('val-' + s).textContent).filter(Boolean);
+    titleEl.textContent = parts.join(' · ');
+  } else {
+    titleEl.textContent = 'Select by Make, Year, Model…';
+  }
+
+  // Steps indicator
+  STEPS.forEach(s => {
+    const el = document.getElementById('seb-' + s);
+    const val = document.getElementById('val-' + s).textContent;
+    if (val) { el.textContent = val; el.classList.add('done'); }
+    else      { el.textContent = labels[s]; el.classList.remove('done'); }
   });
-}
-
-function enableRows() {
-  document.getElementById('row-year').classList.toggle('disabled', !state.make);
-  document.getElementById('row-model').classList.toggle('disabled', !state.year);
-  document.getElementById('row-engine').classList.toggle('disabled', !state.model);
 }
 
 // ── Step search ───────────────────────────────────────────
