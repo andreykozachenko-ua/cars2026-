@@ -304,6 +304,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <div class="seb-chev">›</div>
         </button>
 
+        <!-- Model shortcuts (shown after maker is selected) -->
+        <div id="modelShortcutsSection" style="display:none; margin-top:14px">
+          <div class="sb-label" id="modelShortcutsLabel">Popular models</div>
+          <div class="maker-shortcuts" id="modelShortcuts"></div>
+        </div>
+
         <!-- hidden state holders used by JS -->
         <div style="display:none">
           <span id="val-make"></span><span id="val-year"></span>
@@ -466,9 +472,13 @@ function updateTopbar() {
 
 function updateTrail() {
   const trail = document.getElementById('stepTrail');
-  const chips = STEPS
-    .filter(s => s !== currentStep && state[s] !== null)
-    .filter(s => STEPS.indexOf(s) < STEPS.indexOf(currentStep));
+  const cIdx = STEPS.indexOf(currentStep);
+  const chips = STEPS.filter(s => {
+    if (s === currentStep || state[s] === null) return false;
+    if (STEPS.indexOf(s) < cIdx) return true;
+    // show pre-selected model chip when at year step
+    return s === 'model' && currentStep === 'year';
+  });
 
   if (!chips.length) { trail.innerHTML = ''; return; }
 
@@ -542,11 +552,13 @@ function buildItems() {
   }
   if (currentStep === 'year') {
     const years = new Set();
-    ALL_CARS.filter(c=>c[0]===state.make).forEach(c=>{
-      if (!c[6]) return;
-      const end = c[7]||new Date().getFullYear();
-      for (let y=c[6];y<=Math.min(end,new Date().getFullYear());y++) years.add(y);
-    });
+    ALL_CARS
+      .filter(c => c[0] === state.make && (!state.model || c[1] === state.model))
+      .forEach(c => {
+        if (!c[6]) return;
+        const end = c[7] || new Date().getFullYear();
+        for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) years.add(y);
+      });
     return [...years].sort((a,b)=>b-a).map(y=>({id:y,label:String(y)}));
   }
   if (currentStep === 'model') {
@@ -584,13 +596,20 @@ function pickItem(id) {
     animateContent('forward', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value=''; });
 
   } else if (currentStep === 'year') {
-    state.year = id; state.model = null; state.engine = null;
+    state.year = id; state.engine = null;
     setRowValue('year', String(id), true);
-    setRowValue('model','Select model',false);
     setRowValue('engine','Select engine',false);
     updateBubbles(); enableRows(); setSelectedCar(null);
-    stepHistory = ['make','year','model'];
-    currentStep = 'model';
+    if (state.model !== null) {
+      // model pre-selected via shortcut — skip model step
+      stepHistory = ['make','year','model','engine'];
+      currentStep = 'engine';
+    } else {
+      state.model = null;
+      setRowValue('model','Select model',false);
+      stepHistory = ['make','year','model'];
+      currentStep = 'model';
+    }
     updateTopbar();
     animateContent('forward', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value=''; });
 
@@ -627,6 +646,7 @@ function setRowValue(step, text, filled) {
 function updateBubbles() { updateSelectorBtn(); }
 function enableRows()     { updateSelectorBtn(); }
 
+let _lastMakeForModels = null;
 function updateSelectorBtn() {
   const btn = document.getElementById('selectorEntryBtn');
   const labels = { make: 'Make', year: 'Year', model: 'Model', engine: 'Engine' };
@@ -634,6 +654,14 @@ function updateSelectorBtn() {
   // Sync maker chip highlight
   document.querySelectorAll('.maker-chip').forEach(c => c.classList.remove('active'));
   if (state.make) { const chip = document.getElementById('chip-' + state.make); if (chip) chip.classList.add('active'); }
+  // Sync model chip highlight
+  document.querySelectorAll('[id^="mchip-"]').forEach(c => c.classList.remove('active'));
+  if (state.model) { const mc = document.getElementById('mchip-' + state.model); if (mc) mc.classList.add('active'); }
+  // Re-render model shortcuts when maker changes
+  if (state.make !== _lastMakeForModels) {
+    _lastMakeForModels = state.make;
+    if (MAKERS.length) renderModelShortcuts();
+  }
 
   btn.classList.toggle('has-selection', anyDone);
 
@@ -850,6 +878,43 @@ function quickPickMake(makerId) {
   const chip = document.getElementById('chip-' + makerId);
   if (chip) chip.classList.add('active');
   // Open year step directly
+  stepHistory = ['make', 'year'];
+  currentStep = 'year';
+  updateTopbar();
+  updateTrail();
+  renderStepContent('');
+  showStepPanel();
+  setTimeout(() => document.getElementById('stepSearch').focus(), 350);
+}
+
+function renderModelShortcuts() {
+  const section = document.getElementById('modelShortcutsSection');
+  if (!state.make) { section.style.display = 'none'; return; }
+  const maker = MAKERS.find(m => m.id === state.make);
+  const counts = {}, names = {};
+  ALL_CARS.filter(c => c[0] === state.make).forEach(c => {
+    counts[c[1]] = (counts[c[1]] || 0) + 1;
+    names[c[1]] = c[2];
+  });
+  const top10 = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([id]) => ({ id: +id, name: names[id] }));
+  if (!top10.length) { section.style.display = 'none'; return; }
+  document.getElementById('modelShortcutsLabel').textContent = `Popular ${maker?.n || ''} models`;
+  document.getElementById('modelShortcuts').innerHTML = top10.map(m =>
+    `<button class="maker-chip" id="mchip-${m.id}" onclick="quickPickModel(${m.id}, ${JSON.stringify(m.name)})">${m.name}</button>`
+  ).join('');
+  section.style.display = 'block';
+}
+
+function quickPickModel(modelId, modelName) {
+  state.model = modelId;
+  state.year = null;
+  state.engine = null;
+  setRowValue('model', modelName, true);
+  setRowValue('year', 'Select year', false);
+  setRowValue('engine', 'Select engine', false);
+  updateBubbles(); enableRows(); setSelectedCar(null);
   stepHistory = ['make', 'year'];
   currentStep = 'year';
   updateTopbar();
