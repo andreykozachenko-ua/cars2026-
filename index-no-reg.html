@@ -814,44 +814,6 @@ function hl(text,terms){
   return out;
 }
 
-// ── Reg lookup ────────────────────────────────────────────
-const MOCK={
-  'AB12CDE':{make:'Ford',model:'Focus',trim:'1.0 EcoBoost 100ps Zetec',year:2012,fuel:'Petrol',kw:74,hp:100,colour:'Silver',mot:'2025-11-18'},
-  'LK68ABC':{make:'Vauxhall',model:'Astra',trim:'1.4T 150ps SRi',year:2018,fuel:'Petrol',kw:110,hp:150,colour:'Black',mot:'2025-07-04'},
-  'CE19XYZ':{make:'BMW',model:'320d',trim:'2.0d 190ps M Sport',year:2019,fuel:'Diesel',kw:140,hp:190,colour:'White',mot:'2026-01-22'},
-  'YD65MNP':{make:'Toyota',model:'Corolla',trim:'1.8 VVT-i Hybrid Icon',year:2015,fuel:'Hybrid',kw:100,hp:136,colour:'Blue',mot:'2025-09-30'},
-  'SG22RFT':{make:'Kia',model:'Sportage',trim:'1.6T HEV GT-Line S',year:2022,fuel:'Hybrid',kw:132,hp:180,colour:'Red',mot:'2027-03-14'},
-};
-document.getElementById('regInput').addEventListener('input',function(){
-  let v=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(v.length>4)v=v.slice(0,4)+' '+v.slice(4,7);
-  this.value=v;
-  document.getElementById('regResult').classList.remove('show');
-  document.getElementById('regErr').style.display='none';
-});
-document.getElementById('regInput').addEventListener('keydown',e=>{if(e.key==='Enter')lookupReg();});
-function lookupReg(){
-  const raw=document.getElementById('regInput').value.replace(/\s/g,'').toUpperCase();
-  if(raw.length<2)return;
-  document.getElementById('regResult').classList.remove('show');
-  document.getElementById('regErr').style.display='none';
-  const found=MOCK[raw];
-  if(found){showRegResult(raw,found);return;}
-  const match=ALL_CARS.find(c=>{const m=MAKERS.find(mk=>mk.id===c[0]);return m&&m.n[0].toLowerCase()===raw[0].toLowerCase();});
-  if(match){const maker=MAKERS.find(m=>m.id===match[0]);showRegResult(raw,{make:maker?.n,model:match[2],trim:match[4],year:match[6]||2018,fuel:match[5]||'Petrol',kw:match[8],hp:match[9],colour:'Unknown',mot:'2025-12-01'});}
-  else{document.getElementById('regErr').style.display='flex';}
-}
-function showRegResult(plate,info){
-  const fmt=plate.length>=5?plate.slice(0,4)+' '+plate.slice(4):plate;
-  document.getElementById('rrPlate').textContent=fmt;
-  document.getElementById('rrName').textContent=`${info.make} ${info.model}`;
-  const parts=[info.year,info.trim,info.fuel,info.kw?`${info.kw} kW / ${info.hp} hp`:null,info.colour,info.mot?`MOT: ${info.mot}`:null].filter(Boolean);
-  document.getElementById('rrSub').textContent=parts.join(' · ');
-  document.getElementById('rrRows').innerHTML='';
-  document.getElementById('regResult').classList.add('show');
-  const car=ALL_CARS.find(c=>{const m=MAKERS.find(mk=>mk.id===c[0]);return m&&m.n.toLowerCase()===info.make.toLowerCase();})||ALL_CARS[0];
-  setSelectedCar(car,fmt);
-}
 
 // ── Selected car ──────────────────────────────────────────
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
