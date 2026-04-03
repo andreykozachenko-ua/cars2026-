@@ -178,13 +178,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .step-count { font-size: 12px; color: #aaa; padding: 8px 16px 4px; }
 
 /* ── Footer ── */
-.sel-car-card { display: none; background: linear-gradient(135deg,#1a1a2e,#0f3460); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
-.sel-car-card.show { display: block; }
-.scc-make { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .5px; }
-.scc-model { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
-.scc-trim { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 2px; }
-.scc-badges { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-.scc-badge { background: rgba(255,255,255,.12); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8); }
 .find-btn { width: 100%; padding: 14px; background: #e8a020; border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; }
 .find-btn:hover { background: #d4911a; }
 .find-btn:disabled { background: #ddd; cursor: not-allowed; }
@@ -348,12 +341,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 
   <div class="sb-footer">
-    <div class="sel-car-card" id="selCard">
-      <div class="scc-make" id="scc-make"></div>
-      <div class="scc-model" id="scc-model"></div>
-      <div class="scc-trim" id="scc-trim"></div>
-      <div class="scc-badges" id="scc-badges"></div>
-    </div>
     <button class="find-btn" id="findBtn" disabled onclick="findParts()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       Find Parts
@@ -762,19 +749,7 @@ function showRegResult(plate,info){
 // ── Selected car ──────────────────────────────────────────
 function setSelectedCar(car, regPlate) {
   selectedCar = car;
-  const card = document.getElementById('selCard');
-  if (!car) { card.classList.remove('show'); resetFindBtn(); return; }
-  const maker = MAKERS.find(m=>m.id===car[0]);
-  document.getElementById('scc-make').textContent = maker?.n||'';
-  document.getElementById('scc-model').textContent = car[2];
-  document.getElementById('scc-trim').textContent = car[4];
-  const b=[];
-  if(car[8]) b.push(`${car[8]} kW`);
-  if(car[5]) b.push(car[5].split('/')[0]);
-  if(car[6]) b.push(String(car[6])+(car[7]?'–'+car[7]:'+'));
-  if(regPlate) b.push(regPlate);
-  document.getElementById('scc-badges').innerHTML=b.map(x=>`<span class="scc-badge">${x}</span>`).join('');
-  card.classList.add('show');
+  if (!car) { resetFindBtn(); return; }
   saveToHistory(car);
   renderHistory();
   const btn=document.getElementById('findBtn');
