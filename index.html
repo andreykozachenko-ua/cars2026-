@@ -57,7 +57,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .reg-btn:hover { background: #0f3460; }
 .reg-result { display: none; margin-top: 10px; border: 1.5px solid #d1fad7; border-radius: 10px; overflow: hidden; background: #f6fff7; }
 .reg-result.show { display: block; }
-.rr-header { padding: 9px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #d1fad7; }
+.rr-header { padding: 9px 12px; display: flex; align-items: center; gap: 10px; }
 .rr-plate { background: #F5C518; border: 1.5px solid #111; border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 900; color: #111; letter-spacing: 2px; font-family: 'Arial Black', sans-serif; flex-shrink: 0; }
 .rr-name { font-size: 13px; font-weight: 700; color: #1a1a2e; }
 .rr-sub { font-size: 11px; color: #666; margin-top: 1px; }
@@ -862,8 +862,9 @@ function showRegResult(plate,info){
   const fmt=plate.length>=5?plate.slice(0,4)+' '+plate.slice(4):plate;
   document.getElementById('rrPlate').textContent=fmt;
   document.getElementById('rrName').textContent=`${info.make} ${info.model}`;
-  document.getElementById('rrSub').textContent=`${info.year} · ${info.trim}`;
-  document.getElementById('rrRows').innerHTML=[['Fuel',info.fuel],['Power',info.kw?`${info.kw} kW / ${info.hp} hp`:'—'],['Colour',info.colour],['MOT expiry',info.mot]].map(([l,v])=>`<div class="rr-row"><span class="rr-lbl">${l}</span><span class="rr-val">${v}</span></div>`).join('');
+  const parts=[info.year,info.trim,info.fuel,info.kw?`${info.kw} kW / ${info.hp} hp`:null,info.colour,info.mot?`MOT: ${info.mot}`:null].filter(Boolean);
+  document.getElementById('rrSub').textContent=parts.join(' · ');
+  document.getElementById('rrRows').innerHTML='';
   document.getElementById('regResult').classList.add('show');
   const car=ALL_CARS.find(c=>{const m=MAKERS.find(mk=>mk.id===c[0]);return m&&m.n.toLowerCase()===info.make.toLowerCase();})||ALL_CARS[0];
   setSelectedCar(car,fmt);
