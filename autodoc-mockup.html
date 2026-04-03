@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoDoc — new selector concept</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;font-size:14px}
+
+/* ── Top utility bar ── */
+.util-bar{background:#1c1c1c;color:#aaa;font-size:11px;display:flex;justify-content:center;gap:32px;padding:6px 0}
+.util-bar a{color:#aaa;text-decoration:none;letter-spacing:.3px}
+.util-bar a:hover{color:#fff}
+
+/* ── Header ── */
+.header{background:#fff;border-bottom:1px solid #e8e8e8;padding:12px 0}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:20px}
+.logo{font-size:20px;font-weight:900;color:#003087;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.logo span{color:#e60012}
+.logo-plus{font-size:14px;color:#e60012;font-weight:700}
+.search-bar{flex:1;display:flex;border:1.5px solid #d0d0d0;border-radius:4px;overflow:hidden;height:40px}
+.search-bar input{flex:1;border:none;outline:none;padding:0 14px;font-size:14px;font-family:inherit}
+.search-bar select{border:none;border-left:1px solid #d0d0d0;padding:0 10px;font-size:12px;color:#444;background:#fafafa;outline:none;font-family:inherit;cursor:pointer}
+.search-bar button{background:#003087;color:#fff;border:none;padding:0 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px}
+.search-bar button:hover{background:#002070}
+.header-actions{display:flex;align-items:center;gap:20px}
+.hact{display:flex;flex-direction:column;align-items:center;font-size:10px;color:#666;cursor:pointer;gap:2px;text-decoration:none}
+.hact svg{width:20px;height:20px;color:#333}
+.hact strong{font-size:12px;color:#1c1c1c}
+.cart-badge{position:relative}
+.cart-count{position:absolute;top:-6px;right:-6px;background:#e60012;color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* ── Category nav ── */
+.cat-nav{background:#fff;border-bottom:1px solid #e8e8e8}
+.cat-nav-inner{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.cat-nav-item{display:flex;align-items:center;gap:5px;padding:10px 14px;font-size:12px;font-weight:600;color:#444;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;text-decoration:none}
+.cat-nav-item:hover{color:#003087;border-bottom-color:#003087}
+.cat-nav-item svg{width:14px;height:14px}
+
+/* ── Main layout ── */
+.main{max-width:1200px;margin:20px auto;padding:0 20px;display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+
+/* ── Selector panel ── */
+.selector-panel{background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sp-section{padding:14px 16px;border-bottom:1px solid #f0f0f0}
+.sp-section:last-child{border-bottom:none}
+.sp-title{font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:10px;letter-spacing:.2px;text-transform:uppercase}
+
+/* Reg input */
+.reg-row{display:flex;gap:6px}
+.reg-plate{display:flex;align-items:center;border:2px solid #1c1c1c;border-radius:4px;overflow:hidden;height:36px}
+.reg-flag{background:#003087;width:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex-shrink:0;padding:2px}
+.reg-flag .stars{font-size:5px;color:#fc0;letter-spacing:0}
+.reg-flag .gb{font-size:8px;font-weight:900;color:#fff}
+.reg-input{border:none;outline:none;background:#F5C518;font-family:'Arial Black',sans-serif;font-weight:900;font-size:14px;letter-spacing:2px;padding:0 10px;width:130px;color:#1c1c1c}
+.reg-input::placeholder{color:rgba(0,0,0,.3);letter-spacing:2px}
+.reg-btn{background:#003087;color:#fff;border:none;border-radius:4px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex:1}
+
+/* New selector entry */
+.entry-btn{width:100%;display:flex;align-items:center;gap:10px;background:#f7f9ff;border:1.5px solid #ccdaff;border-radius:6px;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s,background .15s;margin-bottom:10px}
+.entry-btn:hover{border-color:#003087;background:#eef3ff}
+.entry-btn.has-car{border-color:#003087;background:#eef3ff}
+.eb-img{width:64px;height:40px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.eb-img img{width:100%;height:100%;object-fit:cover;display:block}
+.eb-body{flex:1;min-width:0}
+.eb-title{font-size:13px;font-weight:700;color:#1c1c1c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eb-sub{display:flex;align-items:center;gap:4px;margin-top:3px;font-size:11px;color:#888;flex-wrap:wrap}
+.eb-sub span.d{color:#003087;font-weight:600}
+.eb-chev{color:#bbb;font-size:16px;flex-shrink:0}
+
+/* Maker chips */
+.chips-label{font-size:11px;color:#888;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:4px 11px;background:#f5f7ff;border:1.5px solid #dde5ff;border-radius:20px;font-size:11px;font-weight:700;color:#003087;cursor:pointer;font-family:inherit;transition:background .1s;white-space:nowrap}
+.chip:hover{background:#dde5ff}
+.chip.active{background:#003087;border-color:#003087;color:#fff}
+
+/* ── Right: promo + content ── */
+.right-col{display:flex;flex-direction:column;gap:12px}
+.promo-banner{border-radius:6px;overflow:hidden;background:linear-gradient(135deg,#0a1628 0%,#003087 100%);padding:28px 32px;min-height:180px;display:flex;align-items:center;justify-content:space-between;position:relative}
+.promo-tag{background:#e60012;color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:12px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:inline-block}
+.promo-h{color:#fff;font-size:28px;font-weight:900;line-height:1.1;margin-bottom:4px}
+.promo-h em{color:#F5C518;font-style:normal}
+.promo-sub{color:rgba(255,255,255,.7);font-size:11px;margin-bottom:14px;max-width:220px}
+.promo-cta{background:#e60012;color:#fff;border:none;border-radius:4px;padding:10px 22px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.3px}
+.promo-img{position:absolute;right:20px;top:50%;transform:translateY(-50%);opacity:.25;font-size:80px}
+
+/* Second row: mini category tiles */
+.mini-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mini-cat{background:#fff;border-radius:6px;padding:14px 12px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:box-shadow .15s;text-decoration:none}
+.mini-cat:hover{box-shadow:0 3px 10px rgba(0,0,0,.12)}
+.mini-cat-icon{font-size:24px;margin-bottom:6px}
+.mini-cat-name{font-size:11px;font-weight:700;color:#1c1c1c}
+.mini-cat-count{font-size:10px;color:#999;margin-top:2px}
+
+/* ── Sidebar peek (concept indicator) ── */
+.sidebar-peek{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#003087;color:#fff;writing-mode:vertical-lr;font-size:11px;font-weight:700;padding:14px 8px;border-radius:6px 0 0 6px;cursor:pointer;letter-spacing:.5px;box-shadow:-2px 0 12px rgba(0,0,0,.15);z-index:100}
+
+/* ── "After" state: sidebar visible ── */
+.sidebar-demo{position:fixed;right:0;top:0;bottom:0;width:340px;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.15);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s}
+.sidebar-demo.open{transform:translateX(0)}
+.sd-topbar{background:#003087;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sd-topbar-title{font-size:15px;font-weight:700}
+.sd-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px}
+.sd-body{flex:1;overflow-y:auto;padding:16px}
+.sd-section-title{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.sd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.sd-chip{padding:6px 14px;background:#f5f7ff;border:1.5px solid #dde5ff;border-radius:20px;font-size:12px;font-weight:700;color:#003087;cursor:pointer;font-family:inherit}
+.sd-chip:hover{background:#dde5ff}
+.sd-entry{width:100%;display:flex;align-items:center;gap:10px;background:#f7f9ff;border:1.5px solid #ccdaff;border-radius:6px;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:left;margin-top:4px}
+.sd-divider{display:flex;align-items:center;gap:8px;color:#ccc;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:14px 0}
+.sd-divider::before,.sd-divider::after{content:'';flex:1;height:1px;background:#eee}
+
+/* toggle */
+.toggle-row{display:flex;gap:8px;max-width:1200px;margin:0 auto 12px;padding:0 20px}
+.toggle-btn{padding:6px 16px;border-radius:20px;border:1.5px solid #ccc;background:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#666}
+.toggle-btn.on{background:#003087;border-color:#003087;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- Utility bar -->
+<div class="util-bar">
+  <a href="#">SHOP</a>
+  <a href="#">CLUB</a>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-plus">+</span> AUTO<span>DOC</span>
+    </div>
+    <div class="search-bar">
+      <select>
+        <option>Car parts</option>
+      </select>
+      <input type="text" placeholder="Enter the part number or name">
+      <button>SEARCH</button>
+    </div>
+    <div class="header-actions">
+      <a class="hact" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>My Garage</span>
+        <strong>0 vehicles</strong>
+      </a>
+      <a class="hact cart-badge" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6"/></svg>
+        <span>Items</span>
+        <strong>£0.00</strong>
+        <div class="cart-count">0</div>
+      </a>
+      <a class="hact" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>My AUTODOC</span>
+        <strong>Sign in</strong>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Category nav -->
+<nav class="cat-nav">
+  <div class="cat-nav-inner">
+    <a class="cat-nav-item" href="#">🚛 Truck parts</a>
+    <a class="cat-nav-item" href="#">🏍 Motorcycle parts</a>
+    <a class="cat-nav-item" href="#">⭕ Tyres</a>
+    <a class="cat-nav-item" href="#">🔘 Wheels</a>
+    <a class="cat-nav-item" href="#">🔧 Tools</a>
+    <a class="cat-nav-item" href="#">🚗 Car Accessories</a>
+    <a class="cat-nav-item" href="#">🛢 Engine oil</a>
+    <a class="cat-nav-item" href="#">🔲 Filters</a>
+    <a class="cat-nav-item" href="#">🛑 Brakes</a>
+  </div>
+</nav>
+
+<!-- Toggle -->
+<div class="toggle-row" style="margin-top:16px">
+  <button class="toggle-btn" onclick="setVariant('current')">Current (dropdowns)</button>
+  <button class="toggle-btn on" onclick="setVariant('new')">New concept (sidebar selector)</button>
+</div>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Left: selector panel -->
+  <div class="selector-panel">
+
+    <!-- Reg search -->
+    <div class="sp-section">
+      <div class="sp-title">By registration number</div>
+      <div class="reg-row">
+        <div class="reg-plate">
+          <div class="reg-flag">
+            <div class="stars">★★★</div>
+            <div class="gb">GB</div>
+          </div>
+          <input class="reg-input" type="text" placeholder="YOUR REG" maxlength="8">
+        </div>
+        <button class="reg-btn">Search</button>
+      </div>
+    </div>
+
+    <!-- NEW: entry button + chips -->
+    <div class="sp-section" id="newSelector">
+      <div class="sp-title">Find car parts for your vehicle</div>
+
+      <button class="entry-btn" id="entryBtn" onclick="openSidebar()">
+        <div class="eb-img">
+          <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=144&h=92&fit=crop&q=80" alt="car">
+        </div>
+        <div class="eb-body">
+          <div class="eb-title" id="ebTitle">Select Make, Year, Model…</div>
+          <div class="eb-sub">
+            <span id="ebMake">Make</span>
+            <span>›</span>
+            <span id="ebYear">Year</span>
+            <span>›</span>
+            <span id="ebModel">Model</span>
+            <span>›</span>
+            <span id="ebEngine">Engine</span>
+          </div>
+        </div>
+        <div class="eb-chev">›</div>
+      </button>
+
+      <div class="chips-label">Popular makes</div>
+      <div class="chips">
+        <button class="chip active" onclick="pickMake(this,'BMW')">BMW</button>
+        <button class="chip" onclick="pickMake(this,'Volkswagen')">Volkswagen</button>
+        <button class="chip" onclick="pickMake(this,'Toyota')">Toyota</button>
+        <button class="chip" onclick="pickMake(this,'Ford')">Ford</button>
+        <button class="chip" onclick="pickMake(this,'Mercedes')">Mercedes</button>
+        <button class="chip" onclick="pickMake(this,'Audi')">Audi</button>
+        <button class="chip" onclick="pickMake(this,'Vauxhall')">Vauxhall</button>
+        <button class="chip" onclick="pickMake(this,'Renault')">Renault</button>
+        <button class="chip" onclick="pickMake(this,'Peugeot')">Peugeot</button>
+        <button class="chip" onclick="pickMake(this,'Skoda')">Skoda</button>
+      </div>
+    </div>
+
+    <!-- OLD: dropdowns (hidden by default) -->
+    <div class="sp-section" id="oldSelector" style="display:none">
+      <div class="sp-title">Find car parts for your vehicle</div>
+      <select style="width:100%;padding:9px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;font-family:inherit;color:#444;margin-bottom:8px;outline:none"><option>AUDI</option><option>BMW</option><option>Ford</option></select>
+      <select style="width:100%;padding:9px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;font-family:inherit;color:#444;margin-bottom:8px;outline:none"><option>A4 B5 Avant (8D5) 11.1994 – 08.2001</option></select>
+      <select style="width:100%;padding:9px 10px;border:1px solid #d0d0d0;border-radius:4px;font-size:13px;font-family:inherit;color:#444;margin-bottom:12px;outline:none"><option>1.8 (85 kW / 115 hp) 07.1995 – 08.2001</option></select>
+      <button style="width:100%;padding:10px;background:#003087;color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">Search</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:#003087;cursor:pointer;text-decoration:underline">CAN'T FIND YOUR CAR IN THE CATALOGUE?</div>
+    </div>
+
+  </div>
+
+  <!-- Right: promo + mini categories -->
+  <div class="right-col">
+    <div class="promo-banner">
+      <div>
+        <div class="promo-tag">RIDEX PLUS</div>
+        <div class="promo-h">Renew your<br>engine's<br><em>protection</em></div>
+        <div class="promo-sub">Compared to the Recommended Retail Price (RRP) on selected motor oils</div>
+        <button class="promo-cta">SHOP NOW</button>
+      </div>
+      <div class="promo-img">🛢</div>
+    </div>
+
+    <div class="mini-cats">
+      <a class="mini-cat" href="#"><div class="mini-cat-icon">⚙️</div><div class="mini-cat-name">Engine Parts</div><div class="mini-cat-count">284,000+</div></a>
+      <a class="mini-cat" href="#"><div class="mini-cat-icon">🛑</div><div class="mini-cat-name">Brakes & Discs</div><div class="mini-cat-count">156,000+</div></a>
+      <a class="mini-cat" href="#"><div class="mini-cat-icon">🔩</div><div class="mini-cat-name">Suspension</div><div class="mini-cat-count">198,000+</div></a>
+      <a class="mini-cat" href="#"><div class="mini-cat-icon">⚡</div><div class="mini-cat-name">Electrical</div><div class="mini-cat-count">142,000+</div></a>
+    </div>
+  </div>
+
+</main>
+
+<!-- Sidebar -->
+<div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199"></div>
+<div class="sidebar-demo" id="sidebar">
+  <div class="sd-topbar">
+    <div class="sd-topbar-title">Select Your Vehicle</div>
+    <button class="sd-close" onclick="closeSidebar()">×</button>
+  </div>
+  <div class="sd-body">
+    <!-- Recent -->
+    <div id="sdRecent" style="display:none">
+      <div class="sd-section-title">Recent vehicles</div>
+      <div id="sdRecentList"></div>
+      <div class="sd-divider">or find another</div>
+    </div>
+
+    <!-- Search -->
+    <div class="sd-section-title">Search by name</div>
+    <div style="display:flex;align-items:center;gap:8px;background:#f5f7ff;border:1.5px solid #dde5ff;border-radius:6px;padding:8px 12px;margin-bottom:14px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="e.g. BMW 3 Series, Golf 2018…" style="border:none;outline:none;background:transparent;font-size:13px;font-family:inherit;width:100%;color:#1c1c1c">
+    </div>
+
+    <div class="sd-divider">or select step by step</div>
+
+    <div class="sd-section-title">Popular makes</div>
+    <div class="sd-chips">
+      <button class="sd-chip active">BMW</button>
+      <button class="sd-chip">Volkswagen</button>
+      <button class="sd-chip">Toyota</button>
+      <button class="sd-chip">Ford</button>
+      <button class="sd-chip">Mercedes</button>
+      <button class="sd-chip">Audi</button>
+      <button class="sd-chip">Vauxhall</button>
+      <button class="sd-chip">Renault</button>
+      <button class="sd-chip">Peugeot</button>
+      <button class="sd-chip">Skoda</button>
+    </div>
+
+    <button class="sd-entry">
+      <div class="eb-img" style="width:56px;height:36px;border-radius:5px;overflow:hidden;flex-shrink:0">
+        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=144&h=92&fit=crop&q=80" alt="car" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#1c1c1c">BMW 3 Series</div>
+        <div style="font-size:11px;color:#888;margin-top:2px"><span style="color:#003087;font-weight:600">2019</span> › <span style="color:#003087;font-weight:600">320d xDrive</span></div>
+      </div>
+      <div style="color:#bbb;font-size:16px">›</div>
+    </button>
+  </div>
+</div>
+
+<script>
+function setVariant(v) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('on'));
+  event.target.classList.add('on');
+  if (v === 'new') {
+    document.getElementById('newSelector').style.display = '';
+    document.getElementById('oldSelector').style.display = 'none';
+  } else {
+    document.getElementById('newSelector').style.display = 'none';
+    document.getElementById('oldSelector').style.display = '';
+  }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').style.display = '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function pickMake(el, name) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ebTitle').textContent = name;
+  document.getElementById('ebMake').textContent = name;
+  document.getElementById('ebMake').style.color = '#003087';
+  document.getElementById('ebMake').style.fontWeight = '600';
+  document.getElementById('entryBtn').classList.add('has-car');
+  openSidebar();
+}
+</script>
+</body>
+</html>
