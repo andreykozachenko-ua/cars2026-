@@ -191,6 +191,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .find-btn svg { width: 18px; height: 18px; }
 .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Maker shortcuts ── */
+.maker-shortcuts { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.maker-chip { padding: 7px 14px; background: #f5f7ff; border: 1.5px solid #e0e8ff; border-radius: 20px; font-size: 13px; font-weight: 600; color: #0f3460; cursor: pointer; font-family: inherit; transition: background .12s, border-color .12s; white-space: nowrap; }
+.maker-chip:hover { background: #deeaff; border-color: #b0caff; }
+.maker-chip.active { background: #0f3460; border-color: #0f3460; color: #fff; }
+
+/* ── Recent vehicles ── */
+.recent-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.recent-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f8f9fc; border: 1.5px solid #eee; border-radius: 10px; cursor: pointer; transition: border-color .12s, background .12s; }
+.recent-item:hover { border-color: #0f3460; background: #f0f5ff; }
+.recent-item-icon { width: 34px; height: 34px; border-radius: 8px; background: #eef1fb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.recent-item-icon svg { width: 17px; height: 17px; color: #0f3460; }
+.recent-item-body { flex: 1; min-width: 0; }
+.recent-item-name { font-size: 14px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-remove { width: 28px; height: 28px; border: none; background: none; cursor: pointer; color: #ccc; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; transition: color .12s, background .12s; padding: 0; font-family: inherit; }
+.recent-item-remove:hover { color: #888; background: #eee; }
+.recent-item-remove svg { width: 12px; height: 12px; }
 </style>
 </head>
 <body>
@@ -233,6 +252,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="panel" id="panel-main">
       <div class="sb-body">
 
+        <!-- Recent vehicles -->
+        <div id="recentSection" style="display:none">
+          <div class="sb-label">Recent vehicles</div>
+          <div id="recentList" class="recent-list"></div>
+          <div class="sb-divider" style="margin-top:2px">or find another vehicle</div>
+        </div>
+
         <div class="sb-label">By Registration Number</div>
         <div class="uk-plate">
           <div class="uk-badge"><span class="uk-stars">★★★★</span><span class="uk-gb">GB</span></div>
@@ -264,6 +290,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="ac-drop" id="acDrop"></div>
 
         <div class="sb-divider">or select step by step</div>
+        <div class="sb-label">Popular makes</div>
+        <div class="maker-shortcuts" id="makerShortcuts"></div>
         <button class="selector-entry-btn" id="selectorEntryBtn" onclick="openStep('make')">
           <div class="seb-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -347,12 +375,14 @@ const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Mode
 const STEP_SHORT  = { make:'Make', year:'Year', model:'Model', engine:'Engine' };
 
 // ── Load ─────────────────────────────────────────────────
+renderHistory();
 document.getElementById('findBtn').innerHTML = '<div class="spinner"></div> Loading…';
 fetch('cars_data.json').then(r=>r.json()).then(data=>{
   MAKERS = data.makers;
   ALL_CARS = data.cars;
   document.getElementById('row-make').classList.remove('disabled');
   resetFindBtn();
+  renderMakerShortcuts();
 });
 
 // ── Sidebar ───────────────────────────────────────────────
@@ -614,6 +644,9 @@ function updateSelectorBtn() {
   const btn = document.getElementById('selectorEntryBtn');
   const labels = { make: 'Make', year: 'Year', model: 'Model', engine: 'Engine' };
   const anyDone = STEPS.some(s => state[s]);
+  // Sync maker chip highlight
+  document.querySelectorAll('.maker-chip').forEach(c => c.classList.remove('active'));
+  if (state.make) { const chip = document.getElementById('chip-' + state.make); if (chip) chip.classList.add('active'); }
 
   btn.classList.toggle('has-selection', anyDone);
 
@@ -742,6 +775,8 @@ function setSelectedCar(car, regPlate) {
   if(regPlate) b.push(regPlate);
   document.getElementById('scc-badges').innerHTML=b.map(x=>`<span class="scc-badge">${x}</span>`).join('');
   card.classList.add('show');
+  saveToHistory(car);
+  renderHistory();
   const btn=document.getElementById('findBtn');
   btn.disabled=false;
   btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Parts`;
@@ -750,6 +785,103 @@ function resetFindBtn(){
   const btn=document.getElementById('findBtn');
   btn.disabled=true;
   btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Parts`;
+}
+
+// ── Maker shortcuts ───────────────────────────────────────
+function renderMakerShortcuts() {
+  const counts = {};
+  ALL_CARS.forEach(c => { counts[c[0]] = (counts[c[0]] || 0) + 1; });
+  const top10 = MAKERS
+    .map(m => ({ id: m.id, n: m.n, count: counts[m.id] || 0 }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+  const container = document.getElementById('makerShortcuts');
+  container.innerHTML = top10.map(m =>
+    `<button class="maker-chip" id="chip-${m.id}" onclick="quickPickMake(${m.id})">${m.n}</button>`
+  ).join('');
+}
+
+// ── Recent history ────────────────────────────────────────
+const HISTORY_KEY = 'sb_recent_cars';
+const HISTORY_MAX = 5;
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveToHistory(car) {
+  const maker = MAKERS.find(m => m.id === car[0]);
+  const entry = {
+    id: car[3], make: maker?.n || '', model: car[2], trim: car[4],
+    year: car[6], yearTo: car[7], fuel: car[5], kw: car[8]
+  };
+  let h = getHistory().filter(x => x.id !== entry.id);
+  h.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0, HISTORY_MAX)));
+}
+
+function removeFromHistory(id, e) {
+  if (e) e.stopPropagation();
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(getHistory().filter(h => h.id !== id)));
+  renderHistory();
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const section = document.getElementById('recentSection');
+  if (!history.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('recentList').innerHTML = history.map(h => {
+    const parts = [h.fuel ? h.fuel.split('/')[0] : '', h.kw ? h.kw + ' kW' : '',
+      h.year ? (h.yearTo ? h.year + '–' + h.yearTo : 'from ' + h.year) : ''].filter(Boolean);
+    return `<div class="recent-item" onclick="pickRecent(${h.id})">
+      <div class="recent-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div class="recent-item-body">
+        <div class="recent-item-name">${h.make} ${h.model}</div>
+        <div class="recent-item-sub">${h.trim}${parts.length ? ' · ' + parts.join(' · ') : ''}</div>
+      </div>
+      <button class="recent-item-remove" onclick="removeFromHistory(${h.id}, event)" title="Remove">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function pickRecent(carId) {
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  state = { make: car[0], year: car[6], model: car[1], engine: car[3] };
+  setRowValue('make',   maker?.n || '', true);
+  setRowValue('year',   String(car[6] || ''), true);
+  setRowValue('model',  car[2], true);
+  setRowValue('engine', car[4], true);
+  updateBubbles(); enableRows();
+  setSelectedCar(car, null);
+}
+
+function quickPickMake(makerId) {
+  const maker = MAKERS.find(m => m.id === makerId);
+  if (!maker) return;
+  state = { make: makerId, year: null, model: null, engine: null };
+  setRowValue('make', maker.n, true);
+  ['year','model','engine'].forEach(s => setRowValue(s, 'Select '+s, false));
+  updateBubbles(); enableRows(); setSelectedCar(null);
+  // Highlight selected chip
+  document.querySelectorAll('.maker-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.getElementById('chip-' + makerId);
+  if (chip) chip.classList.add('active');
+  // Open year step directly
+  stepHistory = ['make', 'year'];
+  currentStep = 'year';
+  updateTopbar();
+  updateTrail();
+  renderStepContent('');
+  showStepPanel();
+  setTimeout(() => document.getElementById('stepSearch').focus(), 350);
 }
 function findParts(){
   if(!selectedCar)return;

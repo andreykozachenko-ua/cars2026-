@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tyre Size Selector — Sidebar Prototype</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+/* ── Demo page ── */
+.demo-header { background: #1a1a2e; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.demo-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -.5px; }
+.demo-logo span { color: #e8a020; }
+.demo-nav { display: flex; gap: 24px; }
+.demo-nav a { color: rgba(255,255,255,.6); font-size: 14px; text-decoration: none; }
+.demo-hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); padding: 64px 24px; text-align: center; color: #fff; }
+.demo-hero h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+.demo-hero h1 span { color: #e8a020; }
+.demo-hero p { font-size: 18px; color: rgba(255,255,255,.6); margin-bottom: 36px; }
+.open-btn { display: inline-flex; align-items: center; gap: 10px; background: #e8a020; color: #fff; border: none; border-radius: 10px; padding: 16px 32px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 20px rgba(232,160,32,.4); transition: background .2s; }
+.open-btn:hover { background: #d4911a; }
+.open-btn svg { width: 20px; height: 20px; }
+.demo-cards { max-width: 960px; margin: 48px auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.demo-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.demo-card-icon { font-size: 28px; margin-bottom: 10px; }
+.demo-card h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+.demo-card p { font-size: 13px; color: #666; line-height: 1.5; }
+
+/* ── Overlay ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(3px); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+
+/* ── Sidebar ── */
+.sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); box-shadow: -8px 0 40px rgba(0,0,0,.15); background: #fff; overflow: hidden; }
+.sidebar.open { transform: translateX(0); }
+@media (max-width: 480px) { .sidebar { width: 100%; } }
+
+/* Top bar */
+.sb-topbar { flex-shrink: 0; height: 56px; display: flex; align-items: center; border-bottom: 1px solid #eee; background: #fff; z-index: 10; }
+.sb-back { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #0f3460; flex-shrink: 0; transition: opacity .15s; }
+.sb-back:hover { opacity: .7; }
+.sb-back svg { width: 20px; height: 20px; }
+.sb-topbar-title { flex: 1; text-align: center; font-size: 17px; font-weight: 700; color: #1a1a2e; }
+.sb-close { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #aaa; flex-shrink: 0; }
+.sb-close:hover { color: #333; }
+.sb-close svg { width: 18px; height: 18px; }
+
+/* Panels */
+.panels-wrap { flex: 1; position: relative; overflow: hidden; }
+.panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; background: #fff; transition: transform .32s cubic-bezier(.32,.72,0,1); scrollbar-width: thin; scrollbar-color: #e8e8e8 transparent; }
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-thumb { background: #e8e8e8; border-radius: 4px; }
+#panel-main { transform: translateX(0); }
+#panel-main.pushed { transform: translateX(-30%); }
+#panel-step { transform: translateX(100%); }
+#panel-step.active { transform: translateX(0); }
+
+/* Footer */
+.sb-footer { flex-shrink: 0; padding: 14px 16px; border-top: 1px solid #eee; background: #fff; }
+
+/* ── Tyre size visual ── */
+.tyre-visual {
+  margin: 20px 16px 0;
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  border-radius: 16px; padding: 20px;
+  display: flex; align-items: center; gap: 20px;
+}
+
+.tyre-svg-wrap {
+  flex-shrink: 0;
+  width: 90px; height: 90px;
+  position: relative;
+}
+
+.tyre-size-display {
+  flex: 1;
+}
+.tyre-size-row {
+  display: flex; align-items: baseline; gap: 0;
+  line-height: 1;
+}
+.tyre-num {
+  font-size: 32px; font-weight: 900; color: #fff;
+  letter-spacing: -1px; transition: color .2s;
+}
+.tyre-num.empty { color: rgba(255,255,255,.25); }
+.tyre-sep { font-size: 24px; font-weight: 300; color: rgba(255,255,255,.4); margin: 0 2px; }
+.tyre-r { font-size: 24px; font-weight: 900; color: rgba(255,255,255,.5); margin: 0 2px; }
+
+.tyre-labels {
+  display: flex; gap: 0; margin-top: 10px;
+}
+.tyre-label-item {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.tyre-label-txt {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.tyre-label-sep { width: 16px; }
+.tyre-label-r { width: 24px; }
+
+/* ── Season chips ── */
+.season-wrap { padding: 16px 16px 0; }
+.season-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+.season-chips { display: flex; gap: 8px; }
+.season-chip {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 6px; border-radius: 10px; border: 1.5px solid #e8e8e8;
+  cursor: pointer; background: #fff; font-family: inherit;
+  transition: border-color .15s, background .15s;
+}
+.season-chip:hover { border-color: #0f3460; background: #f5f8ff; }
+.season-chip.active { border-color: #0f3460; background: #f0f5ff; }
+.season-chip-icon { font-size: 20px; line-height: 1; }
+.season-chip-lbl { font-size: 11px; font-weight: 600; color: #555; }
+.season-chip.active .season-chip-lbl { color: #0f3460; }
+
+/* ── Manual input ── */
+.manual-wrap { padding: 16px 16px 0; }
+.sb-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+.sb-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: #ccc; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.sb-divider::before,.sb-divider::after { content:''; flex:1; height:1px; background:#eee; }
+
+.manual-input-wrap { position: relative; }
+.manual-input {
+  width: 100%; padding: 11px 42px 11px 14px;
+  border: 1.5px solid #e8e8e8; border-radius: 8px;
+  font-size: 17px; font-weight: 700; color: #1a1a2e; letter-spacing: 1px;
+  background: #fafafa; font-family: 'Arial', sans-serif;
+  outline: none; transition: border-color .15s;
+}
+.manual-input:focus { border-color: #0f3460; background: #fff; }
+.manual-input::placeholder { color: #ccc; font-weight: 400; letter-spacing: 0; font-size: 15px; font-family: inherit; }
+.manual-input-hint { font-size: 11px; color: #bbb; margin-top: 5px; }
+.manual-input-ok {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px; border-radius: 50%; background: #22c55e;
+  display: none; align-items: center; justify-content: center;
+}
+.manual-input-ok svg { width: 12px; height: 12px; color: #fff; }
+
+/* ── Selector entry button ── */
+.selector-entry-btn {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  background: #fff; border: 1.5px solid #e8e8e8; border-radius: 12px;
+  padding: 14px 16px; cursor: pointer; font-family: inherit;
+  text-align: left; transition: border-color .15s, background .15s;
+}
+.selector-entry-btn:hover { border-color: #0f3460; background: #f5f8ff; }
+.selector-entry-btn.has-selection { border-color: #0f3460; background: #f0f5ff; }
+.seb-icon { width: 40px; height: 40px; border-radius: 10px; background: #f0f5ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.seb-icon svg { width: 20px; height: 20px; color: #0f3460; }
+.selector-entry-btn.has-selection .seb-icon { background: #0f3460; }
+.selector-entry-btn.has-selection .seb-icon svg { color: #fff; }
+.seb-body { flex: 1; min-width: 0; }
+.seb-title { font-size: 15px; font-weight: 600; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seb-steps { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: #aaa; }
+.seb-steps span.done { color: #0f3460; font-weight: 600; }
+.seb-arrow { color: #ddd !important; font-size: 11px; }
+.seb-chev { color: #ccc; font-size: 20px; line-height: 1; flex-shrink: 0; }
+
+/* ── Step panel ── */
+.step-trail { padding: 10px 16px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.trail-chip { display: inline-flex; align-items: center; gap: 5px; background: #f0f5ff; border: 1.5px solid #ccdeff; border-radius: 20px; padding: 4px 10px 4px 12px; font-size: 13px; font-weight: 600; color: #0f3460; cursor: pointer; white-space: nowrap; transition: background .15s; }
+.trail-chip:hover { background: #deeaff; }
+.trail-chip-x { font-size: 14px; color: #99b8f0; }
+.step-header { padding: 10px 16px 0; }
+.step-header-step { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+.step-header-title { font-size: 20px; font-weight: 800; color: #1a1a2e; letter-spacing: -.4px; }
+.step-header-hint { font-size: 13px; color: #888; margin-top: 4px; }
+.step-search { padding: 12px 16px; position: sticky; top: 0; background: #fff; border-bottom: 1px solid #f0f0f0; z-index: 5; }
+.step-search-inner { display: flex; align-items: center; gap: 8px; background: #f0f2f5; border-radius: 8px; padding: 9px 12px; }
+.step-search-inner svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
+.step-search-inner input { flex: 1; border: none; background: transparent; outline: none; font-size: 15px; color: #1a1a2e; font-family: inherit; }
+.step-search-inner input::placeholder { color: #bbb; }
+
+.step-content-wrap { overflow: hidden; }
+.step-content { transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .22s; }
+.step-content.exit-left  { transform: translateX(-48px); opacity: 0; pointer-events: none; }
+.step-content.exit-right { transform: translateX(48px);  opacity: 0; pointer-events: none; }
+.step-content.enter-right { transform: translateX(48px);  opacity: 0; }
+.step-content.enter-left  { transform: translateX(-48px); opacity: 0; }
+
+.step-item { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fff; transition: background .1s; }
+.step-item:last-child { border-bottom: none; }
+.step-item:hover { background: #f5f8ff; }
+.step-item.sel { background: #f0f5ff; }
+.step-item-body { flex: 1; }
+.step-item-name { font-size: 15px; color: #1a1a2e; }
+.step-item.sel .step-item-name { font-weight: 700; color: #0f3460; }
+.step-item-sub { font-size: 12px; color: #999; margin-top: 2px; }
+.step-item-check { color: #0f3460; font-size: 15px; opacity: 0; flex-shrink: 0; margin-left: 8px; }
+.step-item.sel .step-item-check { opacity: 1; }
+.step-count { font-size: 12px; color: #aaa; padding: 8px 16px 4px; }
+.step-empty { padding: 48px 16px; text-align: center; color: #bbb; font-size: 14px; }
+
+/* ── Footer ── */
+.sel-tyre-card { display: none; background: linear-gradient(135deg,#1a1a2e,#0f3460); border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; }
+.sel-tyre-card.show { display: flex; align-items: center; gap: 12px; }
+.stc-size { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+.stc-detail { flex: 1; }
+.stc-season { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 2px; }
+.stc-badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.stc-badge { background: rgba(255,255,255,.12); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.8); }
+
+.find-btn { width: 100%; padding: 14px; background: #e8a020; border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background .15s; }
+.find-btn:hover { background: #d4911a; }
+.find-btn:disabled { background: #ddd; cursor: not-allowed; }
+.find-btn svg { width: 18px; height: 18px; }
+
+/* ── Vehicle type tabs ── */
+.vehicle-tabs { display: flex; border-bottom: 1px solid #eee; background: #fff; flex-shrink: 0; }
+.vtab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px 7px; border: none; background: none; cursor: pointer; font-size: 11px; font-weight: 600; color: #bbb; font-family: inherit; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; }
+.vtab:hover { color: #555; }
+.vtab.active { color: #0f3460; border-bottom-color: #0f3460; }
+.vtab svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+
+<div class="demo-header">
+  <div class="demo-logo">auto<span>DOC</span></div>
+  <nav class="demo-nav"><a href="#">Tyres</a><a href="#">Wheels</a><a href="#">Parts</a><a href="#">Brands</a></nav>
+</div>
+<div class="demo-hero">
+  <h1>Find the right <span>tyres</span></h1>
+  <p>Select your tyre size and we'll show you every option in stock.</p>
+  <button class="open-btn" onclick="openSidebar()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+    Select Tyre Size
+  </button>
+</div>
+<div class="demo-cards">
+  <div class="demo-card"><div class="demo-card-icon">📐</div><h3>Step-by-Step Size</h3><p>Select Width, Profile and Rim diameter step by step with smart filtering.</p></div>
+  <div class="demo-card"><div class="demo-card-icon">⌨️</div><h3>Manual Entry</h3><p>Know your size? Type it directly — 205/55R16 — and we'll validate it instantly.</p></div>
+  <div class="demo-card"><div class="demo-card-icon">🌦️</div><h3>Season Filter</h3><p>Choose Summer, Winter or All-season to narrow results to what you need.</p></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+
+  <div class="sb-topbar">
+    <button class="sb-back" id="backBtn" onclick="goBack()" style="visibility:hidden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sb-topbar-title" id="topbarTitle">Select Tyre Size</div>
+    <button class="sb-close" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Vehicle type tabs -->
+  <div class="vehicle-tabs">
+    <button class="vtab active" data-v="car" onclick="switchVehicle('car')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12l2-4h12l2 4"/><rect x="1" y="12" width="22" height="5" rx="1"/>
+        <circle cx="6.5" cy="18" r="2.2" fill="currentColor" stroke="none" opacity=".55"/>
+        <circle cx="17.5" cy="18" r="2.2" fill="currentColor" stroke="none" opacity=".55"/>
+      </svg>
+      Легковой
+    </button>
+    <button class="vtab" data-v="suv" onclick="switchVehicle('suv')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="8" width="22" height="8" rx="1"/>
+        <path d="M5 8V6h14v2M1 13h22"/>
+        <circle cx="6.5" cy="17" r="2.2" fill="currentColor" stroke="none" opacity=".55"/>
+        <circle cx="17.5" cy="17" r="2.2" fill="currentColor" stroke="none" opacity=".55"/>
+      </svg>
+      SUV
+    </button>
+    <button class="vtab" data-v="moto" onclick="switchVehicle('moto')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="5" cy="16" r="4"/><circle cx="19" cy="16" r="4"/>
+        <path d="M9 16l3-7 3 4 3-3"/><path d="M5 12h4"/>
+      </svg>
+      Moto
+    </button>
+    <button class="vtab" data-v="truck" onclick="switchVehicle('truck')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="8" width="13" height="8" rx="1"/>
+        <path d="M14 11l6 1.5V16h-6V11z"/>
+        <circle cx="5" cy="17" r="2" fill="currentColor" stroke="none" opacity=".55"/>
+        <circle cx="11" cy="17" r="2" fill="currentColor" stroke="none" opacity=".55"/>
+        <circle cx="19" cy="17" r="2" fill="currentColor" stroke="none" opacity=".55"/>
+      </svg>
+      Грузовой
+    </button>
+  </div>
+
+  <div class="panels-wrap">
+
+    <!-- MAIN PANEL -->
+    <div class="panel" id="panel-main">
+
+      <!-- Tyre visual -->
+      <div class="tyre-visual">
+        <div class="tyre-svg-wrap">
+          <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer tyre -->
+            <circle cx="45" cy="45" r="42" stroke="rgba(255,255,255,.5)" stroke-width="8" fill="rgba(255,255,255,.06)"/>
+            <!-- Tread pattern -->
+            <circle cx="45" cy="45" r="42" stroke="rgba(255,255,255,.15)" stroke-width="3" stroke-dasharray="6 4" fill="none"/>
+            <!-- Sidewall -->
+            <circle cx="45" cy="45" r="34" stroke="rgba(255,255,255,.2)" stroke-width="1" fill="rgba(255,255,255,.04)"/>
+            <!-- Rim -->
+            <circle cx="45" cy="45" r="26" stroke="rgba(255,255,255,.6)" stroke-width="2" fill="rgba(255,255,255,.1)"/>
+            <!-- Spokes -->
+            <line x1="45" y1="19" x2="45" y2="29" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="45" y1="61" x2="45" y2="71" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="19" y1="45" x2="29" y2="45" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="61" y1="45" x2="71" y2="45" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="26.7" y1="26.7" x2="33.8" y2="33.8" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="56.2" y1="56.2" x2="63.3" y2="63.3" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="63.3" y1="26.7" x2="56.2" y2="33.8" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <line x1="33.8" y1="56.2" x2="26.7" y2="63.3" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+            <!-- Center -->
+            <circle cx="45" cy="45" r="5" fill="rgba(255,255,255,.4)"/>
+            <!-- Width arrow -->
+            <line x1="3" y1="82" x2="87" y2="82" stroke="#e8a020" stroke-width="1.5"/>
+            <line x1="3" y1="78" x2="3" y2="86" stroke="#e8a020" stroke-width="1.5"/>
+            <line x1="87" y1="78" x2="87" y2="86" stroke="#e8a020" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="tyre-size-display">
+          <div class="tyre-size-row">
+            <span class="tyre-num" id="tv-width">___</span>
+            <span class="tyre-sep">/</span>
+            <span class="tyre-num" id="tv-profile">__</span>
+            <span class="tyre-r"> R</span>
+            <span class="tyre-num" id="tv-rim">__</span>
+          </div>
+          <div class="tyre-labels">
+            <div class="tyre-label-item"><span class="tyre-label-txt">Width</span></div>
+            <div class="tyre-label-sep"></div>
+            <div class="tyre-label-item"><span class="tyre-label-txt">Profile</span></div>
+            <div class="tyre-label-r"></div>
+            <div class="tyre-label-item"><span class="tyre-label-txt">Rim</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Season -->
+      <div class="season-wrap">
+        <div class="season-label">Season</div>
+        <div class="season-chips">
+          <button class="season-chip" id="sc-summer" onclick="setSeason('summer')">
+            <span class="season-chip-icon">☀️</span>
+            <span class="season-chip-lbl">Summer</span>
+          </button>
+          <button class="season-chip" id="sc-winter" onclick="setSeason('winter')">
+            <span class="season-chip-icon">❄️</span>
+            <span class="season-chip-lbl">Winter</span>
+          </button>
+          <button class="season-chip" id="sc-allseason" onclick="setSeason('allseason')">
+            <span class="season-chip-icon">🌦️</span>
+            <span class="season-chip-lbl">All-season</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step selector button -->
+      <div style="padding:16px 16px 0">
+        <div class="sb-label">Select by size</div>
+        <button class="selector-entry-btn" id="selectorEntryBtn" onclick="openStep('width')">
+          <div class="seb-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+          </div>
+          <div class="seb-body">
+            <div class="seb-title" id="sebTitle">Select Width, Profile, Rim…</div>
+            <div class="seb-steps">
+              <span id="seb-width">Width</span>
+              <span class="seb-arrow">›</span>
+              <span id="seb-profile">Profile</span>
+              <span class="seb-arrow">›</span>
+              <span id="seb-rim">Rim</span>
+            </div>
+          </div>
+          <div class="seb-chev">›</div>
+        </button>
+      </div>
+
+      <!-- Manual input -->
+      <div class="manual-wrap">
+        <div class="sb-divider">or enter manually</div>
+        <div class="sb-label">Type tyre size</div>
+        <div class="manual-input-wrap">
+          <input class="manual-input" id="manualInput" type="text" placeholder="e.g. 205/55R16" maxlength="12" autocomplete="off" spellcheck="false">
+          <div class="manual-input-ok" id="manualOk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div class="manual-input-hint" id="manualHint">Format: 205/55R16</div>
+      </div>
+
+      <!-- hidden state holders -->
+      <div style="display:none">
+        <span id="val-width"></span><span id="val-profile"></span><span id="val-rim"></span>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- STEP PANEL -->
+    <div class="panel" id="panel-step">
+      <div id="stepTrail" class="step-trail"></div>
+      <div class="step-header">
+        <div class="step-header-step" id="stepHeaderStep"></div>
+        <div class="step-header-title" id="stepHeaderTitle"></div>
+        <div class="step-header-hint" id="stepHeaderHint"></div>
+      </div>
+      <div class="step-search">
+        <div class="step-search-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stepSearch" type="text" placeholder="Search…" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="step-content-wrap">
+        <div class="step-content" id="stepContent">
+          <div id="stepCount" class="step-count"></div>
+          <div id="stepList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="sb-footer">
+    <div class="sel-tyre-card" id="selCard">
+      <div class="stc-detail">
+        <div class="stc-size" id="stc-size"></div>
+        <div class="stc-season" id="stc-season"></div>
+      </div>
+      <div class="stc-badges" id="stc-badges"></div>
+    </div>
+    <button class="find-btn" id="findBtn" disabled onclick="findTyres()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Find Tyres
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Tyre data ─────────────────────────────────────────────
+
+let currentVehicle = 'car';
+
+const VEHICLE_DATA = {
+  car: {
+    widths: [145,155,165,175,185,195,205,215,225,235,245,255,265,275,285,295,305,315,325,335],
+    profiles: {
+      145:[70,80], 155:[65,70,80], 165:[55,60,65,70,75,80],
+      175:[50,55,60,65,70,75,80], 185:[45,50,55,60,65,70,75,80],
+      195:[45,50,55,60,65,70,75,80], 205:[40,45,50,55,60,65,70,75],
+      215:[35,40,45,50,55,60,65,70,75], 225:[30,35,40,45,50,55,60,65,70,75],
+      235:[30,35,40,45,50,55,60,65,70], 245:[25,30,35,40,45,50,55,60,65],
+      255:[25,30,35,40,45,50,55,60,65], 265:[25,30,35,40,45,50,55,60,65],
+      275:[25,30,35,40,45,50,55,60,65,70], 285:[25,30,35,40,45,50,55,60],
+      295:[25,30,35,40,45,50,55], 305:[25,30,35,40,45,50],
+      315:[25,30,35,40], 325:[25,30,35], 335:[25,30,35],
+    },
+    odMin: 540, odMax: 820, rimMin: 13, rimMax: 22,
+    manualHint: 'Format: 205/55R16',
+  },
+  suv: {
+    widths: [205,215,225,235,245,255,265,275,285,295,305,315],
+    profiles: {
+      205:[50,55,60,65,70,75,80], 215:[50,55,60,65,70,75],
+      225:[45,50,55,60,65,70,75], 235:[45,50,55,60,65,70,75],
+      245:[40,45,50,55,60,65,70,75], 255:[40,45,50,55,60,65,70],
+      265:[40,45,50,55,60,65,70,75], 275:[40,45,50,55,60,65,70],
+      285:[35,40,45,50,55,60,65], 295:[30,35,40,45,50,55,60],
+      305:[30,35,40,45,50,55], 315:[30,35,40,45,50],
+    },
+    odMin: 630, odMax: 860, rimMin: 16, rimMax: 22,
+    manualHint: 'Format: 255/55R19',
+  },
+  moto: {
+    widths: [80,90,100,110,120,130,140,150,160,170,180,190,200],
+    profiles: {
+      80:[90,100], 90:[80,90,100], 100:[70,80,90,100],
+      110:[70,80,90], 120:[60,70,80,90], 130:[60,70,80,90],
+      140:[60,70,80], 150:[60,70,80], 160:[50,60,70],
+      170:[50,60,70], 180:[50,55,60,65], 190:[50,55,60],
+      200:[50,55,60],
+    },
+    odMin: 530, odMax: 740, rimMin: 15, rimMax: 21,
+    manualHint: 'Format: 120/70R17',
+  },
+  truck: {
+    widths: [205,215,225,235,245,255,265,275,285,295,305,315,325,385],
+    profiles: {
+      205:[55,60,65,70,75,80], 215:[55,60,65,70,75,80],
+      225:[55,60,65,70,75], 235:[55,60,65,70,75],
+      245:[55,60,65,70,75], 255:[55,60,65,70],
+      265:[55,60,65,70], 275:[55,60,65,70],
+      285:[55,60,65,70], 295:[55,60,65,70],
+      305:[55,60,65,70], 315:[55,60,65,70],
+      325:[55,60,65], 385:[55,65],
+    },
+    fixedRims: [17.5, 19.5, 22.5],
+    manualHint: 'Format: 315/70R22.5',
+  },
+};
+
+function getRims(width, profile) {
+  const vd = VEHICLE_DATA[currentVehicle];
+  if (vd.fixedRims) return vd.fixedRims;
+  const sidewall = width * profile / 100;
+  const rims = [];
+  for (let r = vd.rimMin; r <= vd.rimMax; r++) {
+    const od = r * 25.4 + 2 * sidewall;
+    if (od >= vd.odMin && od <= vd.odMax) rims.push(r);
+  }
+  return rims;
+}
+
+function getProfileHint(profile) {
+  if (profile <= 30) return 'Ultra low profile — sports & performance';
+  if (profile <= 45) return 'Low profile — sporty handling';
+  if (profile <= 55) return 'Standard — comfort & performance balance';
+  if (profile <= 65) return 'Higher profile — comfort & durability';
+  return 'High profile — SUV, off-road, vans';
+}
+
+// ── State ─────────────────────────────────────────────────
+const STEPS = ['width','profile','rim'];
+const STEP_LABELS  = { width:'Select Width', profile:'Select Profile', rim:'Select Rim Diameter' };
+const STEP_HINTS   = {
+  width:   'Tyre width in millimetres (e.g. 205)',
+  profile: 'Aspect ratio — sidewall height as % of width',
+  rim:     'Rim / wheel diameter in inches',
+};
+
+let state = { width: null, profile: null, rim: null };
+let selectedSeason = null;
+let currentStep = null;
+let stepHistory = [];
+let stepSearchDebounce;
+
+// ── Sidebar ───────────────────────────────────────────────
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  hideStepPanel();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── Vehicle type switch ────────────────────────────────────
+function switchVehicle(type) {
+  if (currentVehicle === type) return;
+  currentVehicle = type;
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.vtab[data-v="${type}"]`).classList.add('active');
+  state = { width: null, profile: null, rim: null };
+  ['width','profile','rim'].forEach(s => document.getElementById('val-' + s).textContent = '');
+  if (currentStep !== null) hideStepPanel();
+  document.getElementById('manualInput').value = '';
+  document.getElementById('manualOk').style.display = 'none';
+  const hint = VEHICLE_DATA[type].manualHint || 'Format: 205/55R16';
+  document.getElementById('manualHint').textContent = hint;
+  document.getElementById('manualHint').style.color = '#bbb';
+  updateTyreVisual();
+  updateSelectorBtn();
+  updateFooter();
+}
+
+// ── Season ────────────────────────────────────────────────
+function setSeason(s) {
+  selectedSeason = selectedSeason === s ? null : s;
+  document.querySelectorAll('.season-chip').forEach(el => el.classList.remove('active'));
+  if (selectedSeason) document.getElementById('sc-' + selectedSeason).classList.add('active');
+  updateFooter();
+}
+
+// ── Panel nav ─────────────────────────────────────────────
+function showStepPanel() {
+  document.getElementById('panel-main').classList.add('pushed');
+  document.getElementById('panel-step').style.transform = 'translateX(0)';
+  document.getElementById('backBtn').style.visibility = 'visible';
+}
+function hideStepPanel() {
+  document.getElementById('panel-main').classList.remove('pushed');
+  document.getElementById('panel-step').style.transform = 'translateX(100%)';
+  document.getElementById('backBtn').style.visibility = 'hidden';
+  document.getElementById('topbarTitle').textContent = 'Select Tyre Size';
+  currentStep = null;
+  stepHistory = [];
+}
+
+function openStep(step, direction) {
+  const wasOpen = currentStep !== null;
+  currentStep = step;
+  if (!stepHistory.includes(step)) stepHistory.push(step);
+
+  updateTopbar();
+  updateTrail();
+  renderStepContent('');
+
+  if (!wasOpen) {
+    showStepPanel();
+    setTimeout(() => document.getElementById('stepSearch').focus(), 350);
+  } else {
+    animateContent(direction || 'forward', () => {
+      renderStepContent('');
+      document.getElementById('stepSearch').value = '';
+    });
+  }
+}
+
+function goBack() {
+  const idx = STEPS.indexOf(currentStep);
+  if (idx <= 0) {
+    hideStepPanel();
+  } else {
+    const prev = STEPS[idx - 1];
+    stepHistory = stepHistory.slice(0, stepHistory.indexOf(prev) + 1);
+    currentStep = prev;
+    updateTopbar();
+    animateContent('back', () => {
+      updateTrail();
+      renderStepContent(document.getElementById('stepSearch').value || '');
+    });
+  }
+}
+
+function jumpToStep(step) {
+  const idx = STEPS.indexOf(step);
+  STEPS.slice(idx).forEach(s => {
+    state[s] = null;
+    document.getElementById('val-' + s).textContent = '';
+  });
+  updateSelectorBtn();
+  updateTyreVisual();
+  updateFooter();
+  stepHistory = STEPS.slice(0, idx + 1);
+  currentStep = step;
+  updateTopbar();
+  animateContent('back', () => {
+    updateTrail();
+    renderStepContent('');
+    document.getElementById('stepSearch').value = '';
+  });
+}
+
+// ── Topbar & trail ────────────────────────────────────────
+function updateTopbar() {
+  const idx = STEPS.indexOf(currentStep);
+  document.getElementById('topbarTitle').textContent = STEP_LABELS[currentStep];
+  document.getElementById('stepHeaderStep').textContent = `Step ${idx+1} of 3`;
+  document.getElementById('stepHeaderTitle').textContent = STEP_LABELS[currentStep];
+  document.getElementById('stepHeaderHint').textContent = STEP_HINTS[currentStep];
+}
+
+function updateTrail() {
+  const trail = document.getElementById('stepTrail');
+  const chips = STEPS
+    .filter(s => s !== currentStep && state[s] !== null)
+    .filter(s => STEPS.indexOf(s) < STEPS.indexOf(currentStep));
+
+  if (!chips.length) { trail.innerHTML = ''; return; }
+  const units = { width: ' mm', profile: '', rim: '"' };
+  trail.innerHTML = chips.map(s =>
+    `<div class="trail-chip" onclick="jumpToStep('${s}')">
+      ${state[s]}${units[s]} <span class="trail-chip-x">×</span>
+    </div>`
+  ).join('');
+}
+
+// ── Animate ───────────────────────────────────────────────
+function animateContent(direction, callback) {
+  const el = document.getElementById('stepContent');
+  const exitCls  = direction === 'forward' ? 'exit-left'  : 'exit-right';
+  const enterCls = direction === 'forward' ? 'enter-right' : 'enter-left';
+  el.classList.add(exitCls);
+  setTimeout(() => {
+    callback();
+    el.classList.remove(exitCls);
+    el.classList.add(enterCls);
+    el.getBoundingClientRect();
+    el.classList.remove(enterCls);
+  }, 180);
+}
+
+// ── Render step list ──────────────────────────────────────
+function renderStepContent(filter) {
+  const f = filter.trim().toLowerCase();
+  let items = [];
+
+  const vd = VEHICLE_DATA[currentVehicle];
+  if (currentStep === 'width') {
+    items = vd.widths.map(w => ({ id: w, label: `${w} mm`, sub: `Tyre width` }));
+  } else if (currentStep === 'profile') {
+    items = (vd.profiles[state.width] || []).map(p => ({
+      id: p, label: `${p}`, sub: getProfileHint(p)
+    }));
+  } else if (currentStep === 'rim') {
+    items = getRims(state.width, state.profile).map(r => ({
+      id: r, label: `R${r}`, sub: `${r}" rim diameter`
+    }));
+  }
+
+  const filtered = f ? items.filter(i => i.label.toLowerCase().includes(f) || i.id.toString().includes(f)) : items;
+
+  document.getElementById('stepCount').textContent =
+    filtered.length ? `${filtered.length} option${filtered.length !== 1 ? 's' : ''}` : '';
+
+  const list = document.getElementById('stepList');
+  if (!filtered.length) { list.innerHTML = `<div class="step-empty">No results found</div>`; return; }
+
+  list.innerHTML = filtered.map(item => {
+    const isSel = item.id == state[currentStep];
+    return `<div class="step-item ${isSel ? 'sel' : ''}" onclick="pickItem(${item.id})">
+      <div class="step-item-body">
+        <div class="step-item-name">${item.label}</div>
+        ${item.sub ? `<div class="step-item-sub">${item.sub}</div>` : ''}
+      </div>
+      <span class="step-item-check">✓</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Pick item ─────────────────────────────────────────────
+function pickItem(id) {
+  if (currentStep === 'width') {
+    state = { width: id, profile: null, rim: null };
+    document.getElementById('val-width').textContent = id;
+    document.getElementById('val-profile').textContent = '';
+    document.getElementById('val-rim').textContent = '';
+    updateTyreVisual(); updateSelectorBtn(); updateFooter();
+    stepHistory = ['width','profile'];
+    currentStep = 'profile';
+    updateTopbar();
+    animateContent('forward', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value = ''; });
+
+  } else if (currentStep === 'profile') {
+    state.profile = id; state.rim = null;
+    document.getElementById('val-profile').textContent = id;
+    document.getElementById('val-rim').textContent = '';
+    updateTyreVisual(); updateSelectorBtn(); updateFooter();
+    stepHistory = ['width','profile','rim'];
+    currentStep = 'rim';
+    updateTopbar();
+    animateContent('forward', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value = ''; });
+
+  } else if (currentStep === 'rim') {
+    state.rim = id;
+    document.getElementById('val-rim').textContent = id;
+    updateTyreVisual(); updateSelectorBtn(); updateFooter();
+    setTimeout(() => hideStepPanel(), 120);
+  }
+}
+
+// ── Step search ───────────────────────────────────────────
+document.getElementById('stepSearch').addEventListener('input', function() {
+  clearTimeout(stepSearchDebounce);
+  stepSearchDebounce = setTimeout(() => renderStepContent(this.value), 100);
+});
+
+// ── Tyre visual update ────────────────────────────────────
+function updateTyreVisual() {
+  const w = document.getElementById('tv-width');
+  const p = document.getElementById('tv-profile');
+  const r = document.getElementById('tv-rim');
+  w.textContent = state.width  || '___'; w.className = 'tyre-num' + (state.width  ? '' : ' empty');
+  p.textContent = state.profile|| '__';  p.className = 'tyre-num' + (state.profile? '' : ' empty');
+  r.textContent = state.rim    || '__';  r.className = 'tyre-num' + (state.rim    ? '' : ' empty');
+}
+
+// ── Selector button update ────────────────────────────────
+function updateSelectorBtn() {
+  const btn = document.getElementById('selectorEntryBtn');
+  const anyDone = state.width || state.profile || state.rim;
+  btn.classList.toggle('has-selection', !!anyDone);
+
+  const titleEl = document.getElementById('sebTitle');
+  if (state.width && state.profile && state.rim) {
+    titleEl.textContent = `${state.width}/${state.profile} R${state.rim}`;
+  } else if (anyDone) {
+    const parts = [
+      state.width  ? `${state.width} mm` : null,
+      state.profile? `/${state.profile}` : null,
+      state.rim    ? ` R${state.rim}`    : null,
+    ].filter(Boolean);
+    titleEl.textContent = parts.join('');
+  } else {
+    titleEl.textContent = 'Select Width, Profile, Rim…';
+  }
+
+  const units = { width: ' mm', profile: '', rim: '"' };
+  ['width','profile','rim'].forEach(s => {
+    const el = document.getElementById('seb-' + s);
+    const labels = { width:'Width', profile:'Profile', rim:'Rim' };
+    if (state[s]) { el.textContent = state[s] + (s==='rim'?'"':s==='width'?' mm':''); el.classList.add('done'); }
+    else          { el.textContent = labels[s]; el.classList.remove('done'); }
+  });
+}
+
+// ── Manual input ──────────────────────────────────────────
+document.getElementById('manualInput').addEventListener('input', function() {
+  const raw = this.value.toUpperCase().replace(/\s/g,'');
+  const match = raw.match(/^(\d{3})\/(\d{2,3})R(\d{2}(?:\.\d)?)$/);
+  const okEl = document.getElementById('manualOk');
+  const hintEl = document.getElementById('manualHint');
+
+  if (match) {
+    const w = +match[1], p = +match[2], r = parseFloat(match[3]);
+    if (VEHICLE_DATA[currentVehicle].widths.includes(w)) {
+      state = { width: w, profile: p, rim: r };
+      document.getElementById('val-width').textContent = w;
+      document.getElementById('val-profile').textContent = p;
+      document.getElementById('val-rim').textContent = r;
+      updateTyreVisual(); updateSelectorBtn(); updateFooter();
+      okEl.style.display = 'flex';
+      hintEl.textContent = `✓ Valid tyre size`;
+      hintEl.style.color = '#22c55e';
+      return;
+    }
+  }
+  okEl.style.display = 'none';
+  hintEl.textContent = 'Format: 205/55R16';
+  hintEl.style.color = '#bbb';
+});
+
+// ── Footer update ─────────────────────────────────────────
+function updateFooter() {
+  const card = document.getElementById('selCard');
+  const btn  = document.getElementById('findBtn');
+  const complete = state.width && state.profile && state.rim;
+
+  if (!complete) { card.classList.remove('show'); btn.disabled = true; return; }
+
+  document.getElementById('stc-size').textContent = `${state.width}/${state.profile} R${state.rim}`;
+  const seasonLabels = { summer:'☀️ Summer', winter:'❄️ Winter', allseason:'🌦️ All-season' };
+  document.getElementById('stc-season').textContent = selectedSeason ? seasonLabels[selectedSeason] : 'All seasons';
+
+  const sidewall = Math.round(state.width * state.profile / 100);
+  const od = Math.round(state.rim * 25.4 + 2 * sidewall);
+  const badges = [`Sidewall ${sidewall} mm`, `OD ~${od} mm`];
+  if (selectedSeason) badges.push(seasonLabels[selectedSeason]);
+  document.getElementById('stc-badges').innerHTML = badges.map(b => `<span class="stc-badge">${b}</span>`).join('');
+
+  card.classList.add('show');
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Find Tyres`;
+}
+
+function findTyres() {
+  if (!state.width || !state.profile || !state.rim) return;
+  const season = selectedSeason || 'all seasons';
+  alert(`✓ Finding tyres:\n${state.width}/${state.profile} R${state.rim}\nSeason: ${season}\n\n(Would show matching tyre catalogue)`);
+}
+</script>
+</body>
+</html>
