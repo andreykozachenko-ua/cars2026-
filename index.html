@@ -508,10 +508,15 @@ function hideStepPanel() {
   stepHistory = [];
 }
 
-// ── Open selector from widget (opens sidebar main panel) ──
+// ── Open selector from widget ─────────────────────────────
 function openSelector() {
   openSidebar();
-  setTimeout(() => document.getElementById('searchInput').focus(), 350);
+  // If partially filled — resume at the first unfilled step
+  if (state.make !== null && selectedCar === null) {
+    openStepFromSidebar();
+  } else {
+    setTimeout(() => document.getElementById('searchInput').focus(), 350);
+  }
 }
 
 // ── Open step panel from sidebar entry button ─────────────
