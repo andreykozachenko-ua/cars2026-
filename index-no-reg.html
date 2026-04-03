@@ -256,6 +256,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="widget-card">
       <div class="widget-body">
 
+        <!-- Popular makes -->
+        <div class="w-label">Popular makes</div>
+        <div class="maker-shortcuts" id="widgetMakerShortcuts"></div>
+
         <!-- Selector entry button -->
         <button class="selector-entry-btn" id="selectorEntryBtn" onclick="openSelector()">
           <div class="seb-icon">
@@ -724,8 +728,7 @@ function updateSelectorBtn() {
   const anyDone = STEPS.some(s => state[s]);
 
   // Sync maker chip highlight
-  document.querySelectorAll('.maker-chip').forEach(c => c.classList.remove('active'));
-  if (state.make) { const chip = document.getElementById('chip-'+state.make); if (chip) chip.classList.add('active'); }
+  document.querySelectorAll('.maker-chip').forEach(c => c.classList.toggle('active', +c.dataset.make === state.make));
 
   // Both entry buttons
   const pairs = [
@@ -880,9 +883,11 @@ function renderMakerShortcuts() {
     .map(m => ({ id: m.id, n: m.n, count: counts[m.id] || 0 }))
     .sort((a,b) => b.count - a.count)
     .slice(0, 10);
-  document.getElementById('makerShortcuts').innerHTML = top10.map(m =>
-    `<button class="maker-chip" id="chip-${m.id}" onclick="quickPickMake(${m.id})">${m.n}</button>`
-  ).join('');
+  const chip = m => `<button class="maker-chip" data-make="${m.id}" onclick="quickPickMake(${m.id})">${m.n}</button>`;
+  const html = top10.map(chip).join('');
+  document.getElementById('makerShortcuts').innerHTML = html;
+  const w = document.getElementById('widgetMakerShortcuts');
+  if (w) w.innerHTML = html;
 }
 
 function quickPickMake(makerId) {
