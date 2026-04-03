@@ -755,19 +755,17 @@ function updateSelectorBtn() {
     const titleEl = document.getElementById(titleId);
     if (!btn || !titleEl) return;
     btn.classList.toggle('has-selection', anyDone);
+    const v = s => document.getElementById('val-'+s).textContent;
     if (anyDone) {
-      const parts = STEPS.map(s => document.getElementById('val-'+s).textContent).filter(Boolean);
-      titleEl.textContent = parts.join(' · ');
+      titleEl.textContent = [v('make'), v('model')].filter(Boolean).join(' ') || 'Select by Make, Year, Model…';
+      const details = [v('year'), v('engine')].filter(Boolean);
+      btn.querySelector('.seb-steps').innerHTML = details.length
+        ? details.map(d => `<span class="done">${d}</span>`).join('<span class="seb-arrow"> · </span>')
+        : `<span id="${prefix}year">Year</span><span class="seb-arrow">›</span><span id="${prefix}model">Model</span><span class="seb-arrow">›</span><span id="${prefix}engine">Engine</span>`;
     } else {
       titleEl.textContent = 'Select by Make, Year, Model…';
+      btn.querySelector('.seb-steps').innerHTML = `<span id="${prefix}make">Make</span><span class="seb-arrow">›</span><span id="${prefix}year">Year</span><span class="seb-arrow">›</span><span id="${prefix}model">Model</span><span class="seb-arrow">›</span><span id="${prefix}engine">Engine</span>`;
     }
-    STEPS.forEach(s => {
-      const el = document.getElementById(prefix+s);
-      if (!el) return;
-      const val = document.getElementById('val-'+s).textContent;
-      if (val) { el.textContent = val; el.classList.add('done'); }
-      else      { el.textContent = labels[s]; el.classList.remove('done'); }
-    });
   });
 }
 
