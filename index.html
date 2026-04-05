@@ -155,8 +155,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .recent-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 4px; }
 .recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f8f9fc; border: 1.5px solid #eee; border-radius: 9px; cursor: pointer; transition: border-color .12s, background .12s; }
 .recent-item:hover { border-color: #0f3460; background: #f0f5ff; }
-.recent-item-icon { width: 30px; height: 30px; border-radius: 7px; background: #eef1fb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.recent-item-icon svg { width: 15px; height: 15px; color: #0f3460; }
+.recent-item-icon { width: 62px; height: 40px; border-radius: 7px; background: #eef1fb; overflow: hidden; flex-shrink: 0; }
+.recent-item-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .recent-item-body { flex: 1; min-width: 0; }
 .recent-item-name { font-size: 13px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .recent-item-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -998,7 +998,7 @@ function renderHistory() {
       h.year?(h.yearTo?h.year+'–'+h.yearTo:'from '+h.year):''].filter(Boolean);
     return `<div class="recent-item" onclick="pickRecent(${h.id})">
       <div class="recent-item-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=124&h=80&fit=crop&q=80" alt="">
       </div>
       <div class="recent-item-body">
         <div class="recent-item-name">${h.make} ${h.model}</div>
