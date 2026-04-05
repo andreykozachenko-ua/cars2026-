@@ -448,6 +448,15 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 
 const STEPS = ['make','year','model','engine'];
+const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii','8':'viii','9':'ix','10':'x'};
+const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
+function termMatchers(t) {
+  const syn = NUM2ROM[t] || ROM2NUM[t];
+  return (syn ? [t, syn] : [t]).map(f => ({
+    str: f,
+    re: /^[ivx]+$/.test(f) ? new RegExp('(?:^|\\s)' + f + '(?=\\s|$)') : null
+  }));
+}
 const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', year:'Year', model:'Model', engine:'Engine' };
 
@@ -788,11 +797,16 @@ function runAc(q) {
   const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
+  const termForms = tt.map(termMatchers);
   const res=[];
   for (let i=0;i<ALL_CARS.length;i++) {
     const c=ALL_CARS[i];
     if(yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf)))continue;
-    if(tt.length){const m=MAKERS.find(mk=>mk.id===c[0]);if(!tt.every(t=>`${m?.n||''} ${c[2]} ${c[4]}`.toLowerCase().includes(t)))continue;}
+    if(termForms.length){
+      const m=MAKERS.find(mk=>mk.id===c[0]);
+      const hay=`${m?.n||''} ${c[2]} ${c[4]}`.toLowerCase();
+      if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue;
+    }
     res.push(c);
   }
   res.sort((a,b) => (RATINGS.get(b[3])||0) - (RATINGS.get(a[3])||0));
