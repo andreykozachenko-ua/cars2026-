@@ -440,6 +440,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <script>
 let ALL_CARS = [], MAKERS = [];
 let selectedCar = null;
+let RATINGS = new Map();
 let state = { make: null, year: null, model: null, engine: null };
 let currentStep = null;
 let stepHistory = [];
@@ -451,10 +452,22 @@ const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Mode
 const STEP_SHORT  = { make:'Make', year:'Year', model:'Model', engine:'Engine' };
 
 // ── Load ──────────────────────────────────────────────────
+function parseRatingsCsv(text) {
+  text.trim().split('\n').slice(1).forEach(line => {
+    const m = line.match(/^(\d+),"?([0-9,]+)%"?/);
+    if (!m) return;
+    RATINGS.set(+m[1], parseFloat(m[2].replace(',', '.')));
+  });
+}
+
 renderHistory();
-fetch('cars_data.json').then(r=>r.json()).then(data => {
+Promise.all([
+  fetch('cars_data.json').then(r => r.json()),
+  fetch('bmw.csv').then(r => r.text()).catch(() => '')
+]).then(([data, csv]) => {
   MAKERS = data.makers;
   ALL_CARS = data.cars;
+  if (csv) parseRatingsCsv(csv);
   resetFindBtn();
   renderMakerShortcuts();
 }).catch(() => {
@@ -776,15 +789,17 @@ function runAc(q) {
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
   const res=[];
-  for (let i=0;i<ALL_CARS.length&&res.length<8;i++) {
+  for (let i=0;i<ALL_CARS.length;i++) {
     const c=ALL_CARS[i];
     if(yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf)))continue;
     if(tt.length){const m=MAKERS.find(mk=>mk.id===c[0]);if(!tt.every(t=>`${m?.n||''} ${c[2]} ${c[4]}`.toLowerCase().includes(t)))continue;}
     res.push(c);
   }
-  if(!res.length){dd.style.display='block';dd.innerHTML=`<div class="ac-more">No vehicles found</div>`;return;}
+  res.sort((a,b) => (RATINGS.get(b[3])||0) - (RATINGS.get(a[3])||0));
+  const top = res.slice(0,8);
+  if(!top.length){dd.style.display='block';dd.innerHTML=`<div class="ac-more">No vehicles found</div>`;return;}
   dd.style.display='block';
-  dd.innerHTML=res.map(c=>{
+  dd.innerHTML=top.map(c=>{
     const m=MAKERS.find(mk=>mk.id===c[0]);
     const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt);
     const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
@@ -793,7 +808,7 @@ function runAc(q) {
       <div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div>
       <span style="color:#ccc;font-size:14px">›</span>
     </div>`;
-  }).join('')+(res.length===8?`<div class="ac-more">Showing top 8 — refine your search</div>`:'');
+  }).join('')+(res.length>8?`<div class="ac-more">Showing top 8 of ${res.length} — refine your search</div>`:'');
 }
 function pickAc(carId) {
   const car=ALL_CARS.find(c=>c[3]===carId); if(!car)return;
