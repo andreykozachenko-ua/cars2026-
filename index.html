@@ -472,10 +472,11 @@ const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
 // Returns [{str, re}] — pre-compiled matchers for a query token + its synonym
 function termMatchers(t) {
   const syn = NUM2ROM[t] || ROM2NUM[t];
-  return (syn ? [t, syn] : [t]).map(f => ({
+  if (!syn) return [{ str: t, re: null }];
+  // Both forms need word-boundary: "8" must not match "1.8", "v" must not match "vauxhall"
+  return [t, syn].map(f => ({
     str: f,
-    // Roman numeral tokens need word-boundary match so "v" doesn't hit "vauxhall"
-    re: /^[ivx]+$/.test(f) ? new RegExp('(?:^|\\s)' + f + '(?=\\s|$)') : null
+    re: new RegExp('(?:^|\\s)' + f + '(?=\\s|$)')
   }));
 }
 const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Model', engine:'Select Engine / Trim' };

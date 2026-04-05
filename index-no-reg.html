@@ -452,9 +452,10 @@ const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii',
 const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
 function termMatchers(t) {
   const syn = NUM2ROM[t] || ROM2NUM[t];
-  return (syn ? [t, syn] : [t]).map(f => ({
+  if (!syn) return [{ str: t, re: null }];
+  return [t, syn].map(f => ({
     str: f,
-    re: /^[ivx]+$/.test(f) ? new RegExp('(?:^|\\s)' + f + '(?=\\s|$)') : null
+    re: new RegExp('(?:^|\\s)' + f + '(?=\\s|$)')
   }));
 }
 const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Model', engine:'Select Engine / Trim' };
