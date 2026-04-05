@@ -362,28 +362,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="panel" id="panel-main">
       <div class="sb-body">
 
-        <!-- Recent vehicles -->
-        <div id="recentSection" style="display:none">
-          <div class="sb-label">Recent vehicles</div>
-          <div id="recentList" class="recent-list"></div>
-          <div class="sb-divider" style="margin-top:2px">or search for another vehicle</div>
-        </div>
-
-        <!-- Search autocomplete -->
-        <div class="sb-label">Search by name</div>
-        <div class="ac-wrap">
-          <div class="ac-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input id="searchInput" type="text" placeholder="e.g. BMW 3 Series, Golf 2018…" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="ac-drop" id="acDrop"></div>
-        </div>
-
-        <!-- Popular makes -->
-        <div class="sb-divider" style="margin-top:4px">or select step by step</div>
-        <div class="sb-label" style="margin-top:12px">Popular makes</div>
-        <div class="maker-shortcuts" id="makerShortcuts"></div>
-
+        <!-- Active vehicle / step selector button -->
         <button class="selector-entry-btn" id="sbEntryBtn" onclick="openStepFromSidebar()">
           <div class="seb-icon">
             <img class="seb-car-img" src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=144&h=92&fit=crop&q=80" alt="car">
@@ -402,6 +381,28 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           </div>
           <div class="seb-chev">›</div>
         </button>
+
+        <!-- Recent vehicles -->
+        <div id="recentSection" style="display:none">
+          <div class="sb-divider" style="margin-top:14px">recent vehicles</div>
+          <div id="recentList" class="recent-list"></div>
+          <div class="sb-divider" style="margin-top:2px">or search for another vehicle</div>
+        </div>
+
+        <!-- Search autocomplete -->
+        <div class="sb-label" style="margin-top:14px">Search by name</div>
+        <div class="ac-wrap">
+          <div class="ac-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="searchInput" type="text" placeholder="e.g. BMW 3 Series, Golf 2018…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ac-drop" id="acDrop"></div>
+        </div>
+
+        <!-- Popular makes -->
+        <div class="sb-divider" style="margin-top:4px">or browse by make</div>
+        <div class="sb-label" style="margin-top:12px">Popular makes</div>
+        <div class="maker-shortcuts" id="makerShortcuts"></div>
 
       </div>
     </div>
@@ -448,15 +449,32 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 
 const STEPS = ['make','year','model','engine'];
+const SYNONYM_GROUPS = [
+  ['estate','variant','touring','avant','sw','kombi','break','wagon'],
+  ['cabriolet','cabrio','convertible','roadster','spider','spyder'],
+  ['coupe','coupé'],
+  ['saloon','sedan','berline','limousine'],
+  ['suv','crossover'],
+  ['4motion','quattro','xdrive','awd','4wd','4x4','syncro','allrad'],
+  ['diesel','tdi','dci','hdi','cdti','cdi','jtd','d4d','tdci'],
+  ['petrol','tsi','tfsi','fsi'],
+  ['hybrid','hev','phev','mhev'],
+  ['electric','ev','bev','e-tron'],
+  ['auto','automatic','dsg','tiptronic','s-tronic','cvt','multitronic','pdk'],
+];
+const SYNONYM_MAP = new Map();
+SYNONYM_GROUPS.forEach(g => g.forEach(w => SYNONYM_MAP.set(w, g)));
 const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii','8':'viii','9':'ix','10':'x'};
 const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const wbRe  = s => new RegExp('(?:^|\\s)' + escRe(s) + '(?=\\s|$)');
+// Returns [{str, re}] — pre-compiled matchers for a query token + all its synonyms
 function termMatchers(t) {
+  const group = SYNONYM_MAP.get(t);
+  if (group) return group.map(f => ({ str: f, re: wbRe(f) }));
   const syn = NUM2ROM[t] || ROM2NUM[t];
   if (!syn) return [{ str: t, re: null }];
-  return [t, syn].map(f => ({
-    str: f,
-    re: new RegExp('(?:^|\\s)' + f + '(?=\\s|$)')
-  }));
+  return [t, syn].map(f => ({ str: f, re: wbRe(f) }));
 }
 const STEP_LABELS = { make:'Select Make', year:'Select Year', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', year:'Year', model:'Model', engine:'Engine' };
@@ -795,7 +813,7 @@ document.addEventListener('click', e => {
 function runAc(q) {
   const dd = document.getElementById('acDrop');
   if (q.length < 2) { dd.style.display='none'; return; }
-  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const parts = q.toLowerCase().replace(/([a-zA-Z]{2,})(\d)/g, '$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
   const termForms = tt.map(termMatchers);
