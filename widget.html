@@ -196,17 +196,17 @@ body {
 </div>
 
 <script>
-let MAKERS = [], ALL_CARS = [];
+let MAKERS = [], GROUPS_MAP = new Map(), ALL_CARS = [];
 
-// make → group (modelName c[2]) → model (carName c[4] distinct) → engine (carId c[3])
-const S = { make:null, makeName:null, group:null, model:null, engine:null, engineRow:null };
+// make → group (c[10]=groupId) → model (c[1]=modelId, c[2]=modelName) → engine (c[3]=carId)
+const S = { make:null, makeName:null, group:null, groupName:null, model:null, modelName:null, engine:null, engineRow:null };
 
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
-const CAR_IMG = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=96&h=96&fit=crop&q=80';
 
 fetch('cars_data.json').then(r => r.json()).then(data => {
   MAKERS   = data.makers;
   ALL_CARS = data.cars;
+  (data.groups || []).forEach(g => GROUPS_MAP.set(g.id, g.n));
   renderMakerChips();
   setFindBtn(false);
 }).catch(() => {
@@ -218,7 +218,7 @@ function updateScBlock() {
   const block = document.getElementById('scBlock');
   const title = document.getElementById('scTitle');
   const sub   = document.getElementById('scSub');
-  const parts = [S.makeName, S.group, S.model].filter(Boolean);
+  const parts = [S.makeName, S.groupName, S.engineRow ? S.engineRow[4] : null].filter(Boolean);
 
   if (!parts.length) {
     block.classList.remove('filled');
@@ -265,50 +265,44 @@ function renderMakerChips() {
 
 // ── Level 1: select make → show top-10 groups ─────────────
 function selectMake(id, name) {
-  S.make = id; S.makeName = name; S.group = null; S.model = null; S.engine = null; S.engineRow = null;
-  renderMakerChips();
-  renderTrail();
-  updateScBlock();
-  showGroups();
-  setFindBtn(false);
+  Object.assign(S, { make:id, makeName:name, group:null, groupName:null, model:null, modelName:null, engine:null, engineRow:null });
+  renderMakerChips(); renderTrail(); updateScBlock(); showGroups(); setFindBtn(false);
 }
 
 function showGroups() {
   const counts = {};
-  ALL_CARS.filter(c => c[0] === S.make).forEach(c => { counts[c[2]] = (counts[c[2]] || 0) + 1; });
-  const groups = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n]) => n);
-  showChips('group', 'Select model', groups, n => `selectGroup('${esc(n)}')`);
+  ALL_CARS.filter(c => c[0] === S.make && c[10]).forEach(c => { counts[c[10]] = (counts[c[10]] || 0) + 1; });
+  const top = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10)
+    .map(([id]) => ({ id: +id, n: GROUPS_MAP.get(+id) || String(id) }));
+  showChips('group', 'Select model group', top.map(g => g.n), n => {
+    const g = top.find(x => x.n === n);
+    return `selectGroup(${g.id},'${esc(g.n)}')`;
+  });
 }
 
 // ── Level 2: select group → show top-10 models ────────────
-function selectGroup(name) {
-  S.group = name; S.model = null; S.engine = null; S.engineRow = null;
-  renderTrail();
-  updateScBlock();
-  showModels();
-  setFindBtn(false);
+function selectGroup(id, name) {
+  Object.assign(S, { group:id, groupName:name, model:null, modelName:null, engine:null, engineRow:null });
+  renderTrail(); updateScBlock(); showModels(); setFindBtn(false);
 }
 
 function showModels() {
   const counts = {};
-  ALL_CARS.filter(c => c[0] === S.make && c[2] === S.group)
-          .forEach(c => { counts[c[4]] = (counts[c[4]] || 0) + 1; });
-  const models = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n]) => n);
-  showChips('model', 'Select engine variant', models, n => `selectModel('${esc(n)}')`);
+  ALL_CARS.filter(c => c[0] === S.make && c[10] === S.group)
+    .forEach(c => { if (!counts[c[1]]) counts[c[1]] = { n: c[2], cnt: 0 }; counts[c[1]].cnt++; });
+  const top = Object.values(counts).sort((a,b) => b.cnt - a.cnt).slice(0,10).map(m => m.n);
+  showChips('model', 'Select model', top, n => `selectModel('${esc(n)}')`);
 }
 
 // ── Level 3: select model → show engine list ──────────────
 function selectModel(name) {
-  S.model = name; S.engine = null; S.engineRow = null;
-  renderTrail();
-  updateScBlock();
-  showEngines('');
-  setFindBtn(false);
+  Object.assign(S, { model: name, modelName: name, engine: null, engineRow: null });
+  renderTrail(); updateScBlock(); showEngines(''); setFindBtn(false);
 }
 
 function showEngines(filter) {
   const cars = ALL_CARS.filter(c =>
-    c[0] === S.make && c[2] === S.group && c[4] === S.model &&
+    c[0] === S.make && c[10] === S.group && c[2] === S.model &&
     (!filter || (c[5]||'').toLowerCase().includes(filter) ||
                 String(c[6]||'').includes(filter) ||
                 String(c[8]||'').includes(filter))
@@ -359,9 +353,9 @@ function selectEngine(carId) {
 function renderTrail() {
   const trail = document.getElementById('trail');
   const items = [
-    S.make   && { label: S.makeName, step: 'make'  },
-    S.group  && { label: S.group,    step: 'group' },
-    S.model  && { label: S.model,    step: 'model' },
+    S.make   && { label: S.makeName,   step: 'make'  },
+    S.group  && { label: S.groupName,  step: 'group' },
+    S.model  && { label: S.modelName,  step: 'model' },
     S.engine && {
       label: [
         S.engineRow?.[5]?.split('/')[0],
@@ -388,10 +382,10 @@ function resetTo(step) {
     renderMakerChips(); renderTrail(); updateScBlock();
     dyn.style.display = 'none'; setFindBtn(false);
   } else if (step === 'group') {
-    Object.assign(S, { group:null, model:null, engine:null, engineRow:null });
+    Object.assign(S, { group:null, groupName:null, model:null, modelName:null, engine:null, engineRow:null });
     renderTrail(); updateScBlock(); showGroups(); setFindBtn(false);
   } else if (step === 'model') {
-    Object.assign(S, { model:null, engine:null, engineRow:null });
+    Object.assign(S, { model:null, modelName:null, engine:null, engineRow:null });
     renderTrail(); updateScBlock(); showModels(); setFindBtn(false);
   } else if (step === 'engine') {
     Object.assign(S, { engine:null, engineRow:null });
