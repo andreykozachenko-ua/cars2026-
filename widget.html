@@ -166,8 +166,14 @@ body {
 <div class="widget">
   <div class="widget-body">
 
+    <!-- Maker chips -->
+    <div id="makerSection">
+      <div class="w-label">Popular makes</div>
+      <div id="makerChips" class="maker-chips"></div>
+    </div>
+
     <!-- Selected car block -->
-    <div class="sc-block" id="scBlock">
+    <div class="sc-block" id="scBlock" style="display:none">
       <div class="sc-img">
         <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=96&h=96&fit=crop&q=80" alt="">
       </div>
@@ -176,10 +182,6 @@ body {
         <div class="sc-sub" id="scSub">Choose make, model and engine</div>
       </div>
     </div>
-
-    <!-- Maker chips -->
-    <div class="w-label">Popular makes</div>
-    <div id="makerChips" class="maker-chips"></div>
 
     <!-- Trail -->
     <div id="trail" class="trail" style="display:none"></div>
@@ -266,7 +268,9 @@ function renderMakerChips() {
 // ── Level 1: select make → show top-10 groups ─────────────
 function selectMake(id, name) {
   Object.assign(S, { make:id, makeName:name, group:null, groupName:null, model:null, modelName:null, engine:null, engineRow:null });
-  renderMakerChips(); renderTrail(); updateScBlock(); showGroups(); setFindBtn(false);
+  document.getElementById('makerSection').style.display = 'none';
+  document.getElementById('scBlock').style.display = 'flex';
+  renderTrail(); updateScBlock(); showGroups(); setFindBtn(false);
 }
 
 function showGroups() {
@@ -379,6 +383,8 @@ function resetTo(step) {
   const dyn = document.getElementById('dynSection');
   if (step === 'make') {
     Object.assign(S, { make:null, makeName:null, group:null, model:null, engine:null, engineRow:null });
+    document.getElementById('makerSection').style.display = 'block';
+    document.getElementById('scBlock').style.display = 'none';
     renderMakerChips(); renderTrail(); updateScBlock();
     dyn.style.display = 'none'; setFindBtn(false);
   } else if (step === 'group') {
