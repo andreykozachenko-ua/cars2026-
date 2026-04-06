@@ -16,212 +16,149 @@ body {
   padding: 24px;
 }
 
-/* ── Widget card ── */
-.widget {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 32px 80px rgba(0,0,0,.45);
-  width: 100%;
-  max-width: 480px;
-}
-.widget-body  { padding: 22px 22px 10px; }
-.widget-footer { padding: 12px 22px 22px; }
+/* ── Widget ── */
+.widget { background: #fff; border-radius: 20px; box-shadow: 0 32px 80px rgba(0,0,0,.45); width: 100%; max-width: 480px; }
+.widget-body   { padding: 20px 20px 10px; }
+.widget-footer { padding: 10px 20px 20px; }
 
-/* ── Labels ── */
-.w-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: .8px;
-  margin-bottom: 9px;
-}
-
-/* ── Trail ── */
-.trail {
+/* ── Selected car block ── */
+.sc-block {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  min-height: 30px;
-}
-.trail-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #0f3460;
-  border-radius: 20px;
-  padding: 5px 10px 5px 13px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  animation: chipIn .18s ease;
-}
-@keyframes chipIn {
-  from { opacity: 0; transform: scale(.85); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.trail-sep { color: #ccc; font-size: 14px; }
-.trail-x {
-  font-size: 16px;
-  color: rgba(255,255,255,.55);
-  cursor: pointer;
-  line-height: 1;
-  transition: color .12s;
-}
-.trail-x:hover { color: #fff; }
-
-/* ── Maker chips ── */
-.maker-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.maker-chip {
-  padding: 5px 13px;
-  background: #f5f7ff;
+  gap: 14px;
+  background: #f5f8ff;
   border: 1.5px solid #e0e8ff;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f3460;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background .12s, border-color .12s, opacity .2s;
-  white-space: nowrap;
+  border-radius: 14px;
+  padding: 13px 16px;
+  margin-bottom: 18px;
+  min-height: 72px;
+  transition: border-color .2s, background .2s;
 }
-.maker-chip:hover   { background: #deeaff; border-color: #b0caff; }
-.maker-chip.active  { background: #0f3460; border-color: #0f3460; color: #fff; }
-.maker-chip.dimmed  { opacity: .45; }
-
-/* ── Divider ── */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 0 12px;
-  color: #ccc;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
-
-/* ── Group chips (models) ── */
-.group-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.group-chip {
-  padding: 5px 13px;
-  background: #f5f7ff;
-  border: 1.5px solid #e0e8ff;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f3460;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background .12s, border-color .12s;
-  white-space: nowrap;
-}
-.group-chip:hover { background: #deeaff; border-color: #b0caff; }
-
-/* ── Search box ── */
-.dyn-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1.5px solid #e8e8e8;
-  border-radius: 8px;
-  padding: 9px 12px;
-  background: #fafafa;
-  transition: border-color .15s;
-  margin-bottom: 8px;
-}
-.dyn-search:focus-within { border-color: #0f3460; background: #fff; }
-.dyn-search svg { width: 13px; height: 13px; color: #aaa; flex-shrink: 0; }
-.dyn-search input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 14px;
-  color: #1a1a2e;
-  font-family: inherit;
-}
-.dyn-search input::placeholder { color: #bbb; }
-
-/* ── Car list ── */
-.car-list {
-  border: 1.5px solid #f0f0f0;
-  border-radius: 10px;
+.sc-block.filled { border-color: #0f3460; background: #eef3ff; }
+.sc-img {
+  width: 48px; height: 48px;
+  border-radius: 50%;
   overflow: hidden;
-  max-height: 260px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #e8e8e8 transparent;
+  flex-shrink: 0;
+  background: #dce6f7;
 }
-.car-list::-webkit-scrollbar { width: 4px; }
-.car-list::-webkit-scrollbar-thumb { background: #e8e8e8; border-radius: 4px; }
-.car-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 11px 14px;
-  cursor: pointer;
-  border-bottom: 1px solid #f5f5f5;
-  transition: background .1s;
-}
-.car-item:last-child { border-bottom: none; }
-.car-item:hover { background: #f5f8ff; }
-.car-item-name { font-size: 14px; color: #1a1a2e; font-weight: 500; }
-.car-item-sub  { font-size: 11px; color: #999; margin-top: 2px; }
-.car-item-chev { color: #ddd; font-size: 16px; flex-shrink: 0; margin-left: 8px; }
-.list-empty    { padding: 32px; text-align: center; color: #bbb; font-size: 13px; }
-
-/* ── Find Parts button ── */
-.find-btn {
-  width: 100%;
-  padding: 14px;
-  background: #e8a020;
-  border: none;
-  border-radius: 10px;
-  color: #fff;
+.sc-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sc-info { flex: 1; min-width: 0; }
+.sc-title {
   font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background .15s;
+  font-weight: 700;
+  color: #1a1a2e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.sc-title.placeholder { color: #bbb; font-weight: 400; }
+.sc-sub { font-size: 12px; color: #888; margin-top: 3px; }
+
+/* ── Labels ── */
+.w-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 9px; }
+
+/* ── Maker chips ── */
+.maker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.maker-chip {
+  padding: 5px 13px;
+  background: #f5f7ff; border: 1.5px solid #e0e8ff;
+  border-radius: 20px; font-size: 12px; font-weight: 600; color: #0f3460;
+  cursor: pointer; font-family: inherit;
+  transition: background .12s, border-color .12s, opacity .2s;
+  white-space: nowrap;
+}
+.maker-chip:hover  { background: #deeaff; border-color: #b0caff; }
+.maker-chip.active { background: #0f3460; border-color: #0f3460; color: #fff; }
+.maker-chip.dimmed { opacity: .4; }
+
+/* ── Divider ── */
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px 0 12px;
+  color: #ccc; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+
+/* ── Step chips (groups / models) ── */
+.step-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.step-chip {
+  padding: 5px 13px;
+  background: #f5f7ff; border: 1.5px solid #e0e8ff;
+  border-radius: 20px; font-size: 12px; font-weight: 600; color: #0f3460;
+  cursor: pointer; font-family: inherit;
+  transition: background .12s, border-color .12s;
+  white-space: nowrap;
+}
+.step-chip:hover { background: #deeaff; border-color: #b0caff; }
+
+/* ── Trail ── */
+.trail {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 5px; margin-top: 14px;
+}
+.trail-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #0f3460; border-radius: 20px;
+  padding: 4px 9px 4px 12px;
+  font-size: 12px; font-weight: 600; color: #fff;
+  white-space: nowrap; animation: chipIn .18s ease;
+}
+@keyframes chipIn { from { opacity:0; transform:scale(.85); } to { opacity:1; transform:scale(1); } }
+.trail-sep { color: #ccc; font-size: 13px; }
+.trail-x { font-size: 15px; color: rgba(255,255,255,.55); cursor: pointer; line-height: 1; transition: color .12s; }
+.trail-x:hover { color: #fff; }
+
+/* ── Engine list ── */
+.eng-search {
+  display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid #e8e8e8; border-radius: 8px;
+  padding: 9px 12px; background: #fafafa;
+  transition: border-color .15s; margin-bottom: 8px;
+}
+.eng-search:focus-within { border-color: #0f3460; background: #fff; }
+.eng-search svg { width: 13px; height: 13px; color: #aaa; flex-shrink: 0; }
+.eng-search input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #1a1a2e; font-family: inherit; }
+.eng-search input::placeholder { color: #bbb; }
+
+.eng-list {
+  border: 1.5px solid #f0f0f0; border-radius: 10px;
+  overflow: hidden; max-height: 240px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: #e8e8e8 transparent;
+}
+.eng-list::-webkit-scrollbar { width: 4px; }
+.eng-list::-webkit-scrollbar-thumb { background: #e8e8e8; border-radius: 4px; }
+.eng-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; cursor: pointer;
+  border-bottom: 1px solid #f5f5f5; transition: background .1s;
+}
+.eng-item:last-child { border-bottom: none; }
+.eng-item:hover { background: #f5f8ff; }
+.eng-name { font-size: 14px; color: #1a1a2e; font-weight: 500; }
+.eng-sub  { font-size: 11px; color: #999; margin-top: 2px; }
+.eng-chev { color: #ddd; font-size: 16px; flex-shrink: 0; margin-left: 8px; }
+.eng-empty { padding: 28px; text-align: center; color: #bbb; font-size: 13px; }
+
+/* ── Dynamic section fade ── */
+.dyn { animation: fadeUp .2s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* ── Find Parts ── */
+.find-btn {
+  width: 100%; padding: 14px;
+  background: #e8a020; border: none; border-radius: 10px;
+  color: #fff; font-size: 15px; font-weight: 800;
+  cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background .15s;
+}
 .find-btn:hover:not(:disabled) { background: #d4911a; }
 .find-btn:disabled { background: #e8e8e8; color: #bbb; cursor: not-allowed; }
 .find-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
-.spinner {
-  width: 15px; height: 15px;
-  border: 2px solid rgba(255,255,255,.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  flex-shrink: 0;
-}
+.spinner { width:15px; height:15px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Fade-in section ── */
-.dyn-section { animation: fadeIn .2s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
@@ -229,14 +166,25 @@ body {
 <div class="widget">
   <div class="widget-body">
 
-    <!-- Trail: selected path -->
-    <div id="trail" class="trail" style="display:none"></div>
+    <!-- Selected car block -->
+    <div class="sc-block" id="scBlock">
+      <div class="sc-img">
+        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=96&h=96&fit=crop&q=80" alt="">
+      </div>
+      <div class="sc-info">
+        <div class="sc-title placeholder" id="scTitle">Select your vehicle</div>
+        <div class="sc-sub" id="scSub">Choose make, model and engine</div>
+      </div>
+    </div>
 
     <!-- Maker chips -->
     <div class="w-label">Popular makes</div>
     <div id="makerChips" class="maker-chips"></div>
 
-    <!-- Dynamic section (model groups or engine list) -->
+    <!-- Trail -->
+    <div id="trail" class="trail" style="display:none"></div>
+
+    <!-- Dynamic step content -->
     <div id="dynSection" style="display:none"></div>
 
   </div>
@@ -249,9 +197,12 @@ body {
 
 <script>
 let MAKERS = [], ALL_CARS = [];
-const state = { make: null, makeName: null, model: null, car: null, carName: null };
+
+// make → group (modelName c[2]) → model (carName c[4] distinct) → engine (carId c[3])
+const S = { make:null, makeName:null, group:null, model:null, engine:null, engineRow:null };
 
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+const CAR_IMG = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=96&h=96&fit=crop&q=80';
 
 fetch('cars_data.json').then(r => r.json()).then(data => {
   MAKERS   = data.makers;
@@ -262,7 +213,39 @@ fetch('cars_data.json').then(r => r.json()).then(data => {
   document.getElementById('findBtn').textContent = 'Failed to load — use a server';
 });
 
-// ── Maker chips ────────────────────────────────────────────
+// ── Selected car block ────────────────────────────────────
+function updateScBlock() {
+  const block = document.getElementById('scBlock');
+  const title = document.getElementById('scTitle');
+  const sub   = document.getElementById('scSub');
+  const parts = [S.makeName, S.group, S.model].filter(Boolean);
+
+  if (!parts.length) {
+    block.classList.remove('filled');
+    title.className = 'sc-title placeholder';
+    title.textContent = 'Select your vehicle';
+    sub.textContent = 'Choose make, model and engine';
+    return;
+  }
+
+  block.classList.add('filled');
+  title.className = 'sc-title';
+  title.textContent = parts.join(' · ');
+
+  if (S.engineRow) {
+    const r = S.engineRow;
+    const details = [
+      r[5] ? r[5].split('/')[0] : '',
+      r[6] && r[7] ? `${r[6]}–${r[7]}` : r[6] ? `from ${r[6]}` : '',
+      r[8] ? `${r[8]} kW` : ''
+    ].filter(Boolean).join(' · ');
+    sub.textContent = details || '';
+  } else {
+    sub.textContent = '';
+  }
+}
+
+// ── Maker chips ───────────────────────────────────────────
 function renderMakerChips() {
   const counts = {};
   ALL_CARS.forEach(c => { counts[c[0]] = (counts[c[0]] || 0) + 1; });
@@ -272,163 +255,170 @@ function renderMakerChips() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
-  // Move active maker to front
-  if (state.make) {
-    top = [
-      ...top.filter(m => m.id === state.make),
-      ...top.filter(m => m.id !== state.make)
-    ];
-  }
+  if (S.make) top = [...top.filter(m => m.id === S.make), ...top.filter(m => m.id !== S.make)];
 
   document.getElementById('makerChips').innerHTML = top.map(m => {
-    const cls = state.make
-      ? (m.id === state.make ? 'maker-chip active' : 'maker-chip dimmed')
-      : 'maker-chip';
+    const cls = S.make ? (m.id === S.make ? 'maker-chip active' : 'maker-chip dimmed') : 'maker-chip';
     return `<button class="${cls}" onclick="selectMake(${m.id},'${esc(m.n)}')">${m.n}</button>`;
   }).join('');
 }
 
-// ── Select maker ───────────────────────────────────────────
+// ── Level 1: select make → show top-10 groups ─────────────
 function selectMake(id, name) {
-  state.make = id; state.makeName = name;
-  state.model = null; state.car = null; state.carName = null;
+  S.make = id; S.makeName = name; S.group = null; S.model = null; S.engine = null; S.engineRow = null;
   renderMakerChips();
   renderTrail();
-  renderModelGroups();
+  updateScBlock();
+  showGroups();
   setFindBtn(false);
 }
 
-// ── Model groups ───────────────────────────────────────────
-function renderModelGroups() {
-  const cars = ALL_CARS.filter(c => c[0] === state.make);
+function showGroups() {
   const counts = {};
-  cars.forEach(c => { counts[c[2]] = (counts[c[2]] || 0) + 1; });
-  const groups = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name]) => name);
-
-  const dyn = document.getElementById('dynSection');
-  dyn.className = 'dyn-section';
-  dyn.style.display = 'block';
-  dyn.innerHTML = `
-    <div class="divider">model</div>
-    <div class="w-label">Select model</div>
-    <div class="group-chips">
-      ${groups.map(g => `<button class="group-chip" onclick="selectModel('${esc(g)}')">${g}</button>`).join('')}
-    </div>`;
+  ALL_CARS.filter(c => c[0] === S.make).forEach(c => { counts[c[2]] = (counts[c[2]] || 0) + 1; });
+  const groups = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n]) => n);
+  showChips('group', 'Select model', groups, n => `selectGroup('${esc(n)}')`);
 }
 
-// ── Select model ───────────────────────────────────────────
-function selectModel(name) {
-  state.model = name; state.car = null; state.carName = null;
+// ── Level 2: select group → show top-10 models ────────────
+function selectGroup(name) {
+  S.group = name; S.model = null; S.engine = null; S.engineRow = null;
   renderTrail();
-  renderCarList('');
+  updateScBlock();
+  showModels();
   setFindBtn(false);
 }
 
-// ── Engine / trim list ─────────────────────────────────────
-function renderCarList(filter) {
+function showModels() {
+  const counts = {};
+  ALL_CARS.filter(c => c[0] === S.make && c[2] === S.group)
+          .forEach(c => { counts[c[4]] = (counts[c[4]] || 0) + 1; });
+  const models = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,10).map(([n]) => n);
+  showChips('model', 'Select engine variant', models, n => `selectModel('${esc(n)}')`);
+}
+
+// ── Level 3: select model → show engine list ──────────────
+function selectModel(name) {
+  S.model = name; S.engine = null; S.engineRow = null;
+  renderTrail();
+  updateScBlock();
+  showEngines('');
+  setFindBtn(false);
+}
+
+function showEngines(filter) {
   const cars = ALL_CARS.filter(c =>
-    c[0] === state.make && c[2] === state.model &&
-    (!filter || c[4].toLowerCase().includes(filter.toLowerCase()))
+    c[0] === S.make && c[2] === S.group && c[4] === S.model &&
+    (!filter || (c[5]||'').toLowerCase().includes(filter) ||
+                String(c[6]||'').includes(filter) ||
+                String(c[8]||'').includes(filter))
   );
 
   const dyn = document.getElementById('dynSection');
-  dyn.className = 'dyn-section';
-  dyn.style.display = 'block';
+  dyn.className = 'dyn'; dyn.style.display = 'block';
   dyn.innerHTML = `
-    <div class="divider">engine / trim</div>
+    <div class="divider">engine</div>
     <div class="w-label">Select engine</div>
-    <div class="dyn-search">
+    <div class="eng-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="carSearch" type="text" placeholder="Filter…" autocomplete="off" value="${filter}">
+      <input id="engSearch" type="text" placeholder="Filter by fuel, year, kW…" autocomplete="off" value="${filter}">
     </div>
-    <div class="car-list">
+    <div class="eng-list">
       ${cars.length ? cars.map(c => {
         const sub = [
           c[5] ? c[5].split('/')[0] : '',
           c[6] && c[7] ? `${c[6]}–${c[7]}` : c[6] ? `from ${c[6]}` : '',
           c[8] ? `${c[8]} kW` : ''
         ].filter(Boolean).join(' · ');
-        return `<div class="car-item" onclick="selectCar(${c[3]},'${esc(c[4])}')">
+        return `<div class="eng-item" onclick="selectEngine(${c[3]})">
           <div>
-            <div class="car-item-name">${c[4]}</div>
-            ${sub ? `<div class="car-item-sub">${sub}</div>` : ''}
+            <div class="eng-name">${c[4]}</div>
+            ${sub ? `<div class="eng-sub">${sub}</div>` : ''}
           </div>
-          <span class="car-item-chev">›</span>
+          <span class="eng-chev">›</span>
         </div>`;
-      }).join('') : '<div class="list-empty">No results</div>'}
+      }).join('') : '<div class="eng-empty">No results</div>'}
     </div>`;
 
-  document.getElementById('carSearch').addEventListener('input', function() {
-    renderCarList(this.value.trim());
+  document.getElementById('engSearch').addEventListener('input', function() {
+    showEngines(this.value.trim().toLowerCase());
   });
-  document.getElementById('carSearch').focus();
 }
 
-// ── Select car ─────────────────────────────────────────────
-function selectCar(id, name) {
-  state.car = id; state.carName = name;
+// ── Level 4: select engine → done ─────────────────────────
+function selectEngine(carId) {
+  const row = ALL_CARS.find(c => c[3] === carId);
+  S.engine = carId; S.engineRow = row;
   renderTrail();
+  updateScBlock();
   document.getElementById('dynSection').style.display = 'none';
   setFindBtn(true);
 }
 
-// ── Trail ──────────────────────────────────────────────────
+// ── Trail ─────────────────────────────────────────────────
 function renderTrail() {
   const trail = document.getElementById('trail');
   const items = [
-    state.make  && { label: state.makeName, step: 'make'  },
-    state.model && { label: state.model,    step: 'model' },
-    state.car   && { label: state.carName,  step: 'car'   },
+    S.make   && { label: S.makeName, step: 'make'  },
+    S.group  && { label: S.group,    step: 'group' },
+    S.model  && { label: S.model,    step: 'model' },
+    S.engine && {
+      label: [
+        S.engineRow?.[5]?.split('/')[0],
+        S.engineRow?.[6] && S.engineRow?.[7] ? `${S.engineRow[6]}–${S.engineRow[7]}` : null,
+        S.engineRow?.[8] ? `${S.engineRow[8]} kW` : null
+      ].filter(Boolean).join(' · ') || 'Engine',
+      step: 'engine'
+    },
   ].filter(Boolean);
 
   if (!items.length) { trail.style.display = 'none'; return; }
   trail.style.display = 'flex';
-  trail.innerHTML = items.map((it, i) => `
-    ${i > 0 ? '<span class="trail-sep">›</span>' : ''}
-    <div class="trail-chip">
-      ${it.label}
-      <span class="trail-x" onclick="resetTo('${it.step}')">×</span>
-    </div>`
+  trail.innerHTML = items.map((it, i) =>
+    `${i ? '<span class="trail-sep">›</span>' : ''}
+     <div class="trail-chip">${it.label}<span class="trail-x" onclick="resetTo('${it.step}')">×</span></div>`
   ).join('');
 }
 
-// ── Reset to step ──────────────────────────────────────────
+// ── Reset ─────────────────────────────────────────────────
 function resetTo(step) {
+  const dyn = document.getElementById('dynSection');
   if (step === 'make') {
-    state.make = null; state.makeName = null;
-    state.model = null; state.car = null; state.carName = null;
-    renderMakerChips();
-    renderTrail();
-    document.getElementById('dynSection').style.display = 'none';
-    setFindBtn(false);
+    Object.assign(S, { make:null, makeName:null, group:null, model:null, engine:null, engineRow:null });
+    renderMakerChips(); renderTrail(); updateScBlock();
+    dyn.style.display = 'none'; setFindBtn(false);
+  } else if (step === 'group') {
+    Object.assign(S, { group:null, model:null, engine:null, engineRow:null });
+    renderTrail(); updateScBlock(); showGroups(); setFindBtn(false);
   } else if (step === 'model') {
-    state.model = null; state.car = null; state.carName = null;
-    renderTrail();
-    renderModelGroups();
-    setFindBtn(false);
-  } else if (step === 'car') {
-    state.car = null; state.carName = null;
-    renderTrail();
-    renderCarList('');
-    setFindBtn(false);
+    Object.assign(S, { model:null, engine:null, engineRow:null });
+    renderTrail(); updateScBlock(); showModels(); setFindBtn(false);
+  } else if (step === 'engine') {
+    Object.assign(S, { engine:null, engineRow:null });
+    renderTrail(); updateScBlock(); showEngines(''); setFindBtn(false);
   }
 }
 
-// ── Find Parts button ──────────────────────────────────────
+// ── Chip renderer helper ──────────────────────────────────
+function showChips(dividerLabel, label, items, onclickFn) {
+  const dyn = document.getElementById('dynSection');
+  dyn.className = 'dyn'; dyn.style.display = 'block';
+  dyn.innerHTML = `
+    <div class="divider">${dividerLabel}</div>
+    <div class="w-label">${label}</div>
+    <div class="step-chips">
+      ${items.map(n => `<button class="step-chip" onclick="${onclickFn(n)}">${n}</button>`).join('')}
+    </div>`;
+}
+
+// ── Find Parts ────────────────────────────────────────────
 function setFindBtn(ready) {
   const btn = document.getElementById('findBtn');
   btn.disabled = !ready;
-  if (ready) {
-    const label = [state.makeName, state.model, state.carName].filter(Boolean).join(' · ');
-    btn.innerHTML = `${SVG_SEARCH} Find Parts`;
-  } else {
-    btn.innerHTML = `${SVG_SEARCH} Find Parts`;
-  }
+  btn.innerHTML = `${SVG_SEARCH} Find Parts`;
 }
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────
 function esc(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 </script>
 
