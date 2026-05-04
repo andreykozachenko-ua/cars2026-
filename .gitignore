@@ -1,2 +1,7 @@
 pkwFromSelectorFront-2026-01-05(16-05).xlsx
 site.zip
+node_modules/
+imageURL800/
+.DS_Store
+*.png
+index-noplate-standalone.html
