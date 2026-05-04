@@ -81,7 +81,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ac-item:hover { background: #fff8f5; }
 .ac-ico { width: 52px; min-width: 52px; height: 36px; border-radius: 4px; background: #fff center/contain no-repeat; flex-shrink: 0; }
 .ac-name { font-size: 13px; color: #333; }
-.ac-name mark { background: none; color: #F85A00; font-weight: 700; }
+.ac-name .hl { background: none; color: #F85A00; font-weight: 700; }
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
 .ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
 
@@ -854,7 +854,7 @@ function pickAc(carId) {
 }
 function hl(text,terms){
   let out=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  terms.forEach(t=>{out=out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');});
+  terms.forEach(t=>{out=out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<span class="hl">$1</span>');});
   return out;
 }
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
