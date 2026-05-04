@@ -512,7 +512,7 @@ function termMatchers(t) {
   if (group) return group.map(f => ({ str: f, re: wbRe(f) }));
   const rNum = t.match(/^r(\d+)$/);
   if (rNum) return [t, rNum[1]].map(f => ({ str: f, re: wbRe(f) }));
-  const num = NUM2ROM3[t] || ROM2NUM3[t];
+  const num = NUM2ROM[t] || ROM2NUM[t];
   if (num) return [t, num].map(f => ({ str: f, re: wbRe(f) }));
   return [{ str: t, re: null }];
 }
