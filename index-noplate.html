@@ -514,7 +514,7 @@ function termMatchers(t) {
   if (rNum) return [t, rNum[1]].map(f => ({ str: f, re: wbRe(f) }));
   const num = NUM2ROM3[t] || ROM2NUM3[t];
   if (num) return [t, num].map(f => ({ str: f, re: wbRe(f) }));
-  return [{ str: t, re: wbRe(t) }];
+  return [{ str: t, re: null }];
 }
 const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
