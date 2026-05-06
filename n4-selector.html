@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N4 Vehicle Selector</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  select option:disabled { color: #9ca3af; }
+  .badge-time { transition: background 0.3s; }
+  .badge-time.fresh { background: #dcfce7 !important; color: #166534 !important; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { animation: spin 0.7s linear infinite; display: inline-block; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Token bar -->
+<div class="sticky top-0 z-50 bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center gap-3">
+  <label for="n4-token" class="text-xs font-semibold text-amber-700 whitespace-nowrap">Authorized Token:</label>
+  <input id="n4-token" type="text"
+    class="flex-1 max-w-xl border border-amber-300 rounded px-3 py-1.5 text-xs font-mono bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+    placeholder="Paste N4 API token here…"
+    oninput="localStorage.setItem('n4_token',this.value)">
+</div>
+
+<div class="max-w-6xl mx-auto p-6">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800">N4 Vehicle Selector</h1>
+    <p class="text-sm text-gray-500 mt-1">4-level cascading selector via N4Connect API · stats persist across sessions</p>
+  </div>
+
+  <!-- 2-column layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- ── LEFT: Selectors ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
+
+      <!-- Level 1: Manufacturer -->
+      <div id="row-manufacturer">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-sm font-semibold text-gray-700">Manufacturer</label>
+          <span id="badge-manufacturer" class="badge-time text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 min-w-[52px] text-center">—</span>
+        </div>
+        <div class="relative">
+          <select id="sel-manufacturer"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400"
+            disabled>
+            <option value="">Loading manufacturers…</option>
+          </select>
+          <span id="loader-manufacturer" class="absolute right-2.5 top-3 hidden text-blue-500 spinner">⟳</span>
+        </div>
+      </div>
+
+      <!-- Level 2: Class -->
+      <div id="row-class">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-sm font-semibold text-gray-700">Class</label>
+          <span id="badge-class" class="badge-time text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 min-w-[52px] text-center">—</span>
+        </div>
+        <div class="relative">
+          <select id="sel-class"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400"
+            disabled>
+            <option value="">Select manufacturer first</option>
+          </select>
+          <span id="loader-class" class="absolute right-2.5 top-3 hidden text-blue-500 spinner">⟳</span>
+        </div>
+      </div>
+
+      <!-- Level 3: Series -->
+      <div id="row-series">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-sm font-semibold text-gray-700">Series</label>
+          <span id="badge-series" class="badge-time text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 min-w-[52px] text-center">—</span>
+        </div>
+        <div class="relative">
+          <select id="sel-series"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400"
+            disabled>
+            <option value="">Select class first</option>
+          </select>
+          <span id="loader-series" class="absolute right-2.5 top-3 hidden text-blue-500 spinner">⟳</span>
+        </div>
+      </div>
+
+      <!-- Level 4: Car -->
+      <div id="row-car">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-sm font-semibold text-gray-700">Car</label>
+          <span id="badge-car" class="badge-time text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 min-w-[52px] text-center">—</span>
+        </div>
+        <div class="relative">
+          <select id="sel-car"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400"
+            disabled>
+            <option value="">Select series first</option>
+          </select>
+          <span id="loader-car" class="absolute right-2.5 top-3 hidden text-blue-500 spinner">⟳</span>
+        </div>
+      </div>
+
+      <!-- Selected car info -->
+      <div id="car-info" class="hidden mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+        <p class="text-xs font-semibold text-blue-700 mb-1">Selected vehicle</p>
+        <p id="car-info-text" class="text-sm text-blue-900 font-mono"></p>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: Stats table ── -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700">API Request Statistics</h2>
+        <button onclick="clearStats()" class="text-xs text-red-400 hover:text-red-600 border border-red-200 rounded px-2 py-0.5">Reset</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-gray-100">
+              <th class="text-left py-2 pr-3 font-semibold text-gray-500 w-28">Level</th>
+              <th class="text-right py-2 px-2 font-semibold text-gray-500">Calls</th>
+              <th class="text-right py-2 px-2 font-semibold text-gray-500">Min ms</th>
+              <th class="text-right py-2 px-2 font-semibold text-gray-500">Max ms</th>
+              <th class="text-right py-2 px-2 font-semibold text-gray-500">Avg ms</th>
+              <th class="text-right py-2 pl-2 font-semibold text-gray-500">Last ms</th>
+            </tr>
+          </thead>
+          <tbody id="stats-tbody">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mini history per level -->
+      <div class="mt-5 space-y-3" id="history-section"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────
+const BASE   = 'https://request2.n4connect.de';
+const LEVELS = ['manufacturer', 'class', 'series', 'car'];
+function getToken() { return document.getElementById('n4-token').value.trim(); }
+const LS_KEY = 'n4_selector_stats_v1';
+
+// Restore token from localStorage
+(function() {
+  const saved = localStorage.getItem('n4_token');
+  if (saved) document.getElementById('n4-token').value = saved;
+})();
+
+// ── Stats persistence ────────────────────────────────────────────────────
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
+}
+function saveStats(s) {
+  localStorage.setItem(LS_KEY, JSON.stringify(s));
+}
+function recordTime(level, ms) {
+  const s = loadStats();
+  if (!s[level]) s[level] = { times: [] };
+  s[level].times.push(Math.round(ms));
+  saveStats(s);
+  renderStats();
+}
+function clearStats() {
+  localStorage.removeItem(LS_KEY);
+  renderStats();
+}
+
+function renderStats() {
+  const s = loadStats();
+  const tbody = document.getElementById('stats-tbody');
+  const hist  = document.getElementById('history-section');
+  tbody.innerHTML = '';
+  hist.innerHTML  = '';
+
+  LEVELS.forEach(lvl => {
+    const data  = s[lvl] || { times: [] };
+    const times = data.times;
+    const calls = times.length;
+    const min   = calls ? Math.min(...times) : '—';
+    const max   = calls ? Math.max(...times) : '—';
+    const avg   = calls ? Math.round(times.reduce((a, b) => a + b, 0) / calls) : '—';
+    const last  = calls ? times[times.length - 1] : '—';
+    const label = lvl.charAt(0).toUpperCase() + lvl.slice(1);
+
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-gray-50 hover:bg-gray-50';
+    tr.innerHTML = `
+      <td class="py-2 pr-3 font-medium text-gray-700">${label}</td>
+      <td class="py-2 px-2 text-right font-mono text-gray-600">${calls || 0}</td>
+      <td class="py-2 px-2 text-right font-mono ${calls ? 'text-green-600' : 'text-gray-300'}">${calls ? min : '—'}</td>
+      <td class="py-2 px-2 text-right font-mono ${calls ? 'text-red-500'   : 'text-gray-300'}">${calls ? max : '—'}</td>
+      <td class="py-2 px-2 text-right font-mono ${calls ? 'text-blue-600'  : 'text-gray-300'}">${calls ? avg : '—'}</td>
+      <td class="py-2 pl-2 text-right font-mono ${calls ? 'text-gray-700'  : 'text-gray-300'}">${calls ? last : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // Mini sparkline-like last 10 calls
+    if (calls > 0) {
+      const last10 = times.slice(-10);
+      const maxT   = Math.max(...last10);
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <p class="text-xs font-semibold text-gray-500 mb-1">${label} — last ${last10.length} requests</p>
+        <div class="flex items-end gap-0.5 h-8">
+          ${last10.map(t => {
+            const h = maxT > 0 ? Math.max(4, Math.round((t / maxT) * 32)) : 4;
+            const color = t < 200 ? 'bg-green-400' : t < 600 ? 'bg-yellow-400' : 'bg-red-400';
+            return `<div class="${color} rounded-sm flex-1" style="height:${h}px" title="${t}ms"></div>`;
+          }).join('')}
+        </div>`;
+      hist.appendChild(div);
+    }
+  });
+}
+
+// ── API helper ───────────────────────────────────────────────────────────
+async function apiFetch(path, level) {
+  const loader = document.getElementById(`loader-${level}`);
+  const badge  = document.getElementById(`badge-${level}`);
+  loader.classList.remove('hidden');
+  badge.textContent = '…';
+  badge.className = badge.className.replace(' fresh', '') + '';
+
+  const t0 = performance.now();
+  const res = await fetch(BASE + path, { headers: { 'Token': getToken() } });
+  const ms  = performance.now() - t0;
+  const data = await res.json();
+
+  loader.classList.add('hidden');
+  const rounded = Math.round(ms);
+  badge.textContent = rounded + ' ms';
+  badge.className = badge.className.replace('text-gray-400', 'text-gray-700');
+  // Flash green
+  badge.classList.add('fresh');
+  setTimeout(() => badge.classList.remove('fresh'), 1200);
+
+  recordTime(level, ms);
+  return data;
+}
+
+// ── Populate helpers ─────────────────────────────────────────────────────
+function resetSelect(id, placeholder) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<option value="">${placeholder}</option>`;
+  el.disabled = true;
+}
+
+function fillSelect(id, options) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<option value="">— select —</option>` +
+    options.map(o => `<option value="${escHtml(o.value)}">${escHtml(o.label)}</option>`).join('');
+  el.disabled = false;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function fmtYear(iso) {
+  return iso ? iso.slice(0,4) : '?';
+}
+
+// ── Load level 1: Manufacturers ──────────────────────────────────────────
+async function loadManufacturers() {
+  const data = await apiFetch('/v1/cars/manufacturers', 'manufacturer');
+  fillSelect('sel-manufacturer', data.map(m => ({ value: m, label: m })));
+  document.getElementById('sel-manufacturer').options[0].textContent = '— select manufacturer —';
+}
+
+// ── Change handlers ──────────────────────────────────────────────────────
+document.getElementById('sel-manufacturer').addEventListener('change', async function() {
+  resetSelect('sel-class',  'Select class first');
+  resetSelect('sel-series', 'Select class first');
+  resetSelect('sel-car',    'Select series first');
+  document.getElementById('car-info').classList.add('hidden');
+
+  if (!this.value) return;
+  const data = await apiFetch(`/v1/cars/classes?manufacturer=${encodeURIComponent(this.value)}`, 'class');
+  fillSelect('sel-class', data.map(c => ({ value: c, label: c })));
+});
+
+document.getElementById('sel-class').addEventListener('change', async function() {
+  resetSelect('sel-series', 'Loading…');
+  resetSelect('sel-car',    'Select series first');
+  document.getElementById('car-info').classList.add('hidden');
+
+  if (!this.value) return;
+  const man  = document.getElementById('sel-manufacturer').value;
+  const data = await apiFetch(
+    `/v1/cars/type-groups?manufacturer=${encodeURIComponent(man)}&class=${encodeURIComponent(this.value)}`,
+    'series'
+  );
+  // Deduplicate by group, keep earliest productionFrom per group
+  const seen = new Map();
+  data.forEach(item => {
+    if (!seen.has(item.group)) seen.set(item.group, item);
+  });
+  const options = [...seen.values()].map(item => {
+    const from  = fmtYear(item.productionFrom);
+    const to    = item.productionTo ? fmtYear(item.productionTo) : '→';
+    const power = item.powerFrom !== undefined ? ` · ${item.powerFrom}–${item.powerTo} kW` : '';
+    return { value: item.group, label: `${item.typeChain} (${from}–${to})${power}` };
+  });
+  fillSelect('sel-series', options);
+});
+
+document.getElementById('sel-series').addEventListener('change', async function() {
+  resetSelect('sel-car', 'Loading…');
+  document.getElementById('car-info').classList.add('hidden');
+
+  if (!this.value) return;
+  const data = await apiFetch(`/v1/cars/version-groups?group=${encodeURIComponent(this.value)}`, 'car');
+  const options = data.map(item => {
+    const from  = fmtYear(item.productionFrom);
+    const to    = item.productionTo ? fmtYear(item.productionTo) : '→';
+    const kw    = item.power ? ` · ${item.power} kW` : '';
+    const ccm   = item.ccm  ? ` · ${item.ccm} cc`   : '';
+    return { value: item.tag, label: `${item.version} (${from}–${to})${kw}${ccm}` };
+  });
+  fillSelect('sel-car', options);
+});
+
+document.getElementById('sel-car').addEventListener('change', function() {
+  const sel  = this;
+  const tag  = sel.value;
+  if (!tag) { document.getElementById('car-info').classList.add('hidden'); return; }
+  const text = sel.options[sel.selectedIndex].text;
+  const man  = document.getElementById('sel-manufacturer').value;
+  const cls  = document.getElementById('sel-class').value;
+  document.getElementById('car-info-text').textContent = `${man} ${cls} · ${text} · tag: ${tag}`;
+  document.getElementById('car-info').classList.remove('hidden');
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────
+renderStats();
+loadManufacturers();
+</script>
+</body>
+</html>
