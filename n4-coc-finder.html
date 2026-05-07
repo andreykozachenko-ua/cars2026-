@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N4 COC Spec Finder</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; }
+
+/* ── Config bar ── */
+.cfg-bar { position: sticky; top: 0; z-index: 300; background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 7px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cfg-group { display: flex; align-items: center; gap: 7px; }
+.cfg-label { font-size: 11px; font-weight: 700; color: #92400e; white-space: nowrap; }
+.cfg-input { border: 1px solid #fcd34d; border-radius: 4px; padding: 5px 10px; font-size: 12px; font-family: monospace; color: #374151; background: #fff; outline: none; }
+.cfg-input:focus { border-color: #f59e0b; }
+
+/* ── Header ── */
+.header { background: #1a1a2e; }
+.header__top { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
+.header__logo img { height: 28px; }
+.header__panel { background: #232336; border-top: 1px solid rgba(255,255,255,.08); }
+.header__panel-inner { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+.header-search { flex: 1; display: flex; border-radius: 4px; overflow: hidden; height: 40px; background: #fff; }
+.header-search input { flex: 1; border: none; outline: none; padding: 0 14px; font-size: 14px; font-family: inherit; color: #333; }
+.header-search input::placeholder { color: #bbb; }
+.header-search__btn { background: #0068d7; color: #fff; border: none; padding: 0 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.header-nav { background: #1a1a2e; border-top: 1px solid rgba(255,255,255,.07); }
+.header-nav__inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; overflow-x: auto; }
+.header-nav__item { padding: 9px 14px 9px 0; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.6); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-right: 4px; text-decoration: none; }
+.header-nav__item:hover, .header-nav__item.active { color: #fff; border-bottom-color: #F85A00; }
+
+/* ── Main ── */
+.main { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+
+/* ── Selector panel ── */
+.selector-panel { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.sp-section { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+.sp-section:last-child { border-bottom: none; }
+
+/* ── Step entry card ── */
+.step-entry-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f7f7f7; border: 1px solid #e8e8e8; border-radius: 8px; cursor: pointer; transition: border-color .15s, box-shadow .15s; user-select: none; }
+.step-entry-card:hover { border-color: #F85A00; box-shadow: 0 2px 8px rgba(248,90,0,.1); }
+.step-entry-img { width: 80px; min-width: 80px; height: 54px; border-radius: 6px; flex-shrink: 0; background: #fff center/contain no-repeat; }
+.step-entry-body { flex: 1; min-width: 0; }
+.step-entry-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 3px; line-height: 1.3; }
+.step-entry-sub { font-size: 12px; color: #999; }
+.step-entry-arrow { font-size: 22px; color: #ccc; flex-shrink: 0; }
+
+/* ── N4 status ── */
+.n4-status { display: none; margin-top: 10px; padding: 8px 12px; background: #f0f6ff; border: 1px solid #c8deff; border-radius: 6px; }
+.n4-status.visible { display: flex; align-items: center; justify-content: space-between; }
+.n4-status-label { font-size: 11px; color: #64748b; font-weight: 600; }
+.n4-status-val { font-size: 12px; font-family: monospace; color: #1a5bbf; font-weight: 700; }
+.n4-spinner { display: inline-block; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Autocomplete ── */
+.ac-wrap { position: relative; }
+.ac-box { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d0d0; border-radius: 4px; padding: 0 12px; height: 44px; background: #fff; transition: border-color .15s; }
+.ac-box:focus-within { border-color: #F85A00; }
+.ac-box svg { width: 14px; height: 14px; color: #bbb; flex-shrink: 0; }
+.ac-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.ac-box input::placeholder { color: #bbb; }
+.ac-drop { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #d0d0d0; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.1); overflow: hidden; z-index: 200; }
+.ac-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: #fff8f5; }
+.ac-ico { width: 48px; min-width: 48px; height: 34px; border-radius: 4px; background: #f5f5f5 center/contain no-repeat; flex-shrink: 0; }
+.ac-name { font-size: 13px; color: #333; }
+.ac-name .hl { color: #F85A00; font-weight: 700; }
+.ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
+.ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
+
+/* ── Sidebar ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); box-shadow: -4px 0 24px rgba(0,0,0,.15); background: #fff; }
+.sidebar.open { transform: translateX(0); }
+@media (max-width: 500px) { .sidebar { width: 100%; } }
+.sb-topbar { flex-shrink: 0; height: 52px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid #eee; }
+.sb-back { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #999; flex-shrink: 0; }
+.sb-back:hover { color: #222; }
+.sb-back[hidden] { visibility: hidden; pointer-events: none; }
+.sb-topbar-title { flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.sb-close { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #bbb; flex-shrink: 0; }
+.sb-close:hover { color: #333; }
+.panels-wrap { flex: 1; position: relative; overflow: hidden; }
+.panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; background: #fff; transition: transform .32s cubic-bezier(.32,.72,0,1); scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+#panel-main { transform: translateX(0); }
+#panel-main.pushed { transform: translateX(-30%); }
+#panel-step { transform: translateX(100%); }
+#panel-step.active { transform: translateX(0); }
+.sb-body { padding: 14px 16px; }
+.sb-divider { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 14px 0 10px; }
+.sb-divider::before, .sb-divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+.sb-step-rows { border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+.sb-step-row { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; background: #fff; border-bottom: 1px solid #f0f0f0; transition: background .12s; }
+.sb-step-row:last-child { border-bottom: none; }
+.sb-step-row:hover:not(.sb-step-row--disabled) { background: #fff8f5; }
+.sb-step-row--disabled { opacity: .4; pointer-events: none; }
+.sb-step-row__label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .6px; width: 50px; flex-shrink: 0; }
+.sb-step-row__value { flex: 1; font-size: 14px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-step-row--filled .sb-step-row__value { color: #222; font-weight: 600; }
+.sb-step-row__arrow { font-size: 18px; color: #ccc; flex-shrink: 0; }
+.sb-recent-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.recent-list { display: flex; flex-direction: column; gap: 4px; }
+.recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; transition: border-color .12s; }
+.recent-item:hover { border-color: #F85A00; }
+.recent-icon { width: 56px; min-width: 56px; height: 38px; border-radius: 4px; background: #f0f0f0 center/contain no-repeat; flex-shrink: 0; }
+.recent-name { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step-trail { padding: 10px 16px 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.trail-chip { display: inline-flex; align-items: center; gap: 4px; background: #fff8f5; border: 1px solid #ffd0b8; border-radius: 20px; padding: 3px 10px 3px 11px; font-size: 12px; font-weight: 600; color: #F85A00; cursor: pointer; white-space: nowrap; }
+.step-header { padding: 10px 16px 0; }
+.step-header-step { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.step-header-title { font-size: 18px; font-weight: 800; color: #1a1a2e; }
+.step-search { padding: 10px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 5; }
+.step-search-inner { display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 4px; padding: 8px 12px; }
+.step-search-inner svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
+.step-search-inner input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.step-content { transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .22s; }
+.step-content.exit-left   { transform: translateX(-48px); opacity: 0; pointer-events: none; }
+.step-content.exit-right  { transform: translateX(48px);  opacity: 0; pointer-events: none; }
+.step-content.enter-right { transform: translateX(48px);  opacity: 0; }
+.step-content.enter-left  { transform: translateX(-48px); opacity: 0; }
+.step-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fff; transition: background .1s; }
+.step-item:last-child { border-bottom: none; }
+.step-item:hover { background: #fff8f5; }
+.step-item.sel { background: #fff3ee; }
+.step-item-name { font-size: 14px; color: #333; }
+.step-item.sel .step-item-name { font-weight: 700; color: #F85A00; }
+.step-item-sub { font-size: 11px; color: #999; margin-top: 2px; }
+.step-item-check { color: #F85A00; font-size: 14px; opacity: 0; flex-shrink: 0; margin-left: 8px; }
+.step-item.sel .step-item-check { opacity: 1; }
+.step-empty { padding: 40px 16px; text-align: center; color: #bbb; font-size: 14px; }
+.step-count { font-size: 11px; color: #aaa; padding: 8px 16px 4px; }
+.model-group { border-bottom: 1px solid #f0f0f0; }
+.model-group:last-child { border-bottom: none; }
+.model-group-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: #fff; transition: background .1s; user-select: none; }
+.model-group-header:hover, .model-group-header.open { background: #fafafa; }
+.model-group-header.has-sel { background: #fff8f5; }
+.model-group-name { font-size: 14px; color: #333; }
+.model-group-header.has-sel .model-group-name { font-weight: 700; color: #F85A00; }
+.model-group-meta { display: flex; align-items: center; gap: 6px; }
+.model-group-count { font-size: 11px; color: #bbb; }
+.model-group-arrow { font-size: 16px; color: #bbb; transition: transform .2s; }
+.model-group-header.open .model-group-arrow { transform: rotate(90deg); }
+.model-group-items { display: none; border-top: 1px solid #f5f5f5; background: #fafafa; }
+.model-group-items.open { display: block; }
+.model-group-items .step-item { padding-left: 28px; background: transparent; }
+.model-group-items .step-item:hover { background: #fff3ee; }
+
+/* ── Specs panel ── */
+.specs-panel { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); min-height: 300px; }
+.specs-header { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; }
+.specs-car-img { width: 72px; height: 48px; border-radius: 6px; flex-shrink: 0; background: #f5f5f5 center/contain no-repeat; }
+.specs-car-name { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.specs-car-sub  { font-size: 12px; color: #888; margin-top: 2px; }
+.specs-badge { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; border-radius: 3px; padding: 3px 7px; white-space: nowrap; }
+.badge-orange { background: #fff3ee; color: #c2410c; border: 1px solid #fcd8c0; }
+.badge-blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-gray   { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+
+/* ── Empty / loading states ── */
+.state-box { padding: 60px 20px; text-align: center; }
+.state-icon { font-size: 40px; margin-bottom: 12px; display: block; line-height: 1; }
+.state-text { font-size: 14px; color: #bbb; }
+.state-sub  { font-size: 12px; color: #ccc; margin-top: 5px; }
+
+/* ── COC cards grid ── */
+.coc-grid { padding: 16px 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.coc-card { border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+.coc-card-head { padding: 9px 14px; background: #fafafa; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.coc-card-vsn { font-size: 11px; font-weight: 700; color: #555; }
+.coc-card-minrim { font-size: 11px; color: #888; }
+.coc-card-body { padding: 14px; }
+.coc-axle-row { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+.coc-axle-row:last-of-type { margin-bottom: 0; }
+.coc-axle-label { width: 34px; flex-shrink: 0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #bbb; }
+.coc-axle-label.staggered { color: #F85A00; }
+.coc-tyre-size { font-size: 20px; font-weight: 800; font-family: monospace; color: #1a1a2e; letter-spacing: -.5px; }
+.coc-tyre-index { font-size: 14px; font-weight: 700; color: #666; margin-left: 3px; font-family: monospace; }
+.coc-wheel-spec { margin-left: auto; font-size: 12px; font-family: monospace; color: #888; text-align: right; white-space: nowrap; }
+.coc-card-footer { padding: 9px 14px; border-top: 1px solid #f5f5f5; display: flex; gap: 6px; flex-wrap: wrap; }
+.copy-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid #e0e0e0; border-radius: 20px; background: #fff; font-size: 12px; font-weight: 600; font-family: monospace; color: #444; cursor: pointer; transition: all .12s; }
+.copy-btn:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.copy-btn.copied { border-color: #10b981; color: #10b981; background: #f0fdf4; }
+.copy-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
+.coc-count { padding: 6px 18px 4px; font-size: 11px; color: #aaa; }
+
+/* ── N4 tags ── */
+.n4-tags { display: none; margin-top: 8px; }
+.n4-tags.visible { display: block; }
+.n4-tags-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #aaa; margin-bottom: 6px; }
+.n4-tag-chips { display: flex; flex-direction: column; gap: 4px; }
+.n4-tag-chip { display: flex; align-items: baseline; gap: 6px; padding: 5px 10px; background: #f8faff; border: 1px solid #dce8ff; border-radius: 5px; font-size: 11px; font-family: monospace; color: #1a5bbf; overflow: hidden; cursor: pointer; transition: all .12s; }
+.n4-tag-chip:hover { border-color: #1a5bbf; background: #eff6ff; }
+.n4-tag-chip.active { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+.n4-tag-chip.active .n4-tag-chip-meta { color: rgba(255,255,255,.5); }
+.n4-tag-chip-all { background: #f3f4f6; border-color: #d1d5db; color: #374151; }
+.n4-tag-chip-all:hover { border-color: #374151; background: #e5e7eb; }
+.n4-tag-chip-all.active { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+.n4-tag-chip-tag { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; max-width: 100%; }
+.n4-tag-chip-meta { color: #94a3b8; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-left: auto; flex-shrink: 1; min-width: 0; }
+
+/* ── Diameter filter ── */
+.diam-bar { padding: 8px 18px 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid #f0f0f0; }
+.diam-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #aaa; margin-right: 2px; white-space: nowrap; }
+.diam-btn { border: 1px solid #e0e0e0; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 700; font-family: monospace; background: #fff; color: #555; cursor: pointer; transition: all .12s; white-space: nowrap; }
+.diam-btn:hover { border-color: #1a1a2e; color: #1a1a2e; }
+.diam-btn.active { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Config bar -->
+<div class="cfg-bar">
+  <div class="cfg-group">
+    <label class="cfg-label" for="n4-token">N4 Token:</label>
+    <input id="n4-token" class="cfg-input" style="width:340px" type="text"
+      placeholder="N4 API token…" oninput="localStorage.setItem('n4_token',this.value)">
+  </div>
+</div>
+
+<!-- Autodoc header -->
+<header class="header">
+  <div class="header__top">
+    <div class="header__logo">
+      <img src="https://scdn.autodoc.de/static/logo/logo-light.svg" alt="AUTODOC">
+    </div>
+  </div>
+  <div class="header__panel">
+    <div class="header__panel-inner">
+      <div class="header-search">
+        <input type="text" placeholder="Enter part number or name…">
+        <button class="header-search__btn">Search</button>
+      </div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <div class="header-nav__inner">
+      <a class="header-nav__item" href="#">Car parts</a>
+      <a class="header-nav__item active" href="#">Tyres</a>
+      <a class="header-nav__item" href="#">Wheels</a>
+      <a class="header-nav__item" href="#">Tools</a>
+    </div>
+  </nav>
+</header>
+
+<main class="main">
+
+  <!-- ── LEFT: Car selector ── -->
+  <div class="selector-panel">
+    <div class="sp-section">
+      <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:14px">OEM Tyre Specs (COC)</div>
+
+      <!-- Autocomplete -->
+      <div class="ac-wrap" style="margin-bottom:12px">
+        <div class="ac-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ac-drop" id="acDrop"></div>
+      </div>
+
+      <!-- Step entry card -->
+      <div class="step-entry-card" onclick="openSidebar()">
+        <div class="step-entry-img" id="stepEntryImg" style="background-image:url('uploads/000.jpg')"></div>
+        <div class="step-entry-body">
+          <div class="step-entry-title" id="stepEntryTitle">Select by Make, Model, Engine…</div>
+          <div class="step-entry-sub" id="stepEntrySub">Make › Model › Engine</div>
+        </div>
+        <span class="step-entry-arrow">›</span>
+      </div>
+
+      <!-- N4 status -->
+      <div class="n4-status" id="n4-status">
+        <div class="n4-status-label">N4 lookup</div>
+        <div class="n4-status-val" id="n4-carid">—</div>
+      </div>
+
+      <!-- N4 tags -->
+      <div class="n4-tags" id="n4-tags">
+        <div class="n4-tags-label">N4 tags</div>
+        <div class="n4-tag-chips" id="n4-tag-chips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: COC specs ── -->
+  <div class="specs-panel" id="specs-panel">
+
+    <!-- Car header (hidden until car selected) -->
+    <div class="specs-header" id="specs-header" style="display:none">
+      <div class="specs-car-img" id="specs-car-img"></div>
+      <div>
+        <div class="specs-car-name" id="specs-car-name"></div>
+        <div class="specs-car-sub"  id="specs-car-sub"></div>
+      </div>
+      <div class="specs-badge" id="specs-badge"></div>
+    </div>
+
+    <!-- States -->
+    <div id="state-empty" class="state-box">
+      <span class="state-icon">🛞</span>
+      <div class="state-text">Select a vehicle to see OEM tyre specs</div>
+      <div class="state-sub">Autodoc car selector → N4 COC data</div>
+    </div>
+    <div id="state-loading" class="state-box" style="display:none">
+      <span class="state-icon n4-spinner">⟳</span>
+      <div class="state-text" style="margin-top:10px">Loading COC specs…</div>
+    </div>
+    <div id="state-nores" class="state-box" style="display:none">
+      <span class="state-icon">🚫</span>
+      <div class="state-text">No COC data for this vehicle</div>
+      <div class="state-sub" id="nores-sub"></div>
+    </div>
+    <div id="state-error" class="state-box" style="display:none">
+      <span class="state-icon">⚠️</span>
+      <div class="state-text" id="err-text">Error loading specs</div>
+      <div class="state-sub" id="err-sub"></div>
+    </div>
+
+    <!-- COC cards -->
+    <div id="coc-count" class="coc-count" style="display:none"></div>
+    <div id="diam-bar" class="diam-bar" style="display:none"></div>
+    <div id="coc-grid" class="coc-grid" style="display:none"></div>
+
+  </div>
+</main>
+
+<!-- Overlay + Sidebar -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-topbar">
+    <button class="sb-back" id="backBtn" onclick="goBack()" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sb-topbar-title" id="topbarTitle">Select Your Vehicle</div>
+    <button class="sb-close" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="panels-wrap">
+    <!-- Main panel -->
+    <div class="panel" id="panel-main">
+      <div class="sb-body">
+        <div class="ac-wrap">
+          <div class="ac-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="sb-searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ac-drop" id="sb-acDrop"></div>
+        </div>
+
+        <div class="sb-divider">or select step by step</div>
+
+        <div class="sb-step-rows">
+          <div class="sb-step-row" id="sbrow-make" onclick="openStepRow('make')">
+            <span class="sb-step-row__label">Make</span>
+            <span class="sb-step-row__value" id="sbval-make">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-model" onclick="openStepRow('model')">
+            <span class="sb-step-row__label">Model</span>
+            <span class="sb-step-row__value" id="sbval-model">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-engine" onclick="openStepRow('engine')">
+            <span class="sb-step-row__label">Engine</span>
+            <span class="sb-step-row__value" id="sbval-engine">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+        </div>
+
+        <div id="sb-recent-section" style="display:none;margin-top:16px">
+          <div class="sb-recent-label">Recent vehicles</div>
+          <div id="sb-recent-list" class="recent-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step panel -->
+    <div class="panel" id="panel-step">
+      <div id="stepTrail" class="step-trail"></div>
+      <div class="step-header">
+        <div class="step-header-step" id="stepHeaderStep"></div>
+        <div class="step-header-title" id="stepHeaderTitle"></div>
+      </div>
+      <div class="step-search">
+        <div class="step-search-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stepSearch" type="text" placeholder="Search…" autocomplete="off">
+        </div>
+      </div>
+      <div class="step-content" id="stepContent">
+        <div id="stepCount" class="step-count"></div>
+        <div id="stepList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const N4_BASE = 'https://request2.n4connect.de';
+function getN4Token() { return document.getElementById('n4-token').value.trim(); }
+
+(function restoreConfig() {
+  const saved = localStorage.getItem('n4_token');
+  if (saved) document.getElementById('n4-token').value = saved;
+})();
+
+// ── Car data ────────────────────────────────────────────────────────────────
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {}, RATINGS = new Map();
+let selectedCar = null;
+let state = { make: null, model: null, engine: null };
+let currentStep = null, stepHistory = [], allStepItems = [];
+let searchDebounce, stepSearchDebounce;
+
+const STEPS = ['make','model','engine'];
+const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
+const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
+const HISTORY_KEY = 'sb_recent_cars_coc';
+const PLACEHOLDER_IMG = 'uploads/000.jpg';
+
+const SYNONYM_GROUPS = [
+  ['vw','volkswagen'],['mk1','i'],['mk2','ii'],['mk3','iii'],['mk4','iv'],['mk5','v'],
+  ['mk6','vi'],['mk7','vii'],['mk8','viii'],
+  ['estate','variant','touring','avant','sw','kombi','break','wagon'],
+  ['cabriolet','cabrio','convertible','roadster'],['coupe','coupé'],
+  ['suv','crossover'],['mpv','van','minivan'],
+];
+
+function deaccent(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
+function termMatchers(term) {
+  const forms = [{ str: term, re: null }];
+  for (const g of SYNONYM_GROUPS) {
+    if (g.includes(term)) {
+      g.filter(w => w !== term).forEach(w => forms.push({ str: w, re: null }));
+    }
+  }
+  if (/^\d+$/.test(term)) {
+    const roman = ['','i','ii','iii','iv','v','vi','vii','viii'][+term];
+    if (roman) forms.push({ str: roman, re: null });
+  }
+  return forms;
+}
+
+function parseRatingsCsv(csv) {
+  csv.split('\n').forEach(line => {
+    const m = line.match(/^(\d+),(\d+),([\d,.]+)/);
+    if (m) RATINGS.set(+m[1], parseFloat(m[2].replace(',','.')));
+  });
+}
+
+if (location.protocol === 'file:') {
+  document.getElementById('stepEntryTitle').textContent = '⚠ Open via server: http://localhost:8080/n4-coc-finder.html';
+  document.getElementById('stepEntrySub').textContent = 'file:// blocks fetch() — cars_data.json cannot load';
+} else {
+  Promise.all([
+    fetch('cars_data.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    fetch('bmw.csv').then(r => r.text()).catch(() => ''),
+    fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
+  ]).then(([data, csv, groups]) => {
+    MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+    if (csv) parseRatingsCsv(csv);
+    document.getElementById('stepEntryTitle').textContent = 'Select by Make, Model, Engine…';
+    try { renderSbHistory(); } catch(e) { console.warn('renderSbHistory:', e); }
+  }).catch(e => {
+    document.getElementById('stepEntryTitle').textContent = `Failed to load cars_data.json (${e.message})`;
+    document.getElementById('stepEntrySub').textContent = 'Check console for details';
+    console.error('Data load error:', e);
+  });
+}
+
+// ── Sidebar ─────────────────────────────────────────────────────────────────
+function openSidebar() {
+  if (location.protocol === 'file:') {
+    alert('⚠ Open this page via HTTP server:\nhttp://localhost:8080/n4-coc-finder.html\n\nfile:// blocks fetch() — car data cannot load.');
+    return;
+  }
+  updateSbStepRows(); renderSbHistory();
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('sb-searchInput').focus(), 350);
+}
+function closeSidebar() {
+  hideStepPanel();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function showStepPanel() {
+  document.getElementById('panel-main').classList.add('pushed');
+  document.getElementById('panel-step').classList.add('active');
+  document.getElementById('backBtn').removeAttribute('hidden');
+}
+function hideStepPanel() {
+  document.getElementById('panel-main').classList.remove('pushed');
+  document.getElementById('panel-step').classList.remove('active');
+  document.getElementById('backBtn').setAttribute('hidden','');
+  document.getElementById('topbarTitle').textContent = 'Select Your Vehicle';
+  currentStep = null; stepHistory = [];
+}
+function goBack() {
+  const idx = STEPS.indexOf(currentStep);
+  if (idx <= 0) { hideStepPanel(); return; }
+  const prev = STEPS[idx-1];
+  stepHistory = stepHistory.slice(0, stepHistory.indexOf(prev)+1);
+  currentStep = prev; updateTopbar();
+  animateContent('back', () => {
+    updateTrail(); renderStepContent(document.getElementById('stepSearch').value||'');
+  });
+}
+function updateTopbar() {
+  const idx = STEPS.indexOf(currentStep);
+  document.getElementById('topbarTitle').textContent = STEP_LABELS[currentStep];
+  document.getElementById('stepHeaderStep').textContent = `Step ${idx+1} of 3`;
+  document.getElementById('stepHeaderTitle').textContent = STEP_LABELS[currentStep];
+}
+function updateTrail() {
+  const trail = document.getElementById('stepTrail');
+  const cIdx  = STEPS.indexOf(currentStep);
+  const chips = STEPS.filter(s => s!==currentStep && state[s]!==null && STEPS.indexOf(s)<cIdx);
+  if (!chips.length) { trail.innerHTML=''; return; }
+  trail.innerHTML = chips.map(s => {
+    const lbl = s==='make' ? (MAKERS.find(m=>m.id===state.make)?.n||'') : document.getElementById('val-'+s)?.textContent||'';
+    return `<div class="trail-chip" onclick="jumpToStep('${s}')">${escH(lbl)} <span>×</span></div>`;
+  }).join('');
+}
+function jumpToStep(step) {
+  const idx = STEPS.indexOf(step);
+  STEPS.slice(idx).forEach(s => { state[s]=null; setRowValue(s,'Select '+STEP_SHORT[s].toLowerCase(),false); });
+  updateSbStepRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx+1); currentStep = step; updateTopbar();
+  animateContent('back', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value=''; });
+}
+function animateContent(dir, cb) {
+  const el = document.getElementById('stepContent');
+  const exitCls   = dir==='forward' ? 'exit-left'   : 'exit-right';
+  const enterCls  = dir==='forward' ? 'enter-right'  : 'enter-left';
+  el.classList.add(exitCls);
+  setTimeout(() => {
+    el.classList.remove(exitCls); el.classList.add(enterCls); cb();
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove(enterCls)));
+  }, 160);
+}
+function openStep(step, direction) {
+  const wasOpen = document.getElementById('panel-step').classList.contains('active');
+  currentStep = step;
+  if (!stepHistory.includes(step)) stepHistory.push(step);
+  updateTopbar();
+  if (!wasOpen) {
+    showStepPanel(); updateTrail(); renderStepContent('');
+    setTimeout(() => document.getElementById('stepSearch').focus(), 350);
+  } else {
+    animateContent(direction||'forward', () => {
+      updateTrail(); renderStepContent('');
+      document.getElementById('stepSearch').value='';
+      document.getElementById('stepSearch').focus();
+    });
+  }
+}
+function openStepRow(step) {
+  const idx = STEPS.indexOf(step);
+  for (let i=0;i<idx;i++) { if (state[STEPS[i]]===null) return; }
+  STEPS.slice(idx).forEach(s => { state[s]=null; setRowValue(s,'Select '+STEP_SHORT[s].toLowerCase(),false); });
+  updateSbStepRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx+1); openStep(step);
+}
+
+// ── Step content ─────────────────────────────────────────────────────────────
+function renderStepContent(filter) {
+  const f = filter.trim().toLowerCase();
+  const list = document.getElementById('stepList');
+  if (currentStep === 'make' && !MAKERS.length) {
+    list.innerHTML = `<div class="step-empty">⏳ Loading vehicle data…</div>`;
+    document.getElementById('stepCount').textContent = '';
+    return;
+  }
+  allStepItems = buildItems();
+  const filtered = f ? allStepItems.filter(i=>i.label.toLowerCase().includes(f)||(i.sub||'').toLowerCase().includes(f)) : allStepItems;
+  document.getElementById('stepCount').textContent = filtered.length ? `${filtered.length} option${filtered.length!==1?'s':''}` : '';
+  if (!filtered.length) { list.innerHTML=`<div class="step-empty">No results</div>`; return; }
+
+  if (currentStep==='model' && !f) {
+    const groups = buildModelGroups(filtered);
+    list.innerHTML = groups.map((g,idx) => {
+      if (g.models.length===1) {
+        const item=g.models[0]; const isSel=item.id==state.model;
+        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div></div><span class="step-item-check">✓</span></div>`;
+      }
+      const hasSel=g.models.some(m=>m.id==state.model);
+      return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})"><div class="model-group-name">${escH(g.name)}</div><div class="model-group-meta"><span class="model-group-count">${g.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">${g.models.map(item=>{const isSel=item.id==state.model;return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div></div><span class="step-item-check">✓</span></div>`;}).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  if (currentStep==='engine' && !f) {
+    const fuelMap=new Map();
+    for (const item of filtered) { const k=item.fuel||'Other'; if(!fuelMap.has(k))fuelMap.set(k,[]); fuelMap.get(k).push(item); }
+    list.innerHTML=[...fuelMap.entries()].sort((a,b)=>b[1].length-a[1].length).map(([fuel,items],idx)=>{
+      const hasSel=items.some(i=>i.id==state.engine);
+      return `<div class="model-group"><div class="model-group-header open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${escH(fuel)}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item=>{const isSel=item.id==state.engine;return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div>${item.sub?`<div class="step-item-sub">${escH(item.sub)}</div>`:''}</div><span class="step-item-check">✓</span></div>`;}).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  list.innerHTML=filtered.map(item=>{const isSel=item.id==state[currentStep]; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div>${item.sub?`<div class="step-item-sub">${escH(item.sub)}</div>`:''}</div><span class="step-item-check">✓</span></div>`;}).join('');
+}
+function buildItems() {
+  if (currentStep==='make') return MAKERS.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
+  if (currentStep==='model') {
+    const map=new Map();
+    ALL_CARS.filter(c=>c[0]===state.make).forEach(c=>{if(!map.has(c[1]))map.set(c[1],c[2]);});
+    return [...map.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>({id,label:name}));
+  }
+  if (currentStep==='engine') {
+    return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model).map(c=>({
+      id:c[3], label:c[4], fuel:c[5]?c[5].split('/')[0].trim():'Other',
+      sub:[c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
+    }));
+  }
+  return [];
+}
+function buildModelGroups(models) {
+  const grouped=new Map(); const ungrouped=[];
+  for (const model of models) {
+    const g=MODEL_GROUPS[String(model.id)];
+    if (g) { if(!grouped.has(g.gid))grouped.set(g.gid,{name:g.gn,models:[]}); grouped.get(g.gid).models.push(model); }
+    else ungrouped.push({name:model.label,models:[model]});
+  }
+  const groups=[...grouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  groups.forEach(g=>g.models.sort((a,b)=>a.label.localeCompare(b.label)));
+  ungrouped.sort((a,b)=>a.name.localeCompare(b.name));
+  return [...groups,...ungrouped];
+}
+function toggleModelGroup(idx) {
+  const header=document.querySelector(`.model-group-header[data-gidx="${idx}"]`);
+  const items=document.getElementById('mg-'+idx);
+  if (!header||!items) return;
+  const isOpen=items.classList.contains('open');
+  header.classList.toggle('open',!isOpen); items.classList.toggle('open',!isOpen);
+}
+
+// ── Pick item ────────────────────────────────────────────────────────────────
+function pickItem(id) {
+  if (currentStep==='make') {
+    const maker=MAKERS.find(m=>m.id===id);
+    state={make:id,model:null,engine:null};
+    setRowValue('make',maker.n,true); setRowValue('model','Select model',false); setRowValue('engine','Select engine',false);
+    updateSbStepRows(); setSelectedCar(null);
+    stepHistory=['make','model']; openStep('model','forward');
+  } else if (currentStep==='model') {
+    const modelName=allStepItems.find(i=>i.id===id)?.label||'';
+    state.model=id; state.engine=null;
+    setRowValue('model',modelName,true); setRowValue('engine','Select engine',false);
+    updateSbStepRows(); setSelectedCar(null);
+    stepHistory=['make','model','engine']; openStep('engine','forward');
+  } else if (currentStep==='engine') {
+    const car=ALL_CARS.find(c=>c[3]===id); if (!car) return;
+    state.engine=id; setRowValue('engine',car[4],true);
+    updateSbStepRows(); setSelectedCar(car);
+    setTimeout(()=>closeSidebar(), 120);
+  }
+}
+function setRowValue(step, text, filled) {
+  const valEl = document.getElementById('val-'+step);
+  if (valEl) valEl.textContent = filled ? text : '';
+  const sbVal = document.getElementById('sbval-'+step);
+  if (sbVal) sbVal.textContent = text;
+}
+function updateSbStepRows() {
+  STEPS.forEach((s,idx) => {
+    const row  = document.getElementById('sbrow-'+s);
+    const valEl= document.getElementById('sbval-'+s);
+    if (!row||!valEl) return;
+    const prevFilled = idx===0 || state[STEPS[idx-1]]!==null;
+    row.classList.toggle('sb-step-row--disabled', !prevFilled);
+    const value = s==='make' ? (MAKERS.find(m=>m.id===state.make)?.n||'') : (state[s] ? document.getElementById('sbval-'+s)?.textContent : '');
+    if (value && state[s]!==null) {
+      row.classList.add('sb-step-row--filled');
+      valEl.textContent = value;
+    } else {
+      row.classList.remove('sb-step-row--filled');
+      valEl.textContent = 'Select '+STEP_SHORT[s].toLowerCase();
+    }
+  });
+}
+
+// ── Car selected ─────────────────────────────────────────────────────────────
+function setSelectedCar(car) {
+  selectedCar = car;
+  const title = document.getElementById('stepEntryTitle');
+  const sub   = document.getElementById('stepEntrySub');
+  const img   = document.getElementById('stepEntryImg');
+  if (car) {
+    const maker = MAKERS.find(m=>m.id===car[0]);
+    title.textContent = `${maker?.n||''} ${car[2]}`;
+    const yr = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+    sub.textContent = [car[4], yr].filter(Boolean).join(' · ');
+    setBgImg(img, carImg(car[3]));
+    saveToHistory(car);
+    renderSbHistory();
+    loadCocForCar(car);
+  } else {
+    title.textContent = 'Select by Make, Model, Engine…';
+    sub.textContent = 'Make › Model › Engine';
+    img.style.backgroundImage = `url('${PLACEHOLDER_IMG}')`;
+    clearSpecsPanel();
+  }
+}
+
+function clearSpecsPanel() {
+  document.getElementById('n4-status').classList.remove('visible');
+  document.getElementById('n4-tags').classList.remove('visible');
+  document.getElementById('specs-header').style.display = 'none';
+  document.getElementById('state-empty').style.display = '';
+  document.getElementById('state-loading').style.display = 'none';
+  document.getElementById('state-nores').style.display = 'none';
+  document.getElementById('state-error').style.display = 'none';
+  document.getElementById('coc-count').style.display = 'none';
+  document.getElementById('diam-bar').style.display = 'none';
+  document.getElementById('coc-grid').style.display = 'none';
+}
+
+async function loadCocForCar(car) {
+  const statusEl = document.getElementById('n4-status');
+  const caridEl  = document.getElementById('n4-carid');
+  const carId = car[3];
+
+  // Show loading state
+  statusEl.classList.add('visible');
+  caridEl.innerHTML = `<span class="n4-spinner">⟳</span> carId ${carId}`;
+  document.getElementById('specs-header').style.display = 'none';
+  document.getElementById('state-empty').style.display = 'none';
+  document.getElementById('state-loading').style.display = '';
+  document.getElementById('state-nores').style.display = 'none';
+  document.getElementById('state-error').style.display = 'none';
+  document.getElementById('coc-count').style.display = 'none';
+  document.getElementById('diam-bar').style.display = 'none';
+  document.getElementById('coc-grid').style.display = 'none';
+
+  // Step 1: ktypnr → tags
+  let tags = [];
+  let tagItems = [];
+  try {
+    const res  = await fetch(`${N4_BASE}/v1/cars/groups/ktypnr?ktypnr=${carId}`, {
+      headers: { Token: getN4Token() }
+    });
+    tagItems = await res.json() || [];
+    tags = tagItems.map(i=>i.tag).filter(Boolean);
+    caridEl.textContent = `carId ${carId} → ${tags.length} tag${tags.length!==1?'s':''}`;
+    renderTagChips(tagItems);
+  } catch(e) {
+    caridEl.textContent = `carId ${carId} — N4 error`;
+    showState('error', 'N4 request failed', e.message);
+    return;
+  }
+
+  if (!tags.length) {
+    caridEl.textContent = `carId ${carId} — no N4 match`;
+    showState('nores', 'No N4 data', `carId ${carId} not found in N4 database`);
+    return;
+  }
+
+  // Step 2: tags → COC
+  let cocs;
+  try {
+    const res = await fetch(`${N4_BASE}/v1/cars/cocs?carTags=${tags.join(',')}`, {
+      headers: { Token: getN4Token() }
+    });
+    cocs = await res.json();
+  } catch(e) {
+    showState('error', 'COC request failed', e.message);
+    return;
+  }
+
+  if (!cocs || !cocs.length) {
+    showState('nores', 'No COC data', 'N4 returned no tyre specs for this vehicle');
+    return;
+  }
+
+  renderCocSpecs(car, cocs);
+}
+
+function showState(which, text, sub) {
+  document.getElementById('state-loading').style.display = 'none';
+  ['empty','nores','error'].forEach(s => {
+    document.getElementById('state-'+s).style.display = s===which ? '' : 'none';
+  });
+  if (which==='nores') {
+    document.getElementById('nores-sub').textContent = sub||'';
+  }
+  if (which==='error') {
+    document.getElementById('err-text').textContent = text||'Error';
+    document.getElementById('err-sub').textContent = sub||'';
+  }
+}
+
+// ── COC spec rendering ───────────────────────────────────────────────────────
+let allCocCards = [];
+let activeDiam  = 'all';
+let activeTag   = 'all';
+
+function renderCocSpecs(car, cocs) {
+  document.getElementById('state-loading').style.display = 'none';
+
+  // Car header
+  const maker = MAKERS.find(m=>m.id===car[0]);
+  document.getElementById('specs-car-name').textContent = `${maker?.n||''} ${car[2]}`;
+  const yr = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+  document.getElementById('specs-car-sub').textContent = [car[4], yr].filter(Boolean).join(' · ');
+  const imgEl = document.getElementById('specs-car-img');
+  setBgImg(imgEl, carImg(car[3]));
+
+  // Build badges from COC metadata
+  const badgeEl = document.getElementById('specs-badge');
+  const minRims = [...new Set(cocs.map(c=>c.cocMinSize).filter(Boolean))];
+  const vsns    = [...new Set(cocs.map(c=>c.vsn).filter(Boolean))];
+  badgeEl.innerHTML = [
+    ...minRims.map(r => `<span class="badge badge-blue">min rim ${r}"</span>`),
+    ...vsns.map(v    => `<span class="badge badge-gray">VSN ${v}</span>`)
+  ].join('');
+
+  document.getElementById('specs-header').style.display = '';
+
+  // Build cards - deduplicate by front+rear tyre combo
+  const seen = new Set();
+  allCocCards = [];
+  cocs.forEach(c => {
+    const frontTyre  = buildTyreStr(c, 'Front');
+    if (!frontTyre) return;
+    const rearTyre   = buildTyreStr(c, 'Rear');
+    const frontWheel = buildWheelStr(c, 'Front');
+    const rearWheel  = buildWheelStr(c, 'Rear');
+    const key = `${frontTyre}|${rearTyre||''}|${frontWheel||''}|${rearWheel||''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    // Primary diameter = front (or rear if front missing)
+    const diam = c.diameterFront || c.diameterRear;
+    allCocCards.push({ c, frontTyre, rearTyre, frontWheel, rearWheel, diam, tag: c.carsTag });
+  });
+
+  // Reset filters and render
+  activeDiam = 'all';
+  activeTag  = 'all';
+  document.getElementById('coc-count').style.display = '';
+  rebuildDiamBar(allCocCards);
+  applyFilters();
+}
+
+function setTag(tag, btn) {
+  activeTag  = tag;
+  activeDiam = 'all';
+  document.querySelectorAll('.n4-tag-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Rebuild diam bar for the tag-filtered subset
+  const tagFiltered = tag === 'all' ? allCocCards : allCocCards.filter(cd => cd.tag === tag);
+  rebuildDiamBar(tagFiltered);
+  applyFilters();
+}
+
+function setDiam(d, btn) {
+  activeDiam = d;
+  document.querySelectorAll('.diam-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function rebuildDiamBar(subset) {
+  const diams = [...new Set(subset.map(cd=>cd.diam).filter(Boolean))].sort((a,b)=>+a-+b);
+  const bar = document.getElementById('diam-bar');
+  if (diams.length > 1) {
+    bar.innerHTML = `<span class="diam-label">Rim&nbsp;&#8960;</span>`
+      + `<button class="diam-btn active" onclick="setDiam('all',this)">All</button>`
+      + diams.map(d=>`<button class="diam-btn" onclick="setDiam('${d}',this)">${d}"</button>`).join('');
+    bar.style.display = '';
+  } else {
+    bar.style.display = 'none';
+  }
+  activeDiam = 'all';
+}
+
+function applyFilters() {
+  let visible = allCocCards;
+  if (activeTag  !== 'all') visible = visible.filter(cd => cd.tag  === activeTag);
+  if (activeDiam !== 'all') visible = visible.filter(cd => String(cd.diam) === String(activeDiam));
+
+  const parts = [];
+  if (activeTag  !== 'all') parts.push(activeTag);
+  if (activeDiam !== 'all') parts.push(`${activeDiam}" rim`);
+  document.getElementById('coc-count').textContent =
+    `${visible.length} configuration${visible.length!==1?'s':''}` +
+    (parts.length ? ` · ${parts.join(' · ')}` : '');
+
+  const grid = document.getElementById('coc-grid');
+  grid.innerHTML = visible.map(({c, frontTyre, rearTyre, frontWheel, rearWheel}) => {
+    const isStaggered = rearTyre && rearTyre !== frontTyre;
+    const vsn = c.vsn ? `<span class="coc-card-vsn">VSN ${escH(String(c.vsn))}</span>` : '';
+    const minRim = c.cocMinSize ? `<span class="coc-card-minrim">min rim ${escH(String(c.cocMinSize))}"</span>` : '';
+
+    const frontSize = plainTyreSize(c, 'Front');
+    const rearSize  = plainTyreSize(c, 'Rear');
+
+    let axleRows = '';
+    if (isStaggered) {
+      axleRows = `
+        <div class="coc-axle-row">
+          <span class="coc-axle-label staggered">F</span>
+          <div style="flex:1;min-width:0">
+            <span class="coc-tyre-size">${escH(plainTyreBase(c,'Front'))}</span><span class="coc-tyre-index">${escH(tyreIndex(c,'Front'))}</span>
+          </div>
+          ${frontWheel ? `<span class="coc-wheel-spec">${escH(frontWheel)}</span>` : ''}
+        </div>
+        <div class="coc-axle-row">
+          <span class="coc-axle-label staggered">R</span>
+          <div style="flex:1;min-width:0">
+            <span class="coc-tyre-size">${escH(plainTyreBase(c,'Rear'))}</span><span class="coc-tyre-index">${escH(tyreIndex(c,'Rear'))}</span>
+          </div>
+          ${rearWheel ? `<span class="coc-wheel-spec">${escH(rearWheel)}</span>` : ''}
+        </div>`;
+    } else {
+      axleRows = `
+        <div class="coc-axle-row">
+          <span class="coc-axle-label">F+R</span>
+          <div style="flex:1;min-width:0">
+            <span class="coc-tyre-size">${escH(plainTyreBase(c,'Front'))}</span><span class="coc-tyre-index">${escH(tyreIndex(c,'Front'))}</span>
+          </div>
+          ${frontWheel ? `<span class="coc-wheel-spec">${escH(frontWheel)}</span>` : ''}
+        </div>`;
+    }
+
+    const copyBtns = isStaggered
+      ? `<button class="copy-btn" onclick="copySize('${frontSize}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${escH(frontSize)}</button>
+         <button class="copy-btn" onclick="copySize('${rearSize}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${escH(rearSize)}</button>`
+      : `<button class="copy-btn" onclick="copySize('${frontSize}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>${escH(frontSize)}</button>`;
+
+    return `
+      <div class="coc-card">
+        <div class="coc-card-head">
+          ${vsn || '<span></span>'}
+          ${isStaggered ? '<span class="badge badge-orange">Staggered</span>' : ''}
+          ${minRim}
+        </div>
+        <div class="coc-card-body">${axleRows}</div>
+        <div class="coc-card-footer">${copyBtns}</div>
+      </div>`;
+  }).join('');
+
+  grid.style.display = '';
+}
+
+function renderTagChips(items) {
+  const el = document.getElementById('n4-tags');
+  const chips = document.getElementById('n4-tag-chips');
+  if (!items || !items.length) { el.classList.remove('visible'); return; }
+
+  // Find which fields actually differ across items
+  const fields = [
+    { key: v => v.manufacturer || v.brand || '', label: null },
+    { key: v => v.version || '',                 label: null },
+    { key: v => v.boltPattern || '',             label: null },
+    { key: v => v.vsn ? `VSN ${v.vsn}` : '',    label: null },
+  ];
+  const varyingFields = fields.filter(f => {
+    const vals = new Set(items.map(i => f.key(i)).filter(Boolean));
+    return vals.size > 1;
+  });
+
+  const allChip = items.length > 1
+    ? `<div class="n4-tag-chip n4-tag-chip-all active" onclick="setTag('all',this)"><span class="n4-tag-chip-tag">All tags</span></div>`
+    : '';
+  chips.innerHTML = allChip + items.map(item => {
+    const meta = varyingFields.map(f => f.key(item)).filter(Boolean).join(' · ');
+    return `<div class="n4-tag-chip" onclick="setTag('${escH(item.tag)}',this)">
+      <span class="n4-tag-chip-tag">${escH(item.tag)}</span>
+      ${meta ? `<span class="n4-tag-chip-meta">${escH(meta)}</span>` : ''}
+    </div>`;
+  }).join('');
+  el.classList.add('visible');
+}
+
+function buildTyreStr(c, axle) {
+  const w = axle==='Front' ? c.tyreWidthFront  : c.tyreWidthRear;
+  const h = axle==='Front' ? c.tyreHeightFront : c.tyreHeightRear;
+  const r = axle==='Front' ? (c.tyreRadialFront||'R') : (c.tyreRadialRear||'R');
+  const d = axle==='Front' ? c.diameterFront   : c.diameterRear;
+  if (!w || !d) return null;
+  return `${w}/${h}${r}${d}`;
+}
+function plainTyreBase(c, axle) {
+  const w = axle==='Front' ? c.tyreWidthFront  : c.tyreWidthRear;
+  const h = axle==='Front' ? c.tyreHeightFront : c.tyreHeightRear;
+  const r = axle==='Front' ? (c.tyreRadialFront||'R') : (c.tyreRadialRear||'R');
+  const d = axle==='Front' ? c.diameterFront   : c.diameterRear;
+  if (!w || !d) return '';
+  return `${w}/${h}${r}${d}`;
+}
+function tyreIndex(c, axle) {
+  const s = axle==='Front' ? c.tyreSpeedFront : c.tyreSpeedRear;
+  const l = axle==='Front' ? c.tyreLoadFront  : c.tyreLoadRear;
+  return (l||'') + (s||'');
+}
+function plainTyreSize(c, axle) {
+  const base = plainTyreBase(c, axle);
+  const idx  = tyreIndex(c, axle);
+  return idx ? `${base} ${idx}` : base;
+}
+function buildWheelStr(c, axle) {
+  const w  = axle==='Front' ? c.wheelWidthFront  : c.wheelWidthRear;
+  const d  = axle==='Front' ? c.diameterFront     : c.diameterRear;
+  const et = axle==='Front' ? c.wheelOffsetFront  : c.wheelOffsetRear;
+  if (!w || !d) return null;
+  const wFmt  = String(w).replace(',','.');
+  const etFmt = et ? ' ET' + parseFloat(String(et).replace(',','.')).toFixed(0) : '';
+  return `${wFmt}J×${d}"${etFmt}`;
+}
+
+function copySize(sizeStr, btn) {
+  navigator.clipboard.writeText(sizeStr).then(() => {
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1800);
+  });
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function saveToHistory(car) {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch(e) {}
+  hist = hist.filter(id => id !== car[3]);
+  hist.unshift(car[3]);
+  hist = hist.slice(0, 6);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+}
+function renderSbHistory() {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch(e) {}
+  const sec  = document.getElementById('sb-recent-section');
+  const list = document.getElementById('sb-recent-list');
+  hist = hist.filter(id => ALL_CARS.some(c=>c[3]===id));
+  if (!hist.length) { sec.style.display='none'; return; }
+  sec.style.display = '';
+  list.innerHTML = hist.map(id => {
+    const car = ALL_CARS.find(c=>c[3]===id); if (!car) return '';
+    const maker = MAKERS.find(m=>m.id===car[0]);
+    const yr = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+    return `<div class="recent-item" onclick="pickRecent(${car[3]})">
+      <div class="recent-icon" id="ricon-${car[3]}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="recent-name">${escH((maker?.n||'')+' '+car[2])}</div>
+        <div class="recent-sub">${escH([car[4],yr].filter(Boolean).join(' · '))}</div>
+      </div>
+      <span style="color:#ccc;font-size:14px">›</span>
+    </div>`;
+  }).join('');
+  hist.forEach(id => setBgImg(document.getElementById(`ricon-${id}`), carImg(id)));
+}
+function pickRecent(carId) {
+  const car=ALL_CARS.find(c=>c[3]===carId); if (!car) return;
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  state={make:car[0],model:car[1],engine:car[3]};
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateSbStepRows(); setSelectedCar(car); closeSidebar();
+}
+
+// ── Autocomplete ──────────────────────────────────────────────────────────────
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function hl(text, terms) {
+  let out = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  terms.forEach(t => {
+    if (!t) return;
+    try { out = out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<span class="hl">$1</span>'); } catch(e) {}
+  });
+  return out;
+}
+function runAc(q, dropId) {
+  const dd = document.getElementById(dropId);
+  if (q.length<2) { dd.style.display='none'; return; }
+  const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').split(/\s+/).filter(Boolean);
+  let yf=null; const tt=[];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yf=+p) : tt.push(p));
+  const termForms = tt.map(termMatchers);
+  const res=[];
+  for (let i=0;i<ALL_CARS.length;i++) {
+    const c=ALL_CARS[i];
+    if (yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf))) continue;
+    if (termForms.length) {
+      const m=MAKERS.find(mk=>mk.id===c[0]);
+      const base=deaccent(`${m?.n||''} ${c[2]} ${c[4]}`).toLowerCase().replace(/[-()_\/]/g,' ');
+      if (!termForms.every(forms=>forms.some(({str,re})=>re?re.test(base):base.includes(str)))) continue;
+    }
+    res.push(c);
+  }
+  res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));
+  const top=res.slice(0,8);
+  if (!top.length) { dd.style.display='block'; dd.innerHTML=`<div class="ac-more">No vehicles found</div>`; return; }
+  dd.style.display='block';
+  dd.innerHTML=top.map(c=>{
+    const m=MAKERS.find(mk=>mk.id===c[0]);
+    const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt);
+    const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
+    return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${escH(sub)}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
+  }).join('')+(res.length>8?`<div class="ac-more">Top 8 of ${res.length} — refine search</div>`:'');
+  top.forEach(c=>setBgImg(document.getElementById(`aco-${c[3]}`), carImg(c[3])));
+}
+function pickAc(carId) {
+  const car=ALL_CARS.find(c=>c[3]===carId); if (!car) return;
+  ['acDrop','sb-acDrop'].forEach(id=>{ const d=document.getElementById(id); if(d) d.style.display='none'; });
+  document.getElementById('searchInput').value='';
+  document.getElementById('sb-searchInput').value='';
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  state={make:car[0],model:car[1],engine:car[3]};
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateSbStepRows(); setSelectedCar(car); closeSidebar();
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>runAc(this.value.trim(),'acDrop'),150);
+});
+document.getElementById('sb-searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>runAc(this.value.trim(),'sb-acDrop'),150);
+});
+document.getElementById('stepSearch').addEventListener('input', function() {
+  clearTimeout(stepSearchDebounce);
+  stepSearchDebounce = setTimeout(()=>renderStepContent(this.value),120);
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) {
+    document.getElementById('acDrop').style.display='none';
+    document.getElementById('sb-acDrop').style.display='none';
+  }
+});
+
+// ── Image helpers ─────────────────────────────────────────────────────────────
+function carImg(id) {
+  return `https://img.autodoc.pro/car-image/small/car_${id}.png`;
+}
+function setBgImg(el, url) {
+  if (!el) return;
+  const probe = new Image();
+  probe.onload = () => { el.style.backgroundImage = `url('${url}')`; };
+  probe.src = url;
+}
+
+</script>
+</body>
+</html>

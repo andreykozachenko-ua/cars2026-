@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N4 Tyre Finder</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; }
+
+/* ── Config bar ── */
+.cfg-bar { position: sticky; top: 0; z-index: 300; background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 7px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cfg-group { display: flex; align-items: center; gap: 7px; }
+.cfg-label { font-size: 11px; font-weight: 700; color: #92400e; white-space: nowrap; }
+.cfg-input { border: 1px solid #fcd34d; border-radius: 4px; padding: 5px 10px; font-size: 12px; font-family: monospace; color: #374151; background: #fff; outline: none; }
+.cfg-input:focus { border-color: #f59e0b; }
+.cfg-sep { width: 1px; height: 20px; background: #fde68a; flex-shrink: 0; }
+
+/* ── Header ── */
+.header { background: #1a1a2e; }
+.header__top { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
+.header__logo img { height: 28px; }
+.header__panel { background: #232336; border-top: 1px solid rgba(255,255,255,.08); }
+.header__panel-inner { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+.header-search { flex: 1; display: flex; border-radius: 4px; overflow: hidden; height: 40px; background: #fff; }
+.header-search input { flex: 1; border: none; outline: none; padding: 0 14px; font-size: 14px; font-family: inherit; color: #333; }
+.header-search input::placeholder { color: #bbb; }
+.header-search__btn { background: #0068d7; color: #fff; border: none; padding: 0 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.header-nav { background: #1a1a2e; border-top: 1px solid rgba(255,255,255,.07); }
+.header-nav__inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; overflow-x: auto; }
+.header-nav__item { padding: 9px 14px 9px 0; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.6); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; margin-right: 4px; text-decoration: none; }
+.header-nav__item:hover, .header-nav__item.active { color: #fff; border-bottom-color: #F85A00; }
+
+/* ── Main ── */
+.main { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 400px 1fr; gap: 20px; align-items: start; }
+
+/* ── Selector panel ── */
+.selector-panel { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.sp-section { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+.sp-section:last-child { border-bottom: none; }
+
+/* ── Tabs ── */
+.tabs { display: flex; border-bottom: 1px solid #f0f0f0; }
+.tab-btn { flex: 1; padding: 11px 14px; font-size: 13px; font-weight: 600; color: #888; background: none; border: none; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+.tab-btn.active { color: #F85A00; border-bottom-color: #F85A00; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Step entry card ── */
+.step-entry-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f7f7f7; border: 1px solid #e8e8e8; border-radius: 8px; cursor: pointer; transition: border-color .15s, box-shadow .15s; user-select: none; }
+.step-entry-card:hover { border-color: #F85A00; box-shadow: 0 2px 8px rgba(248,90,0,.1); }
+.step-entry-img { width: 80px; min-width: 80px; height: 54px; border-radius: 6px; flex-shrink: 0; background: #fff center/contain no-repeat; }
+.step-entry-body { flex: 1; min-width: 0; }
+.step-entry-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 3px; line-height: 1.3; }
+.step-entry-sub { font-size: 12px; color: #999; }
+.step-entry-arrow { font-size: 22px; color: #ccc; flex-shrink: 0; }
+
+/* ── N4 status row ── */
+.n4-status { display: none; margin-top: 10px; padding: 8px 12px; background: #f0f6ff; border: 1px solid #c8deff; border-radius: 6px; }
+.n4-status.visible { display: flex; align-items: center; justify-content: space-between; }
+.n4-status-label { font-size: 11px; color: #64748b; font-weight: 600; }
+.n4-status-val { font-size: 12px; font-family: monospace; color: #1a5bbf; font-weight: 700; }
+.n4-spinner { display: inline-block; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── COC chips ── */
+.coc-section { display: none; margin-top: 12px; }
+.coc-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #aaa; margin-bottom: 8px; }
+.coc-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.coc-chip { padding: 7px 13px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 13px; font-weight: 700; font-family: monospace; color: #333; cursor: pointer; background: #fff; transition: all .12s; text-align: left; }
+.coc-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.coc-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+.coc-chip-sub { display: block; font-size: 10px; font-weight: 500; color: #999; font-family: inherit; margin-top: 2px; }
+.coc-chip.active .coc-chip-sub { color: rgba(255,255,255,.75); }
+
+/* ── Size selectors ── */
+.size-row { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: end; gap: 6px; margin-bottom: 10px; }
+.size-col label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #aaa; display: block; margin-bottom: 5px; }
+.size-sep { font-size: 20px; font-weight: 700; color: #ccc; padding-bottom: 8px; text-align: center; }
+.sz-select { width: 100%; border: 1px solid #d0d0d0; border-radius: 4px; padding: 8px 10px; font-size: 13px; font-family: inherit; color: #333; background: #fff; appearance: none; outline: none; }
+.sz-select:focus { border-color: #F85A00; }
+.size-preview { text-align: center; font-size: 24px; font-weight: 800; color: #1a1a2e; font-family: monospace; margin: 10px 0; }
+.size-preview .lbl { font-size: 12px; font-weight: 500; color: #aaa; margin-right: 4px; font-family: inherit; }
+.popular-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #aaa; margin-bottom: 7px; }
+.popular-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pop-chip { padding: 4px 10px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: monospace; color: #555; cursor: pointer; transition: all .1s; }
+.pop-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+
+/* ── Selected size bar ── */
+.sel-size-bar { display: none; background: #f0f6ff; border: 1px solid #c8deff; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; }
+.sel-size-bar.visible { display: flex; align-items: center; justify-content: space-between; }
+.sel-size-str { font-size: 20px; font-weight: 800; font-family: monospace; color: #1a5bbf; }
+.sel-size-clear { border: none; background: none; cursor: pointer; color: #aaa; font-size: 16px; }
+.sel-size-clear:hover { color: #555; }
+.search-btn { width: 100%; height: 44px; background: #F85A00; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
+.search-btn:hover:not(:disabled) { background: #e04f00; }
+.search-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+
+/* ── Autocomplete ── */
+.ac-wrap { position: relative; }
+.ac-box { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d0d0; border-radius: 4px; padding: 0 12px; height: 44px; background: #fff; transition: border-color .15s; }
+.ac-box:focus-within { border-color: #F85A00; }
+.ac-box svg { width: 14px; height: 14px; color: #bbb; flex-shrink: 0; }
+.ac-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.ac-box input::placeholder { color: #bbb; }
+.ac-drop { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #d0d0d0; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.1); overflow: hidden; z-index: 200; }
+.ac-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: #fff8f5; }
+.ac-ico { width: 48px; min-width: 48px; height: 34px; border-radius: 4px; background: #f5f5f5 center/contain no-repeat; flex-shrink: 0; }
+.ac-name { font-size: 13px; color: #333; }
+.ac-name .hl { color: #F85A00; font-weight: 700; }
+.ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
+.ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
+
+/* ── Sidebar ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); box-shadow: -4px 0 24px rgba(0,0,0,.15); background: #fff; }
+.sidebar.open { transform: translateX(0); }
+@media (max-width: 500px) { .sidebar { width: 100%; } }
+.sb-topbar { flex-shrink: 0; height: 52px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid #eee; }
+.sb-back { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #999; flex-shrink: 0; }
+.sb-back:hover { color: #222; }
+.sb-back[hidden] { visibility: hidden; pointer-events: none; }
+.sb-topbar-title { flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.sb-close { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #bbb; flex-shrink: 0; }
+.sb-close:hover { color: #333; }
+.panels-wrap { flex: 1; position: relative; overflow: hidden; }
+.panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; background: #fff; transition: transform .32s cubic-bezier(.32,.72,0,1); scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+#panel-main { transform: translateX(0); }
+#panel-main.pushed { transform: translateX(-30%); }
+#panel-step { transform: translateX(100%); }
+#panel-step.active { transform: translateX(0); }
+.sb-body { padding: 14px 16px; }
+.sb-divider { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 14px 0 10px; }
+.sb-divider::before, .sb-divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+.sb-step-rows { border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+.sb-step-row { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; background: #fff; border-bottom: 1px solid #f0f0f0; transition: background .12s; }
+.sb-step-row:last-child { border-bottom: none; }
+.sb-step-row:hover:not(.sb-step-row--disabled) { background: #fff8f5; }
+.sb-step-row--disabled { opacity: .4; pointer-events: none; }
+.sb-step-row__label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .6px; width: 50px; flex-shrink: 0; }
+.sb-step-row__value { flex: 1; font-size: 14px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-step-row--filled .sb-step-row__value { color: #222; font-weight: 600; }
+.sb-step-row__arrow { font-size: 18px; color: #ccc; flex-shrink: 0; }
+.sb-recent-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.recent-list { display: flex; flex-direction: column; gap: 4px; }
+.recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; transition: border-color .12s; }
+.recent-item:hover { border-color: #F85A00; }
+.recent-icon { width: 56px; min-width: 56px; height: 38px; border-radius: 4px; background: #f0f0f0 center/contain no-repeat; flex-shrink: 0; }
+.recent-name { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Step panel */
+.step-trail { padding: 10px 16px 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.trail-chip { display: inline-flex; align-items: center; gap: 4px; background: #fff8f5; border: 1px solid #ffd0b8; border-radius: 20px; padding: 3px 10px 3px 11px; font-size: 12px; font-weight: 600; color: #F85A00; cursor: pointer; white-space: nowrap; }
+.step-header { padding: 10px 16px 0; }
+.step-header-step { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.step-header-title { font-size: 18px; font-weight: 800; color: #1a1a2e; }
+.step-search { padding: 10px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 5; }
+.step-search-inner { display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 4px; padding: 8px 12px; }
+.step-search-inner svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
+.step-search-inner input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.step-content { transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .22s; }
+.step-content.exit-left   { transform: translateX(-48px); opacity: 0; pointer-events: none; }
+.step-content.exit-right  { transform: translateX(48px);  opacity: 0; pointer-events: none; }
+.step-content.enter-right { transform: translateX(48px);  opacity: 0; }
+.step-content.enter-left  { transform: translateX(-48px); opacity: 0; }
+.step-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fff; transition: background .1s; }
+.step-item:last-child { border-bottom: none; }
+.step-item:hover { background: #fff8f5; }
+.step-item.sel { background: #fff3ee; }
+.step-item-name { font-size: 14px; color: #333; }
+.step-item.sel .step-item-name { font-weight: 700; color: #F85A00; }
+.step-item-sub { font-size: 11px; color: #999; margin-top: 2px; }
+.step-item-check { color: #F85A00; font-size: 14px; opacity: 0; flex-shrink: 0; margin-left: 8px; }
+.step-item.sel .step-item-check { opacity: 1; }
+.step-empty { padding: 40px 16px; text-align: center; color: #bbb; font-size: 14px; }
+.step-count { font-size: 11px; color: #aaa; padding: 8px 16px 4px; }
+.model-group { border-bottom: 1px solid #f0f0f0; }
+.model-group:last-child { border-bottom: none; }
+.model-group-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: #fff; transition: background .1s; user-select: none; }
+.model-group-header:hover, .model-group-header.open { background: #fafafa; }
+.model-group-header.has-sel { background: #fff8f5; }
+.model-group-name { font-size: 14px; color: #333; }
+.model-group-header.has-sel .model-group-name { font-weight: 700; color: #F85A00; }
+.model-group-meta { display: flex; align-items: center; gap: 6px; }
+.model-group-count { font-size: 11px; color: #bbb; }
+.model-group-arrow { font-size: 16px; color: #bbb; transition: transform .2s; }
+.model-group-header.open .model-group-arrow { transform: rotate(90deg); }
+.model-group-items { display: none; border-top: 1px solid #f5f5f5; background: #fafafa; }
+.model-group-items.open { display: block; }
+.model-group-items .step-item { padding-left: 28px; background: transparent; }
+.model-group-items .step-item:hover { background: #fff3ee; }
+
+/* ── Results panel ── */
+.results-panel { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); min-height: 300px; }
+.results-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+.results-title { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+.results-sub { font-size: 11px; color: #aaa; margin-top: 1px; }
+.results-meta { font-size: 11px; font-family: monospace; color: #aaa; }
+.filter-bar { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 5px; }
+.filter-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+.flt-btn { border: 1px solid #e0e0e0; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; background: #fff; color: #555; cursor: pointer; font-family: inherit; transition: all .12s; white-space: nowrap; }
+.flt-btn:hover { border-color: #F85A00; color: #F85A00; }
+.flt-btn.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+.filter-sep { width: 1px; height: 18px; background: #e5e7eb; }
+.filter-count { margin-left: auto; font-size: 12px; color: #999; }
+.state-box { padding: 60px 20px; text-align: center; }
+.state-icon { font-size: 36px; margin-bottom: 10px; opacity: .3; display: block; }
+.state-text { font-size: 14px; color: #bbb; }
+.state-sub  { font-size: 12px; color: #ccc; margin-top: 4px; }
+.product-grid { padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.product-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; transition: border-color .15s, box-shadow .15s; cursor: pointer; }
+.product-card:hover { border-color: #F85A00; box-shadow: 0 2px 10px rgba(248,90,0,.1); }
+.pc-img { background: #f8f8f8; height: 130px; display: flex; align-items: center; justify-content: center; position: relative; }
+.pc-img img { width: 110px; height: 110px; object-fit: contain; }
+.pc-img-ph { font-size: 52px; opacity: .12; }
+.pc-season { position: absolute; top: 6px; left: 6px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; border-radius: 3px; padding: 2px 5px; }
+.pc-summer  { background: #fef9c3; color: #854d0e; }
+.pc-winter  { background: #dbeafe; color: #1e40af; }
+.pc-allseas { background: #d1fae5; color: #065f46; }
+.pc-body { padding: 10px 12px; }
+.pc-brand { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #aaa; margin-bottom: 3px; }
+.pc-name  { font-size: 13px; font-weight: 700; color: #1a1a2e; line-height: 1.25; margin-bottom: 5px; }
+.pc-size  { font-size: 12px; font-family: monospace; font-weight: 600; color: #333; }
+.pc-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.pc-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; border-radius: 3px; padding: 2px 5px; }
+.pc-badge-rf { background: #f3f4f6; color: #374151; }
+.pc-badge-xl { background: #ede9fe; color: #5b21b6; }
+.pc-price { font-size: 15px; font-weight: 800; color: #1a1a2e; margin-top: 7px; }
+.load-more-wrap { padding: 0 16px 16px; text-align: center; }
+.load-more-btn { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 28px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; }
+.load-more-btn:hover { border-color: #F85A00; color: #F85A00; }
+.debug-section { border-top: 1px solid #f0f0f0; }
+.debug-toggle { width: 100%; padding: 9px 16px; background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 600; color: #bbb; font-family: inherit; text-align: left; display: flex; align-items: center; gap: 6px; }
+.debug-toggle:hover { color: #888; }
+.debug-body { display: none; padding: 0 16px 14px; }
+.debug-body.open { display: block; }
+.debug-url { font-size: 11px; font-family: monospace; background: #f5f5f5; border-radius: 4px; padding: 6px 10px; color: #555; word-break: break-all; margin-bottom: 8px; }
+.debug-raw { font-size: 11px; font-family: monospace; background: #1a1a2e; color: #86efac; border-radius: 4px; padding: 10px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Config bar -->
+<div class="cfg-bar">
+  <div class="cfg-group">
+    <label class="cfg-label" for="n4-token">N4 Token:</label>
+    <input id="n4-token" class="cfg-input" style="width:300px" type="text"
+      placeholder="N4 API token…" oninput="localStorage.setItem('n4_token',this.value)">
+  </div>
+  <div class="cfg-sep"></div>
+  <div class="cfg-group">
+    <label class="cfg-label" for="td-url">TecDoc API:</label>
+    <input id="td-url" class="cfg-input" style="width:260px" type="text"
+      placeholder="https://…/getArticles" oninput="localStorage.setItem('td_url',this.value)">
+  </div>
+  <div class="cfg-group">
+    <label class="cfg-label" for="td-provider">Provider:</label>
+    <input id="td-provider" class="cfg-input" style="width:72px" type="text"
+      placeholder="ID" oninput="localStorage.setItem('td_provider',this.value)">
+  </div>
+  <div class="cfg-group">
+    <label class="cfg-label" for="td-country">Country:</label>
+    <input id="td-country" class="cfg-input" style="width:46px" type="text"
+      placeholder="DE" oninput="localStorage.setItem('td_country',this.value)">
+  </div>
+</div>
+
+<!-- Autodoc header -->
+<header class="header">
+  <div class="header__top">
+    <div class="header__logo">
+      <img src="https://scdn.autodoc.de/static/logo/logo-light.svg" alt="AUTODOC">
+    </div>
+  </div>
+  <div class="header__panel">
+    <div class="header__panel-inner">
+      <div class="header-search">
+        <input type="text" placeholder="Enter part number or name…">
+        <button class="header-search__btn">Search</button>
+      </div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <div class="header-nav__inner">
+      <a class="header-nav__item" href="#">Car parts</a>
+      <a class="header-nav__item active" href="#">Tyres</a>
+      <a class="header-nav__item" href="#">Wheels</a>
+      <a class="header-nav__item" href="#">Tools</a>
+    </div>
+  </nav>
+</header>
+
+<main class="main">
+
+  <!-- ── LEFT: Selector ── -->
+  <div class="selector-panel">
+    <div style="padding:14px 16px 0;font-size:15px;font-weight:700;color:#1a1a2e">N4 Tyre Finder</div>
+
+    <div class="tabs" style="margin-top:12px">
+      <button class="tab-btn active" onclick="switchTab('car')">By Car</button>
+      <button class="tab-btn" onclick="switchTab('size')">By Size</button>
+    </div>
+
+    <!-- Tab: By Car -->
+    <div id="tab-car" class="tab-pane active sp-section" style="border-bottom:none">
+
+      <!-- Autocomplete -->
+      <div class="ac-wrap" style="margin-bottom:12px">
+        <div class="ac-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ac-drop" id="acDrop"></div>
+      </div>
+
+      <!-- Step entry card -->
+      <div class="step-entry-card" onclick="openSidebar()">
+        <div class="step-entry-img" id="stepEntryImg" style="background-image:url('uploads/000.jpg')"></div>
+        <div class="step-entry-body">
+          <div class="step-entry-title" id="stepEntryTitle">Select by Make, Model, Engine…</div>
+          <div class="step-entry-sub" id="stepEntrySub">Make › Model › Engine</div>
+        </div>
+        <span class="step-entry-arrow">›</span>
+      </div>
+
+      <!-- N4 lookup status -->
+      <div class="n4-status" id="n4-status">
+        <div class="n4-status-label">carId (TecDoc KtypNr)</div>
+        <div class="n4-status-val" id="n4-carid">—</div>
+      </div>
+
+      <!-- COC tyre sizes -->
+      <div class="coc-section" id="coc-section">
+        <div class="coc-title">OEM Tyre Sizes — COC</div>
+        <div class="coc-chips" id="coc-chips"></div>
+      </div>
+    </div>
+
+    <!-- Tab: By Size -->
+    <div id="tab-size" class="tab-pane sp-section" style="border-bottom:none">
+      <div class="size-row">
+        <div class="size-col">
+          <label>Width</label>
+          <select class="sz-select" id="sz-width" onchange="updateSizePreview()">
+            <option value="">—</option>
+            <option>155</option><option>165</option><option>175</option><option>185</option>
+            <option>195</option><option selected>205</option><option>215</option><option>225</option>
+            <option>235</option><option>245</option><option>255</option><option>265</option>
+            <option>275</option><option>285</option><option>295</option><option>305</option>
+            <option>315</option><option>325</option>
+          </select>
+        </div>
+        <div class="size-sep">/</div>
+        <div class="size-col">
+          <label>Aspect</label>
+          <select class="sz-select" id="sz-ar" onchange="updateSizePreview()">
+            <option value="">—</option>
+            <option>25</option><option>30</option><option>35</option><option>40</option>
+            <option>45</option><option>50</option><option selected>55</option><option>60</option>
+            <option>65</option><option>70</option><option>75</option><option>80</option>
+          </select>
+        </div>
+        <div class="size-sep">R</div>
+        <div class="size-col">
+          <label>Rim</label>
+          <select class="sz-select" id="sz-diam" onchange="updateSizePreview()">
+            <option value="">—</option>
+            <option>13</option><option>14</option><option>15</option>
+            <option selected>16</option><option>17</option><option>18</option>
+            <option>19</option><option>20</option><option>21</option><option>22</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="size-preview" id="size-preview"><span class="lbl">Size:</span>205/55 R16</div>
+
+      <div class="popular-label">Popular sizes</div>
+      <div class="popular-chips">
+        <button class="pop-chip" onclick="applySize('195','65','15')">195/65 R15</button>
+        <button class="pop-chip" onclick="applySize('205','55','16')">205/55 R16</button>
+        <button class="pop-chip" onclick="applySize('205','60','16')">205/60 R16</button>
+        <button class="pop-chip" onclick="applySize('215','55','16')">215/55 R16</button>
+        <button class="pop-chip" onclick="applySize('225','45','17')">225/45 R17</button>
+        <button class="pop-chip" onclick="applySize('235','45','17')">235/45 R17</button>
+        <button class="pop-chip" onclick="applySize('225','40','18')">225/40 R18</button>
+        <button class="pop-chip" onclick="applySize('235','35','19')">235/35 R19</button>
+        <button class="pop-chip" onclick="applySize('255','35','19')">255/35 R19</button>
+      </div>
+    </div>
+
+    <!-- Selected size + Search -->
+    <div class="sp-section">
+      <div class="sel-size-bar" id="sel-size-bar">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Selected size</div>
+          <div class="sel-size-str" id="sel-size-str">—</div>
+        </div>
+        <button class="sel-size-clear" onclick="clearSize()">✕</button>
+      </div>
+      <button class="search-btn" id="search-btn" disabled onclick="searchTyres()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search Tyres
+      </button>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Results ── -->
+  <div class="results-panel">
+    <div class="results-header">
+      <div>
+        <div class="results-title">Tyre Products</div>
+        <div class="results-sub">Autodoc car → N4 COC size → TecDoc articles</div>
+      </div>
+      <div class="results-meta" id="results-meta">—</div>
+    </div>
+
+    <div class="filter-bar" id="filter-bar" style="display:none">
+      <div class="filter-group">
+        <span class="filter-label">Season</span>
+        <button class="flt-btn active" onclick="setSeasonFilter('all',this)">All</button>
+        <button class="flt-btn" onclick="setSeasonFilter('summer',this)">☀ Summer</button>
+        <button class="flt-btn" onclick="setSeasonFilter('winter',this)">❄ Winter</button>
+        <button class="flt-btn" onclick="setSeasonFilter('allseas',this)">⛅ All-season</button>
+      </div>
+      <div class="filter-sep"></div>
+      <div class="filter-group">
+        <span class="filter-label">Brand</span>
+        <div id="brand-btns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+      </div>
+      <span class="filter-count" id="filter-count"></span>
+    </div>
+
+    <div id="state-empty" class="state-box">
+      <span class="state-icon">🛞</span>
+      <div class="state-text">Select a vehicle or tyre size to begin</div>
+      <div class="state-sub">Autodoc car selector → N4 COC → TecDoc product search</div>
+    </div>
+    <div id="state-loading" class="state-box" style="display:none">
+      <span class="state-icon n4-spinner">⟳</span>
+      <div class="state-text" style="margin-top:8px" id="loading-text">Searching…</div>
+    </div>
+    <div id="state-nores" class="state-box" style="display:none">
+      <span class="state-icon">🚫</span>
+      <div class="state-text">No products found</div>
+      <div class="state-sub" id="nores-sub"></div>
+    </div>
+    <div id="state-error" class="state-box" style="display:none">
+      <span class="state-icon">⚠️</span>
+      <div class="state-text" id="err-text">Error</div>
+      <div class="state-sub" id="err-sub"></div>
+    </div>
+
+    <div id="product-grid" class="product-grid" style="display:none"></div>
+    <div class="load-more-wrap" id="load-more-wrap" style="display:none">
+      <button class="load-more-btn" id="load-more-btn" onclick="showMore()">Load more</button>
+    </div>
+
+    <div class="debug-section" id="debug-section" style="display:none">
+      <button class="debug-toggle" onclick="toggleDebug()">
+        <span id="debug-arrow">▶</span> Debug — last API call
+      </button>
+      <div class="debug-body" id="debug-body">
+        <div class="debug-url" id="debug-url"></div>
+        <div class="debug-raw" id="debug-raw"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Overlay + Sidebar -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-topbar">
+    <button class="sb-back" id="backBtn" onclick="goBack()" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sb-topbar-title" id="topbarTitle">Select Your Vehicle</div>
+    <button class="sb-close" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="panels-wrap">
+    <!-- Main panel -->
+    <div class="panel" id="panel-main">
+      <div class="sb-body">
+        <div class="ac-wrap">
+          <div class="ac-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="sb-searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ac-drop" id="sb-acDrop"></div>
+        </div>
+
+        <div class="sb-divider">or select step by step</div>
+
+        <div class="sb-step-rows">
+          <div class="sb-step-row" id="sbrow-make" onclick="openStepRow('make')">
+            <span class="sb-step-row__label">Make</span>
+            <span class="sb-step-row__value" id="sbval-make">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-model" onclick="openStepRow('model')">
+            <span class="sb-step-row__label">Model</span>
+            <span class="sb-step-row__value" id="sbval-model">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-engine" onclick="openStepRow('engine')">
+            <span class="sb-step-row__label">Engine</span>
+            <span class="sb-step-row__value" id="sbval-engine">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+        </div>
+
+        <div id="sb-recent-section" style="display:none;margin-top:16px">
+          <div class="sb-recent-label">Recent vehicles</div>
+          <div id="sb-recent-list" class="recent-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step panel -->
+    <div class="panel" id="panel-step">
+      <div id="stepTrail" class="step-trail"></div>
+      <div class="step-header">
+        <div class="step-header-step" id="stepHeaderStep"></div>
+        <div class="step-header-title" id="stepHeaderTitle"></div>
+      </div>
+      <div class="step-search">
+        <div class="step-search-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stepSearch" type="text" placeholder="Search…" autocomplete="off">
+        </div>
+      </div>
+      <div class="step-content" id="stepContent">
+        <div id="stepCount" class="step-count"></div>
+        <div id="stepList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config helpers ─────────────────────────────────────────────────────────
+const N4_BASE = 'https://request2.n4connect.de';
+function getN4Token()    { return document.getElementById('n4-token').value.trim(); }
+function getTdUrl()      { return document.getElementById('td-url').value.trim(); }
+function getTdProvider() { return document.getElementById('td-provider').value.trim(); }
+function getTdCountry()  { return document.getElementById('td-country').value.trim() || 'DE'; }
+
+(function restoreConfig() {
+  [['n4-token','n4_token'],['td-url','td_url'],['td-provider','td_provider'],['td-country','td_country']]
+    .forEach(([id,key]) => { const v = localStorage.getItem(key); if (v) document.getElementById(id).value = v; });
+})();
+
+// ── Autodoc car data ───────────────────────────────────────────────────────
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {}, RATINGS = new Map();
+let selectedCar = null;
+let state = { make: null, model: null, engine: null };
+let currentStep = null, stepHistory = [], allStepItems = [];
+let searchDebounce, stepSearchDebounce;
+
+const STEPS = ['make','model','engine'];
+const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
+const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
+const HISTORY_KEY = 'sb_recent_cars_tyres';
+const PLACEHOLDER_IMG = 'uploads/000.jpg';
+
+const SYNONYM_GROUPS = [
+  ['vw','volkswagen'],['mk1','i'],['mk2','ii'],['mk3','iii'],['mk4','iv'],['mk5','v'],
+  ['mk6','vi'],['mk7','vii'],['mk8','viii'],
+  ['estate','variant','touring','avant','sw','kombi','break','wagon'],
+  ['cabriolet','cabrio','convertible','roadster'],['coupe','coupé'],
+  ['saloon','sedan','berline','limousine'],['suv','crossover'],
+  ['4motion','quattro','xdrive','awd','4wd','4x4'],
+  ['diesel','tdi','dci','hdi','cdti','cdi'],['petrol','tsi','tfsi','fsi'],
+  ['hybrid','hev','phev'],['electric','ev','bev'],
+  ['auto','automatic','dsg','tiptronic','pdk'],
+];
+const SYNONYM_MAP = new Map();
+SYNONYM_GROUPS.forEach(g => g.forEach(w => SYNONYM_MAP.set(w, g)));
+const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii','8':'viii','9':'ix','10':'x'};
+const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const wbRe  = s => new RegExp('(?:^|\\s)'+escRe(s)+'(?=\\s|$)');
+function termMatchers(t) {
+  const g = SYNONYM_MAP.get(t); if (g) return g.map(f=>({str:f,re:wbRe(f)}));
+  const num = NUM2ROM[t]||ROM2NUM[t]; if (num) return [t,num].map(f=>({str:f,re:wbRe(f)}));
+  return [{str:t,re:null}];
+}
+const deaccent = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function carImg(id) { return `imageURL800/${id}.jpg`; }
+function setBgImg(el, url) {
+  if (!el) return;
+  const p = new Image();
+  p.onload = () => { el.style.backgroundImage = `url('${url}')`; };
+  p.onerror = () => { el.style.backgroundImage = `url('${PLACEHOLDER_IMG}')`; };
+  p.src = url;
+}
+function parseRatingsCsv(text) {
+  text.trim().split('\n').slice(1).forEach(line => {
+    const m = line.match(/^(\d+),"?([0-9,]+)%"?/);
+    if (m) RATINGS.set(+m[1], parseFloat(m[2].replace(',','.')));
+  });
+}
+
+if (location.protocol === 'file:') {
+  document.getElementById('stepEntryTitle').textContent = '⚠ Open via server: http://localhost:8080/n4-tyre-finder.html';
+  document.getElementById('stepEntrySub').textContent = 'file:// blocks fetch() — cars_data.json cannot load';
+} else {
+  Promise.all([
+    fetch('cars_data.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    fetch('bmw.csv').then(r=>r.text()).catch(()=>''),
+    fetch('model_groups.json').then(r=>r.json()).catch(()=>({}))
+  ]).then(([data, csv, groups]) => {
+    MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+    if (csv) parseRatingsCsv(csv);
+    document.getElementById('stepEntryTitle').textContent = 'Select by Make, Model, Engine…';
+    try { renderSbHistory(); } catch(e) { console.warn('renderSbHistory:', e); }
+  }).catch(e => {
+    document.getElementById('stepEntryTitle').textContent = `Failed to load cars_data.json (${e.message})`;
+    document.getElementById('stepEntrySub').textContent = 'Check console for details';
+    console.error('Data load error:', e);
+  });
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+let currentTab = 'car';
+function switchTab(tab) {
+  currentTab = tab;
+  ['car','size'].forEach((t, i) => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active', t===tab);
+  });
+  if (tab === 'size') updateSizePreview();
+}
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+function openSidebar() {
+  if (location.protocol === 'file:') {
+    alert('⚠ Open this page via HTTP server:\nhttp://localhost:8080/n4-tyre-finder.html\n\nfile:// blocks fetch() — car data cannot load.');
+    return;
+  }
+  updateSbStepRows(); renderSbHistory();
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('sb-searchInput').focus(), 350);
+}
+function closeSidebar() {
+  hideStepPanel();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function showStepPanel() {
+  document.getElementById('panel-main').classList.add('pushed');
+  document.getElementById('panel-step').classList.add('active');
+  document.getElementById('backBtn').removeAttribute('hidden');
+}
+function hideStepPanel() {
+  document.getElementById('panel-main').classList.remove('pushed');
+  document.getElementById('panel-step').classList.remove('active');
+  document.getElementById('backBtn').setAttribute('hidden','');
+  document.getElementById('topbarTitle').textContent = 'Select Your Vehicle';
+  currentStep = null; stepHistory = [];
+}
+function goBack() {
+  const idx = STEPS.indexOf(currentStep);
+  if (idx <= 0) { hideStepPanel(); return; }
+  const prev = STEPS[idx-1];
+  stepHistory = stepHistory.slice(0, stepHistory.indexOf(prev)+1);
+  currentStep = prev; updateTopbar();
+  animateContent('back', () => {
+    updateTrail(); renderStepContent(document.getElementById('stepSearch').value||'');
+  });
+}
+function updateTopbar() {
+  const idx = STEPS.indexOf(currentStep);
+  document.getElementById('topbarTitle').textContent = STEP_LABELS[currentStep];
+  document.getElementById('stepHeaderStep').textContent = `Step ${idx+1} of 3`;
+  document.getElementById('stepHeaderTitle').textContent = STEP_LABELS[currentStep];
+}
+function updateTrail() {
+  const trail = document.getElementById('stepTrail');
+  const cIdx  = STEPS.indexOf(currentStep);
+  const chips = STEPS.filter(s => s!==currentStep && state[s]!==null && STEPS.indexOf(s)<cIdx);
+  if (!chips.length) { trail.innerHTML=''; return; }
+  trail.innerHTML = chips.map(s => {
+    const lbl = s==='make' ? (MAKERS.find(m=>m.id===state.make)?.n||'') : document.getElementById('val-'+s)?.textContent||'';
+    return `<div class="trail-chip" onclick="jumpToStep('${s}')">${escH(lbl)} <span>×</span></div>`;
+  }).join('');
+}
+function jumpToStep(step) {
+  const idx = STEPS.indexOf(step);
+  STEPS.slice(idx).forEach(s => { state[s]=null; setRowValue(s,'Select '+STEP_SHORT[s].toLowerCase(),false); });
+  updateSbStepRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx+1); currentStep = step; updateTopbar();
+  animateContent('back', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value=''; });
+}
+function animateContent(dir, cb) {
+  const el = document.getElementById('stepContent');
+  const exitCls  = dir==='forward' ? 'exit-left'  : 'exit-right';
+  const enterCls = dir==='forward' ? 'enter-right' : 'enter-left';
+  el.classList.add(exitCls);
+  setTimeout(() => {
+    cb(); el.classList.remove(exitCls); el.classList.add(enterCls);
+    el.getBoundingClientRect(); el.classList.remove(enterCls);
+  }, 180);
+}
+function openStep(step, direction) {
+  const wasOpen = document.getElementById('panel-step').classList.contains('active');
+  currentStep = step;
+  if (!stepHistory.includes(step)) stepHistory.push(step);
+  updateTopbar();
+  if (!wasOpen) {
+    showStepPanel(); updateTrail(); renderStepContent('');
+    setTimeout(() => document.getElementById('stepSearch').focus(), 350);
+  } else {
+    animateContent(direction||'forward', () => {
+      updateTrail(); renderStepContent('');
+      document.getElementById('stepSearch').value='';
+      document.getElementById('stepSearch').focus();
+    });
+  }
+}
+function openStepRow(step) {
+  const idx = STEPS.indexOf(step);
+  for (let i=0;i<idx;i++) { if (state[STEPS[i]]===null) return; }
+  STEPS.slice(idx).forEach(s => { state[s]=null; setRowValue(s,'Select '+STEP_SHORT[s].toLowerCase(),false); });
+  updateSbStepRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx+1); openStep(step);
+}
+
+// ── Step content rendering ─────────────────────────────────────────────────
+function renderStepContent(filter) {
+  const f = filter.trim().toLowerCase();
+  const list = document.getElementById('stepList');
+  if (currentStep === 'make' && !MAKERS.length) {
+    list.innerHTML = `<div class="step-empty">⏳ Loading vehicle data…</div>`;
+    document.getElementById('stepCount').textContent = '';
+    return;
+  }
+  allStepItems = buildItems();
+  const filtered = f ? allStepItems.filter(i=>i.label.toLowerCase().includes(f)||(i.sub||'').toLowerCase().includes(f)) : allStepItems;
+  document.getElementById('stepCount').textContent = filtered.length ? `${filtered.length} option${filtered.length!==1?'s':''}` : '';
+  if (!filtered.length) { list.innerHTML=`<div class="step-empty">No results</div>`; return; }
+
+  if (currentStep==='model' && !f) {
+    const groups = buildModelGroups(filtered);
+    list.innerHTML = groups.map((g,idx) => {
+      if (g.models.length===1) {
+        const item=g.models[0]; const isSel=item.id==state.model;
+        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div></div><span class="step-item-check">✓</span></div>`;
+      }
+      const hasSel=g.models.some(m=>m.id==state.model);
+      return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})"><div class="model-group-name">${escH(g.name)}</div><div class="model-group-meta"><span class="model-group-count">${g.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">${g.models.map(item=>{const isSel=item.id==state.model;return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div></div><span class="step-item-check">✓</span></div>`;}).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  if (currentStep==='engine' && !f) {
+    const fuelMap=new Map();
+    for (const item of filtered) { const k=item.fuel||'Other'; if(!fuelMap.has(k))fuelMap.set(k,[]); fuelMap.get(k).push(item); }
+    list.innerHTML=[...fuelMap.entries()].sort((a,b)=>b[1].length-a[1].length).map(([fuel,items],idx)=>{
+      const hasSel=items.some(i=>i.id==state.engine);
+      return `<div class="model-group"><div class="model-group-header open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${escH(fuel)}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item=>{const isSel=item.id==state.engine;return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div>${item.sub?`<div class="step-item-sub">${escH(item.sub)}</div>`:''}</div><span class="step-item-check">✓</span></div>`;}).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  list.innerHTML=filtered.map(item=>{const isSel=item.id==state[currentStep]; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div><div class="step-item-name">${escH(item.label)}</div>${item.sub?`<div class="step-item-sub">${escH(item.sub)}</div>`:''}</div><span class="step-item-check">✓</span></div>`;}).join('');
+}
+function buildItems() {
+  if (currentStep==='make') return MAKERS.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
+  if (currentStep==='model') {
+    const map=new Map();
+    ALL_CARS.filter(c=>c[0]===state.make).forEach(c=>{if(!map.has(c[1]))map.set(c[1],c[2]);});
+    return [...map.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>({id,label:name}));
+  }
+  if (currentStep==='engine') {
+    return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model).map(c=>({
+      id:c[3], label:c[4], fuel:c[5]?c[5].split('/')[0].trim():'Other',
+      sub:[c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
+    }));
+  }
+  return [];
+}
+function buildModelGroups(models) {
+  const grouped=new Map(); const ungrouped=[];
+  for (const model of models) {
+    const g=MODEL_GROUPS[String(model.id)];
+    if (g) { if(!grouped.has(g.gid))grouped.set(g.gid,{name:g.gn,models:[]}); grouped.get(g.gid).models.push(model); }
+    else ungrouped.push({name:model.label,models:[model]});
+  }
+  const groups=[...grouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  groups.forEach(g=>g.models.sort((a,b)=>a.label.localeCompare(b.label)));
+  ungrouped.sort((a,b)=>a.name.localeCompare(b.name));
+  return [...groups,...ungrouped];
+}
+function toggleModelGroup(idx) {
+  const header=document.querySelector(`.model-group-header[data-gidx="${idx}"]`);
+  const items=document.getElementById('mg-'+idx);
+  if (!header||!items) return;
+  const isOpen=items.classList.contains('open');
+  header.classList.toggle('open',!isOpen); items.classList.toggle('open',!isOpen);
+}
+
+// ── Pick item ──────────────────────────────────────────────────────────────
+function pickItem(id) {
+  if (currentStep==='make') {
+    const maker=MAKERS.find(m=>m.id===id);
+    state={make:id,model:null,engine:null};
+    setRowValue('make',maker.n,true); setRowValue('model','Select model',false); setRowValue('engine','Select engine',false);
+    updateSbStepRows(); setSelectedCar(null);
+    stepHistory=['make','model']; openStep('model','forward');
+  } else if (currentStep==='model') {
+    const modelName=allStepItems.find(i=>i.id===id)?.label||'';
+    state.model=id; state.engine=null;
+    setRowValue('model',modelName,true); setRowValue('engine','Select engine',false);
+    updateSbStepRows(); setSelectedCar(null);
+    stepHistory=['make','model','engine']; openStep('engine','forward');
+  } else if (currentStep==='engine') {
+    const car=ALL_CARS.find(c=>c[3]===id); if (!car) return;
+    state.engine=id; setRowValue('engine',car[4],true);
+    updateSbStepRows(); setSelectedCar(car);
+    setTimeout(()=>closeSidebar(), 120);
+  }
+}
+function setRowValue(step, text, filled) {
+  const valEl = document.getElementById('val-'+step);
+  if (valEl) valEl.textContent = filled ? text : '';
+  const sbVal = document.getElementById('sbval-'+step);
+  if (sbVal) sbVal.textContent = text;
+}
+function updateSbStepRows() {
+  STEPS.forEach((s,idx) => {
+    const row  = document.getElementById('sbrow-'+s);
+    const valEl= document.getElementById('sbval-'+s);
+    if (!row||!valEl) return;
+    const prevFilled = idx===0 || state[STEPS[idx-1]]!==null;
+    row.classList.toggle('sb-step-row--disabled', !prevFilled);
+    const value = s==='make' ? (MAKERS.find(m=>m.id===state.make)?.n||'') : (state[s] ? document.getElementById('sbval-'+s)?.textContent : '');
+    if (value && state[s]!==null) {
+      row.classList.add('sb-step-row--filled');
+    } else {
+      valEl.textContent = 'Select';
+      row.classList.remove('sb-step-row--filled');
+    }
+  });
+}
+
+// ── Car selected → N4 ktypnr → COC ────────────────────────────────────────
+function setSelectedCar(car) {
+  selectedCar = car;
+  clearSize();
+  document.getElementById('coc-section').style.display = 'none';
+  document.getElementById('coc-chips').innerHTML = '';
+  document.getElementById('n4-status').classList.remove('visible');
+
+  // Update entry card
+  const title = document.getElementById('stepEntryTitle');
+  const sub   = document.getElementById('stepEntrySub');
+  const img   = document.getElementById('stepEntryImg');
+  if (car) {
+    const maker = MAKERS.find(m=>m.id===car[0]);
+    title.textContent = `${maker?.n||''} ${car[2]}`;
+    const yr = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+    sub.textContent = [car[4], yr].filter(Boolean).join(' · ');
+    setBgImg(img, carImg(car[3]));
+    saveToHistory(car);
+    renderSbHistory();
+    // Trigger N4 lookup
+    lookupN4forCar(car[3]);
+  } else {
+    title.textContent = 'Select by Make, Model, Engine…';
+    sub.textContent = 'Make › Model › Engine';
+    img.style.backgroundImage = `url('${PLACEHOLDER_IMG}')`;
+  }
+}
+
+async function lookupN4forCar(carId) {
+  const statusEl = document.getElementById('n4-status');
+  const caridEl  = document.getElementById('n4-carid');
+  statusEl.classList.add('visible');
+  caridEl.innerHTML = `<span class="n4-spinner">⟳</span> carId ${carId}`;
+
+  let tags = [];
+  try {
+    const res  = await fetch(`${N4_BASE}/v1/cars/groups/ktypnr?ktypnr=${carId}`, {
+      headers: { Token: getN4Token() }
+    });
+    const data = await res.json();
+    tags = (data||[]).map(i=>i.tag).filter(Boolean);
+    caridEl.textContent = `carId ${carId} → ${tags.length} tag${tags.length!==1?'s':''}`;
+  } catch(e) {
+    caridEl.textContent = `carId ${carId} — N4 error`;
+    return;
+  }
+
+  if (!tags.length) {
+    caridEl.textContent = `carId ${carId} — no N4 match`;
+    return;
+  }
+
+  // Fetch COC for all tags
+  try {
+    const res  = await fetch(`${N4_BASE}/v1/cars/cocs?carTags=${tags.join(',')}`, {
+      headers: { Token: getN4Token() }
+    });
+    const cocs = await res.json();
+    renderCocChips(cocs);
+  } catch(e) {
+    caridEl.textContent += ' — COC error';
+  }
+}
+
+function renderCocChips(cocs) {
+  const section = document.getElementById('coc-section');
+  const chips   = document.getElementById('coc-chips');
+  if (!cocs || !cocs.length) { section.style.display='none'; return; }
+
+  const seen = new Set();
+  const sizes = [];
+  cocs.forEach(c => {
+    [
+      [c.tyreWidthFront, c.tyreHeightFront, c.diameterFront, c.tyreSpeedFront, c.tyreLoadFront, c.wheelWidthFront, c.wheelOffsetFront],
+      [c.tyreWidthRear,  c.tyreHeightRear,  c.diameterRear,  c.tyreSpeedRear,  c.tyreLoadRear,  c.wheelWidthRear,  c.wheelOffsetRear]
+    ].forEach(([w, h, d, spd, load, ww, et]) => {
+      if (!w || !d) return;
+      const key = `${w}/${h}R${d}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      sizes.push({ width:w, aspectRatio:h, diameter:d, speed:spd, load, wheelWidth:ww, et, key });
+    });
+  });
+
+  if (!sizes.length) { section.style.display='none'; return; }
+
+  chips.innerHTML = sizes.map(s => {
+    const sl = s.speed && s.load ? `${s.load}${s.speed}` : '';
+    const wl = s.wheelWidth ? `${s.wheelWidth.replace(',','.')}J ET${Math.round(parseFloat(s.et||0))||'—'}` : '';
+    const sub = [sl, wl].filter(Boolean).join(' · ');
+    return `<button class="coc-chip" onclick="pickCocSize(${JSON.stringify(s)})">
+      ${escH(s.key)}
+      ${sub ? `<span class="coc-chip-sub">${escH(sub)}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  section.style.display = '';
+}
+
+function pickCocSize(s) {
+  document.querySelectorAll('.coc-chip').forEach(c=>c.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  setSelectedSize(s.width, s.aspectRatio, s.diameter);
+}
+
+// ── Autocomplete search ────────────────────────────────────────────────────
+function hl(text, terms) {
+  let out = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  terms.forEach(t => { out=out.replace(new RegExp('('+escRe(t)+')','gi'),'<span class="hl">$1</span>'); });
+  return out;
+}
+function runAc(q, dropId) {
+  const dd = document.getElementById(dropId);
+  if (q.length<2) { dd.style.display='none'; return; }
+  const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').split(/\s+/).filter(Boolean);
+  let yf=null; const tt=[];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yf=+p) : tt.push(p));
+  const termForms = tt.map(termMatchers);
+  const res=[];
+  for (let i=0;i<ALL_CARS.length;i++) {
+    const c=ALL_CARS[i];
+    if (yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf))) continue;
+    if (termForms.length) {
+      const m=MAKERS.find(mk=>mk.id===c[0]);
+      const base=deaccent(`${m?.n||''} ${c[2]} ${c[4]}`).toLowerCase().replace(/[-()_\/]/g,' ');
+      if (!termForms.every(forms=>forms.some(({str,re})=>re?re.test(base):base.includes(str)))) continue;
+    }
+    res.push(c);
+  }
+  res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));
+  const top=res.slice(0,8);
+  if (!top.length) { dd.style.display='block'; dd.innerHTML=`<div class="ac-more">No vehicles found</div>`; return; }
+  dd.style.display='block';
+  dd.innerHTML=top.map(c=>{
+    const m=MAKERS.find(mk=>mk.id===c[0]);
+    const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt);
+    const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
+    return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${escH(sub)}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
+  }).join('')+(res.length>8?`<div class="ac-more">Top 8 of ${res.length} — refine search</div>`:'');
+  top.forEach(c=>setBgImg(document.getElementById(`aco-${c[3]}`), carImg(c[3])));
+}
+function pickAc(carId) {
+  const car=ALL_CARS.find(c=>c[3]===carId); if (!car) return;
+  ['acDrop','sb-acDrop'].forEach(id=>{ const d=document.getElementById(id); if(d) d.style.display='none'; });
+  document.getElementById('searchInput').value='';
+  document.getElementById('sb-searchInput').value='';
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  state={make:car[0],model:car[1],engine:car[3]};
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateSbStepRows(); setSelectedCar(car); closeSidebar();
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>runAc(this.value.trim(),'acDrop'),150);
+});
+document.getElementById('sb-searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(()=>runAc(this.value.trim(),'sb-acDrop'),150);
+});
+document.getElementById('stepSearch').addEventListener('input', function() {
+  clearTimeout(stepSearchDebounce);
+  stepSearchDebounce = setTimeout(()=>renderStepContent(this.value),120);
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) {
+    document.getElementById('acDrop').style.display='none';
+    document.getElementById('sb-acDrop').style.display='none';
+  }
+});
+
+// ── History ────────────────────────────────────────────────────────────────
+function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch { return []; } }
+function saveToHistory(car) {
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  const entry={id:car[3],make:maker?.n||'',model:car[2],trim:car[4],year:car[6],yearTo:car[7],fuel:car[5],kw:car[8]};
+  let h=getHistory().filter(x=>x.id!==entry.id); h.unshift(entry);
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,5)));
+}
+function renderSbHistory() {
+  const section=document.getElementById('sb-recent-section');
+  const history=getHistory();
+  if (!history.length) { section.style.display='none'; return; }
+  section.style.display='block';
+  document.getElementById('sb-recent-list').innerHTML=history.map(h=>{
+    const parts=[h.fuel?h.fuel.split('/')[0]:'',h.kw?h.kw+' kW':'',h.year?(h.yearTo?h.year+'–'+h.yearTo:'from '+h.year):''].filter(Boolean);
+    return `<div class="recent-item" onclick="pickRecent(${h.id})">
+      <div class="recent-icon" id="ricon-${h.id}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="recent-name">${escH(h.make)} ${escH(h.model)}</div>
+        <div class="recent-sub">${escH(h.trim)}${parts.length?' · '+parts.join(' · '):''}</div>
+      </div>
+      <span style="color:#ccc;font-size:18px">›</span>
+    </div>`;
+  }).join('');
+  history.forEach(h=>setBgImg(document.getElementById(`ricon-${h.id}`), carImg(h.id)));
+}
+function pickRecent(carId) {
+  const car=ALL_CARS.find(c=>c[3]===carId); if (!car) return;
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  state={make:car[0],model:car[1],engine:car[3]};
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateSbStepRows(); setSelectedCar(car); closeSidebar();
+}
+
+// ── Hidden value spans (needed by setRowValue) ─────────────────────────────
+['make','model','engine'].forEach(s => {
+  const sp=document.createElement('span');
+  sp.id='val-'+s; sp.style.display='none'; document.body.appendChild(sp);
+});
+
+// ── Size selector (By Size tab) ────────────────────────────────────────────
+function updateSizePreview() {
+  const w=document.getElementById('sz-width').value;
+  const ar=document.getElementById('sz-ar').value;
+  const d=document.getElementById('sz-diam').value;
+  const preview=document.getElementById('size-preview');
+  if (w && ar && d) {
+    preview.innerHTML=`<span class="lbl">Size:</span>${w}/${ar} R${d}`;
+    setSelectedSize(w,ar,d);
+  } else {
+    preview.innerHTML=`<span class="lbl">Size:</span><span style="color:#ccc">—</span>`;
+    clearSize();
+  }
+}
+function applySize(w,ar,d) {
+  document.getElementById('sz-width').value=w;
+  document.getElementById('sz-ar').value=ar;
+  document.getElementById('sz-diam').value=d;
+  updateSizePreview();
+}
+function setSelectedSize(w, ar, d) {
+  window._selectedSize={width:w, aspectRatio:ar, diameter:d};
+  document.getElementById('sel-size-str').textContent=`${w}/${ar} R${d}`;
+  document.getElementById('sel-size-bar').classList.add('visible');
+  document.getElementById('search-btn').disabled=false;
+}
+function clearSize() {
+  window._selectedSize=null;
+  document.getElementById('sel-size-bar').classList.remove('visible');
+  document.getElementById('search-btn').disabled=true;
+  document.querySelectorAll('.coc-chip').forEach(c=>c.classList.remove('active'));
+}
+
+// ── TecDoc search ──────────────────────────────────────────────────────────
+let allProducts=[], filteredProducts=[], shownCount=0, activeFilters={season:'all',brand:'all'};
+const PAGE=24;
+
+async function searchTyres() {
+  const sz=window._selectedSize;
+  if (!sz) return;
+  const url=getTdUrl();
+  if (!url) { showStateError('TecDoc API URL not configured','Enter the endpoint in the config bar above'); return; }
+
+  showStateLoading('Querying TecDoc…');
+
+  const body={
+    provider: getTdProvider() ? parseInt(getTdProvider()) : undefined,
+    lang: 'EN',
+    country: getTdCountry(),
+    articleCountry: getTdCountry(),
+    searchType: 10,
+    genericArticleId: [2100],
+    criteria: [
+      {criteriaId:240, rawValue:String(sz.width)},
+      {criteriaId:241, rawValue:String(sz.aspectRatio)},
+      {criteriaId:242, rawValue:String(sz.diameter)}
+    ]
+  };
+  if (!body.provider) delete body.provider;
+
+  showDebug(url, JSON.stringify(body, null, 2));
+
+  let data;
+  try {
+    const res=await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    data=await res.json();
+  } catch(e) {
+    showStateError('TecDoc request failed', e.message);
+    showDebug(url, 'ERROR: '+e.message);
+    return;
+  }
+
+  showDebug(url, JSON.stringify(data,null,2));
+
+  const articles=extractArticles(data);
+  if (!articles.length) {
+    showStateNoResults(`${sz.width}/${sz.aspectRatio} R${sz.diameter} — 0 products in TecDoc`);
+    return;
+  }
+  renderResults(articles);
+}
+
+function extractArticles(data) {
+  if (Array.isArray(data)) return data;
+  if (data?.articles)              return data.articles;
+  if (data?.data?.articles)        return data.data.articles;
+  if (data?.getArticlesResponse?.articles) return data.getArticlesResponse.articles;
+  return [];
+}
+
+// ── Results ────────────────────────────────────────────────────────────────
+function renderResults(articles) {
+  allProducts=articles;
+  buildBrandFilters();
+  activeFilters={season:'all',brand:'all'};
+  document.getElementById('filter-bar').style.display='';
+  ['state-empty','state-loading','state-nores','state-error'].forEach(id=>document.getElementById(id).style.display='none');
+  applyFilters();
+}
+function buildBrandFilters() {
+  const brands=[...new Set(allProducts.map(a=>getBrand(a)).filter(Boolean))].sort();
+  document.getElementById('brand-btns').innerHTML=
+    `<button class="flt-btn active" onclick="setBrandFilter('all',this)">All</button>`+
+    brands.map(b=>`<button class="flt-btn" onclick="setBrandFilter(${JSON.stringify(b)},this)">${escH(b)}</button>`).join('');
+}
+function setSeasonFilter(val,btn) {
+  activeFilters.season=val;
+  btn.closest('.filter-group').querySelectorAll('.flt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); applyFilters();
+}
+function setBrandFilter(val,btn) {
+  activeFilters.brand=val;
+  document.getElementById('brand-btns').querySelectorAll('.flt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); applyFilters();
+}
+function applyFilters() {
+  filteredProducts=allProducts.filter(a=>{
+    if (activeFilters.season!=='all' && getSeason(a)!==activeFilters.season) return false;
+    if (activeFilters.brand!=='all'  && getBrand(a)!==activeFilters.brand)   return false;
+    return true;
+  });
+  document.getElementById('filter-count').textContent=`${filteredProducts.length} of ${allProducts.length}`;
+  document.getElementById('results-meta').textContent=`${allProducts.length} total`;
+  shownCount=0;
+  document.getElementById('product-grid').innerHTML='';
+  document.getElementById('product-grid').style.display='';
+  showMore();
+}
+function showMore() {
+  const grid=document.getElementById('product-grid');
+  filteredProducts.slice(shownCount,shownCount+PAGE).forEach(a=>grid.appendChild(buildCard(a)));
+  shownCount+=PAGE;
+  const moreWrap=document.getElementById('load-more-wrap');
+  if (shownCount<filteredProducts.length) {
+    document.getElementById('load-more-btn').textContent=`Load more (${filteredProducts.length-shownCount} remaining)`;
+    moreWrap.style.display='';
+  } else {
+    moreWrap.style.display='none';
+  }
+}
+function buildCard(a) {
+  const brand=getBrand(a), name=getName(a), size=getSizeStr(a), season=getSeason(a);
+  const speedLI=getSpeedLoad(a), imgUrl=getImg(a), badges=getBadges(a), price=getPrice(a);
+  const sznClass=season==='summer'?'pc-summer':season==='winter'?'pc-winter':season==='allseas'?'pc-allseas':'';
+  const sznLabel=season==='summer'?'☀ Summer':season==='winter'?'❄ Winter':season==='allseas'?'⛅ All-season':'';
+  const sz=window._selectedSize;
+  const displaySize=size||(sz?`${sz.width}/${sz.aspectRatio} R${sz.diameter}`:'');
+  const div=document.createElement('div');
+  div.className='product-card';
+  div.innerHTML=`
+    <div class="pc-img">
+      ${imgUrl?`<img src="${escH(imgUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">`:
+               `<div class="pc-img-ph">🛞</div>`}
+      ${sznLabel?`<span class="pc-season ${sznClass}">${sznLabel}</span>`:''}
+    </div>
+    <div class="pc-body">
+      <div class="pc-brand">${escH(brand)}</div>
+      <div class="pc-name">${escH(name||a.articleNumber||'')}</div>
+      <div class="pc-size">${escH(displaySize)}${speedLI?' '+escH(speedLI):''}</div>
+      ${badges.length?`<div class="pc-badges">${badges.map(b=>`<span class="pc-badge pc-badge-${b.cls}">${escH(b.label)}</span>`).join('')}</div>`:''}
+      ${price?`<div class="pc-price">${escH(price)}</div>`:''}
+    </div>`;
+  return div;
+}
+
+// TecDoc field extractors
+function getBrand(a) { return a.brandName||a.brand?.name||a.manuName||a.manufacturer?.name||''; }
+function getName(a)  { return a.genericArticles?.[0]?.genericArticleDescription||a.articleName||a.name||a.description||''; }
+function getSizeStr(a) {
+  const attrs=a.articleAttributes||a.attributes||a.criteria||[];
+  const get=(...ids)=>{ for (const id of ids) { const f=attrs.find(x=>x.criteriaId===id||x.attributeId===id); if(f) return f.rawValue||f.value||''; } return ''; };
+  const w=get(240),ar=get(241),d=get(242);
+  return w&&d ? `${w}${ar?'/'+ar:''}R${d}` : '';
+}
+function getSeason(a) {
+  const attrs=a.articleAttributes||a.attributes||a.criteria||[];
+  const raw=attrs.find(x=>x.criteriaId===245||x.attributeId===245||(x.criteriaDescription||x.attributeName||'').toLowerCase().includes('season'));
+  if (!raw) return '';
+  const val=(raw.rawValue||raw.value||'').toLowerCase();
+  if (val.includes('winter')||val==='2') return 'winter';
+  if (val.includes('all')||val==='3')    return 'allseas';
+  if (val.includes('summer')||val==='1') return 'summer';
+  return '';
+}
+function getSpeedLoad(a) {
+  const attrs=a.articleAttributes||a.attributes||a.criteria||[];
+  const spd=attrs.find(x=>x.criteriaId===243||(x.criteriaDescription||x.attributeName||'').toLowerCase().includes('speed'));
+  const lod=attrs.find(x=>x.criteriaId===244||(x.criteriaDescription||x.attributeName||'').toLowerCase().includes('load'));
+  const s=spd?spd.rawValue||spd.value||'':'';
+  const l=lod?lod.rawValue||lod.value||'':'';
+  return l&&s?`${l}${s}`:s||l;
+}
+function getImg(a) { return a.thumbnails?.[0]?.imageURL100||a.images?.[0]?.url||a.imageUrl||''; }
+function getBadges(a) {
+  const attrs=a.articleAttributes||a.attributes||a.criteria||[];
+  const has=kw=>attrs.some(x=>(x.rawValue||x.value||x.criteriaDescription||x.attributeName||'').toLowerCase().includes(kw));
+  const badges=[];
+  if (has('run flat')||has('runflat')||has('rf')) badges.push({cls:'rf',label:'Run Flat'});
+  if (has('xl')||has('extra load')||has('reinforced')) badges.push({cls:'xl',label:'XL'});
+  return badges;
+}
+function getPrice(a) {
+  const p=a.price||a.prices?.[0]; if(!p) return '';
+  const amt=p.amount||p.value||p.price||'';
+  return amt?`€${parseFloat(amt).toFixed(2)}`:'';
+}
+
+// ── UI state helpers ───────────────────────────────────────────────────────
+function showStateLoading(msg) {
+  ['state-empty','state-nores','state-error'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('product-grid').style.display='none';
+  document.getElementById('load-more-wrap').style.display='none';
+  document.getElementById('filter-bar').style.display='none';
+  document.getElementById('loading-text').textContent=msg||'Searching…';
+  document.getElementById('state-loading').style.display='';
+}
+function showStateNoResults(sub) {
+  document.getElementById('state-loading').style.display='none';
+  document.getElementById('nores-sub').textContent=sub;
+  document.getElementById('state-nores').style.display='';
+}
+function showStateError(text, sub) {
+  document.getElementById('state-loading').style.display='none';
+  document.getElementById('state-empty').style.display='none';
+  document.getElementById('err-text').textContent=text;
+  document.getElementById('err-sub').textContent=sub||'';
+  document.getElementById('state-error').style.display='';
+}
+
+// ── Debug panel ────────────────────────────────────────────────────────────
+function showDebug(url, raw) {
+  document.getElementById('debug-section').style.display='';
+  document.getElementById('debug-url').textContent='POST '+url;
+  document.getElementById('debug-raw').textContent=raw;
+}
+function toggleDebug() {
+  const open=document.getElementById('debug-body').classList.toggle('open');
+  document.getElementById('debug-arrow').textContent=open?'▼':'▶';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+updateSizePreview();
+</script>
+</body>
+</html>
