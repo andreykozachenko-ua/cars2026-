@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarCatOnline Explorer</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f5f7; color: #333; font-size: 14px; min-height: 100vh; }
+
+/* Header */
+.header { background: #1a1a2e; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+.header-logo { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -.5px; }
+.header-logo span { color: #F85A00; }
+.header-sub { color: rgba(255,255,255,.35); font-size: 11px; margin-left: auto; }
+
+/* Token bar */
+.token-bar { background: #12122a; padding: 8px 24px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.token-bar-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+.token-bar-input { flex: 1; height: 30px; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 4px; padding: 0 10px; font-size: 11px; font-family: monospace; color: rgba(255,255,255,.75); outline: none; transition: border-color .15s; }
+.token-bar-input:focus { border-color: #F85A00; background: rgba(255,255,255,.1); }
+.token-bar-input::placeholder { color: rgba(255,255,255,.2); }
+.token-bar-status { font-size: 10px; white-space: nowrap; }
+.token-bar-status.ok { color: #4ade80; }
+.token-bar-status.empty { color: rgba(255,255,255,.25); }
+
+/* Breadcrumb */
+.breadcrumb { background: #fff; border-bottom: 1px solid #e8e8e8; padding: 9px 24px; display: flex; align-items: center; gap: 6px; font-size: 12px; overflow-x: auto; white-space: nowrap; }
+.bc { color: #ccc; }
+.bc.link { color: #888; cursor: pointer; }
+.bc.link:hover { color: #F85A00; }
+.bc.active { color: #333; font-weight: 600; }
+.bc-sep { color: #ddd; }
+
+/* Layout */
+.container { max-width: 860px; margin: 32px auto; padding: 0 20px; }
+
+/* Card */
+.card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 16px; overflow: hidden; }
+.card-head { padding: 18px 22px 14px; border-bottom: 1px solid #f0f0f0; }
+.card-title { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.card-sub { font-size: 11px; color: #aaa; margin-top: 3px; }
+.card-body { padding: 20px 22px; }
+
+/* Buttons */
+.btn { height: 40px; padding: 0 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: #F85A00; color: #fff; }
+.btn-primary:hover { background: #e04f00; }
+.btn-ghost { background: #f5f5f5; color: #555; border: 1px solid #e0e0e0; }
+.btn-ghost:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.btn-sm { height: 30px; padding: 0 12px; font-size: 11px; }
+
+/* Section label */
+.section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #bbb; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: #f0f0f0; }
+
+/* Brand grid */
+.brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.brand-tile { border: 2px solid #eee; border-radius: 8px; padding: 14px 12px; cursor: pointer; transition: all .15s; text-align: center; }
+.brand-tile:hover { border-color: #F85A00; background: #fff8f5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(248,90,0,.1); }
+.brand-tile-name { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-top: 8px; line-height: 1.2; }
+.brand-tile-img { width: 48px; height: 32px; object-fit: contain; margin: 0 auto; display: block; }
+.brand-tile-fallback { width: 48px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 18px; }
+
+/* Model list */
+.model-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.model-item { border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; cursor: pointer; transition: all .12s; display: flex; align-items: center; gap: 10px; }
+.model-item:hover { border-color: #F85A00; background: #fff8f5; }
+.model-item-img { width: 40px; height: 28px; object-fit: contain; flex-shrink: 0; }
+.model-item-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+
+/* Parameter selection */
+.param-group { margin-bottom: 20px; }
+.param-group-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+.param-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.param-option { padding: 7px 14px; border: 2px solid #eee; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #444; transition: all .12s; }
+.param-option:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.param-option.selected { border-color: #F85A00; background: #F85A00; color: #fff; }
+.param-option.locked { border-color: #e0e0e0; background: #f8f8f8; color: #aaa; cursor: default; pointer-events: none; }
+.param-option-year { font-size: 10px; font-weight: 400; opacity: .7; margin-left: 4px; }
+
+/* Selected car pill */
+.car-pill { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-bottom: 20px; }
+.car-pill-icon { font-size: 18px; }
+.car-pill-name { font-size: 13px; font-weight: 700; color: #166534; }
+.car-pill-id { font-size: 10px; font-family: monospace; color: #6ee7b7; margin-top: 1px; }
+
+/* Group grid */
+.group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.group-tile { border: 1px solid #eee; border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: all .12s; display: flex; align-items: center; gap: 12px; }
+.group-tile:hover { border-color: #F85A00; background: #fff8f5; }
+.group-tile-img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; border-radius: 4px; background: #f8f8f8; }
+.group-tile-fallback { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; background: #f8f8f8; border-radius: 4px; }
+.group-tile-name { font-size: 12px; font-weight: 600; color: #1a1a2e; line-height: 1.3; }
+.group-tile-arrow { margin-left: auto; color: #ccc; font-size: 12px; }
+
+/* Parts */
+.part-group-header { font-size: 12px; font-weight: 700; color: #1a1a2e; padding: 10px 0 8px; border-bottom: 1px solid #f0f0f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.part-group-ref { font-size: 10px; font-family: monospace; color: #bbb; font-weight: 400; }
+.parts-table { width: 100%; border-collapse: collapse; }
+.parts-table th { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .5px; padding: 6px 10px; text-align: left; border-bottom: 2px solid #f0f0f0; }
+.parts-table td { padding: 10px; border-bottom: 1px solid #f5f5f5; vertical-align: top; }
+.parts-table tr:last-child td { border-bottom: none; }
+.parts-table tr:hover td { background: #fafafa; }
+.oe-number { font-family: monospace; font-size: 14px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 6px; }
+.copy-btn { font-size: 10px; color: #bbb; cursor: pointer; padding: 2px 6px; border: 1px solid #eee; border-radius: 3px; background: none; font-family: inherit; transition: all .1s; }
+.copy-btn:hover { color: #F85A00; border-color: #F85A00; }
+.copy-btn.copied { color: #16a34a; border-color: #bbf7d0; }
+.part-name { font-size: 12px; color: #555; }
+.part-remark { font-size: 11px; color: #aaa; margin-top: 2px; }
+.part-pos { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #f0f0f0; border-radius: 50%; font-size: 10px; font-weight: 700; color: #888; }
+.part-qty { font-size: 11px; color: #888; }
+
+/* Part diagram */
+.diagram-wrap { margin-bottom: 20px; position: relative; display: inline-block; }
+.diagram-wrap img { max-width: 100%; border-radius: 6px; border: 1px solid #eee; display: block; }
+
+/* Loading */
+.loading { display: flex; align-items: center; gap: 10px; padding: 32px; justify-content: center; color: #aaa; font-size: 13px; }
+.spinner { width: 20px; height: 20px; border: 2px solid #eee; border-top-color: #F85A00; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error */
+.error-box { padding: 14px 18px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #b91c1c; font-size: 13px; margin-bottom: 16px; }
+
+
+/* Back path */
+.path-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; padding: 10px 14px; background: #f8fafc; border-radius: 6px; border: 1px solid #e8e8e8; }
+.path-item { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; background: #fff; border: 1px solid #e0e0e0; color: #555; }
+.path-item.brand { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.path-item.model { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+.path-item.car { background: #dcfce7; border-color: #86efac; color: #166534; }
+.path-sep { color: #ccc; font-size: 11px; }
+
+/* Notice */
+.notice { padding: 8px 14px; background: #fffbeb; border-left: 3px solid #fbbf24; font-size: 11px; color: #78350f; border-radius: 0 4px 4px 0; margin-bottom: 16px; }
+
+/* Empty state */
+.empty { text-align: center; padding: 40px; color: #bbb; }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty-text { font-size: 13px; }
+
+/* Subgroup back */
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #888; cursor: pointer; margin-bottom: 16px; }
+.back-link:hover { color: #F85A00; }
+
+/* VIN search */
+.vin-row { display: flex; gap: 10px; margin-bottom: 4px; }
+.vin-input { flex: 1; height: 46px; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0 16px; font-size: 15px; font-family: monospace; color: #1a1a2e; outline: none; text-transform: uppercase; letter-spacing: 1px; transition: border-color .15s; }
+.vin-input:focus { border-color: #F85A00; }
+.vin-input::placeholder { font-family: inherit; font-size: 13px; color: #ccc; letter-spacing: 0; text-transform: none; }
+.vin-hint { font-size: 11px; color: #bbb; }
+.vin-warn { font-size: 11px; color: #d97706; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px; padding: 6px 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">Car<span>Cat</span>Online</div>
+  <div class="header-sub">OEM Parts Explorer · Test</div>
+</div>
+
+<div class="token-bar">
+  <span class="token-bar-label">Authorization Token:</span>
+  <input id="token-input" class="token-bar-input" type="text" placeholder="Paste Bearer token here…" spellcheck="false" autocomplete="off" />
+  <span id="token-status" class="token-bar-status empty">no token</span>
+</div>
+
+<div class="breadcrumb" id="breadcrumb">
+  <span class="bc active">Brands</span>
+</div>
+
+<div class="container" id="app">
+  <div class="loading"><div class="spinner"></div> Loading...</div>
+</div>
+
+<script>
+const TOKEN_KEY = 'cco_token';
+const BASE = 'https://api.carcatonline.com/v1';
+
+function getToken() {
+  return document.getElementById('token-input').value.trim();
+}
+
+// Persist token to localStorage on change, update status indicator
+document.getElementById('token-input').addEventListener('input', () => {
+  const t = getToken();
+  localStorage.setItem(TOKEN_KEY, t);
+  const status = document.getElementById('token-status');
+  status.textContent = t ? '● active' : 'no token';
+  status.className = 'token-bar-status ' + (t ? 'ok' : 'empty');
+});
+
+// Restore from localStorage on load
+(function () {
+  const saved = localStorage.getItem(TOKEN_KEY) || '';
+  if (saved) {
+    document.getElementById('token-input').value = saved;
+    document.getElementById('token-status').textContent = '● active';
+    document.getElementById('token-status').className = 'token-bar-status ok';
+  }
+})();
+
+// State
+let state = {
+  brand: null,       // { id, name }
+  model: null,       // { id, name }
+  selectedIdxs: [],  // selected parameter idx values
+  carId: null,       // final car id
+  carLabel: '',      // human label for car
+  group: null,       // current group (level being browsed)
+  groupParent: null, // parent group for back navigation when drilling sub-subgroups
+  subgroup: null,    // leaf subgroup with parts
+};
+
+// ── API ──────────────────────────────────────────────────────────
+
+async function api(path) {
+  const t = getToken();
+  if (!t) throw new Error('No token — paste your Authorization token in the bar above.');
+  const res = await fetch(BASE + path, {
+    headers: { 'Authorization': 'Bearer ' + t }
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`HTTP ${res.status}: ${txt}`);
+  }
+  return res.json();
+}
+
+// ── Render helpers ───────────────────────────────────────────────
+
+const app = () => document.getElementById('app');
+const bc  = () => document.getElementById('breadcrumb');
+
+function setLoading() {
+  app().innerHTML = '<div class="loading"><div class="spinner"></div> Loading…</div>';
+}
+
+function showError(msg) {
+  const box = document.createElement('div');
+  box.className = 'error-box';
+  box.textContent = '⚠ ' + msg;
+  app().prepend(box);
+}
+
+function setBreadcrumb(items) {
+  bc().innerHTML = items.map((item, i) => {
+    const isLast = i === items.length - 1;
+    const sep = i > 0 ? '<span class="bc-sep">›</span>' : '';
+    if (isLast) return sep + `<span class="bc active">${item.label}</span>`;
+    return sep + `<span class="bc link" onclick="${item.onclick}">${item.label}</span>`;
+  }).join('');
+}
+
+function copyOE(number, btn) {
+  navigator.clipboard.writeText(number).then(() => {
+    btn.textContent = 'copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function pathBar() {
+  let html = '<div class="path-bar">';
+  if (state.brand) html += `<span class="path-item brand">${state.brand.name}</span><span class="path-sep">›</span>`;
+  if (state.model) html += `<span class="path-item model">${state.model.name}</span><span class="path-sep">›</span>`;
+  if (state.carLabel) html += `<span class="path-item car">${state.carLabel}</span>`;
+  html += '</div>';
+  return html;
+}
+
+// ── VIN search ───────────────────────────────────────────────────
+
+async function searchByVin() {
+  const vin = (document.getElementById('vin-input')?.value || '').trim().toUpperCase();
+  const resultEl = document.getElementById('vin-result');
+  if (!resultEl) return;
+
+  if (!vin || vin.length < 11) {
+    resultEl.innerHTML = '<div class="error-box" style="margin-top:10px">⚠ Enter at least 11 characters of the VIN.</div>';
+    return;
+  }
+
+  resultEl.innerHTML = '<div class="loading" style="padding:14px 0"><div class="spinner"></div> Looking up VIN…</div>';
+
+  try {
+    const data = await api(`/car/info?q=${encodeURIComponent(vin)}`);
+
+    // data can be a single object or array — normalise
+    const cars = Array.isArray(data) ? data : [data];
+    if (!cars.length || !cars[0].id) throw new Error('No vehicle found');
+
+    const car = cars[0];
+    state.brand   = { id: car.catalogId, name: car.brand || car.catalogId };
+    state.model   = { id: car.modelId || '', name: car.modelName || '' };
+    state.carId   = car.id;
+    state.carLabel = car.name ||
+      (car.parameters || []).map(p => p.value).filter(Boolean).join(' ') ||
+      vin;
+    state.selectedIdxs = [];
+    state.group = null;
+    state.subgroup = null;
+
+    await showGroups();
+
+  } catch(e) {
+    const msg = e.message.includes('No vehicle found')
+      ? 'No vehicle found for this VIN. The VIN Decoder may not be active on the test account — try browsing by brand below.'
+      : e.message;
+    resultEl.innerHTML = `<div class="error-box" style="margin-top:10px">⚠ ${msg}</div>`;
+  }
+}
+
+// ── Screens ──────────────────────────────────────────────────────
+
+// SCREEN 1: Brands
+async function showBrands() {
+  state = { brand: null, model: null, selectedIdxs: [], carId: null, carLabel: '', group: null, subgroup: null };
+  setLoading();
+  setBreadcrumb([{ label: 'Brands' }]);
+
+  try {
+    const brands = await api('/catalogs/');
+    let html = `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">VIN Search</div>
+          <div class="card-sub">Jump directly to parts by vehicle VIN</div>
+        </div>
+        <div class="card-body">
+          <div class="vin-row">
+            <input id="vin-input" class="vin-input" type="text" maxlength="17" placeholder="e.g. WBA3A5C50DF354361" spellcheck="false" autocomplete="off"
+              onkeydown="if(event.key==='Enter') searchByVin()" oninput="this.value=this.value.toUpperCase()" />
+            <button class="btn btn-primary" onclick="searchByVin()">Search</button>
+          </div>
+          <div class="vin-hint">17-character VIN · press Enter or click Search</div>
+          <div id="vin-result"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">OEM Brands</div>
+          <div class="card-sub">${brands.length} brands available</div>
+        </div>
+        <div class="card-body">
+          <div class="section-label">Or browse by brand</div>
+          <div class="brand-grid">
+    `;
+    for (const b of brands) {
+      const imgUrl = `https://api.carcatonline.com/static/brands/${b.img_id || b.name}.png`;
+      html += `
+        <div class="brand-tile" onclick="selectBrand('${b.id}','${esc(b.name)}')">
+          <div class="brand-tile-fallback">🚗</div>
+          <div class="brand-tile-name">${b.name}</div>
+        </div>`;
+    }
+    html += '</div></div></div>';
+    app().innerHTML = html;
+  } catch(e) {
+    app().innerHTML = '<div class="error-box">⚠ ' + e.message + '</div>';
+  }
+}
+
+// SCREEN 2: Models
+async function selectBrand(id, name) {
+  state.brand = { id, name };
+  state.model = null; state.selectedIdxs = []; state.carId = null; state.carLabel = '';
+  setLoading();
+  setBreadcrumb([
+    { label: 'Brands', onclick: 'showBrands()' },
+    { label: name }
+  ]);
+
+  try {
+    const models = await api(`/catalogs/${id}/models/`);
+    let html = `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">${name} — Models</div>
+          <div class="card-sub">${models.length} models</div>
+        </div>
+        <div class="card-body">
+          <div class="section-label">Select model</div>
+          <div class="model-list">
+    `;
+    for (const m of models) {
+      const imgSrc = m.img ? `https://api.carcatonline.com/${m.img}` : '';
+      const imgHtml = imgSrc
+        ? `<img class="model-item-img" src="${imgSrc}" onerror="this.style.display='none'" />`
+        : `<span style="font-size:16px">🚙</span>`;
+      html += `
+        <div class="model-item" onclick="selectModel('${m.id}','${esc(m.name)}')">
+          ${imgHtml}
+          <span class="model-item-name">${m.name}</span>
+        </div>`;
+    }
+    html += '</div></div></div>';
+    app().innerHTML = html;
+  } catch(e) {
+    app().innerHTML = '<div class="error-box">⚠ ' + e.message + '</div>';
+  }
+}
+
+// SCREEN 3: Parameters (iterative)
+async function selectModel(id, name) {
+  state.model = { id, name };
+  state.selectedIdxs = []; state.carId = null; state.carLabel = '';
+  await showParams();
+}
+
+async function showParams() {
+  setLoading();
+  setBreadcrumb([
+    { label: 'Brands', onclick: 'showBrands()' },
+    { label: state.brand.name, onclick: `selectBrand('${state.brand.id}','${esc(state.brand.name)}')` },
+    { label: state.model.name, onclick: `selectModel('${state.model.id}','${esc(state.model.name)}')` },
+    { label: 'Configuration' }
+  ]);
+
+  try {
+    let qs = `?modelId=${state.model.id}`;
+    for (const idx of state.selectedIdxs) qs += `&parameter=${idx}`;
+
+    const params = await api(`/catalogs/${state.brand.id}/cars-parameters/${qs}`);
+
+    // Groups with multiple values = need user selection
+    const pending = params.filter(g => g.values && g.values.length > 1);
+    // Groups with single value = resolved (either auto or user-selected)
+    const resolved = params.filter(g => g.values && g.values.length === 1);
+
+    // If no pending groups → all resolved
+    if (pending.length === 0) {
+      const allIdxs = resolved.map(g => g.values[0].idx);
+      // Check if any new idx was auto-resolved that we haven't submitted yet.
+      // If yes, add them and recurse — cars-parameters may unlock more groups.
+      const hasNew = allIdxs.some(idx => !state.selectedIdxs.includes(idx));
+      state.selectedIdxs = allIdxs;
+      if (hasNew) {
+        await showParams();
+      } else {
+        await fetchCar(allIdxs);
+      }
+      return;
+    }
+
+    let html = `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">${state.brand.name} ${state.model.name}</div>
+          <div class="card-sub">Select configuration</div>
+        </div>
+        <div class="card-body">
+    `;
+
+    // Show resolved params as context
+    if (resolved.length > 0) {
+      html += '<div class="path-bar" style="margin-bottom:20px">';
+      for (const g of resolved) {
+        html += `<span class="path-item car">${g.values[0].value}</span>`;
+        html += '<span class="path-sep">›</span>';
+      }
+      html += '<span style="font-size:11px;color:#aaa">choose next…</span></div>';
+    }
+
+    // Show first pending group
+    const nextGroup = pending[0];
+    const friendly = {
+      'tech_info': 'Body / Generation',
+      'restrictions_1': 'Body Type',
+      'restrictions_2': 'Engine Variant',
+      'restrictions_3': 'Market',
+      'restrictions_4': 'Specification',
+    };
+    html += `<div class="param-group">
+      <div class="param-group-label">${friendly[nextGroup.key] || nextGroup.name}</div>
+      <div class="param-options">`;
+
+    for (const v of nextGroup.values) {
+      const year = (v.description?.year_from || v.description?.year_to)
+        ? `<span class="param-option-year">${v.description.year_from || ''}${v.description.year_to ? '–' + v.description.year_to : ''}</span>`
+        : '';
+      html += `<div class="param-option" onclick="pickParam('${v.idx}','${esc(v.value)}')">${v.value}${year}</div>`;
+    }
+
+    html += '</div></div>';
+
+    // Remaining pending groups count hint
+    if (pending.length > 1) {
+      html += `<div class="notice">After selecting, ${pending.length - 1} more step(s) will follow.</div>`;
+    }
+
+    html += '</div></div>';
+    app().innerHTML = html;
+
+  } catch(e) {
+    app().innerHTML = '<div class="error-box">⚠ ' + e.message + '</div>';
+  }
+}
+
+async function pickParam(idx, value) {
+  state.selectedIdxs.push(idx);
+  // Accumulate label
+  state.carLabel = state.carLabel ? state.carLabel + ' ' + value : value;
+  await showParams();
+}
+
+async function fetchCar(idxs) {
+  let qs = `?modelId=${state.model.id}`;
+  for (const idx of idxs) qs += `&parameter=${idx}`;
+
+  const cars = await api(`/catalogs/${state.brand.id}/cars2/${qs}`);
+  if (!cars || cars.length === 0) {
+    app().innerHTML = '<div class="error-box">⚠ No car found for selected configuration.</div>';
+    return;
+  }
+  const car = cars[0];
+  state.carId = car.id;
+  if (!state.carLabel) {
+    state.carLabel = car.parameters.map(p => p.value).join(' ');
+  }
+  await showGroups();
+}
+
+// SCREEN 4: Groups
+async function showGroups() {
+  setLoading();
+  setBreadcrumb([
+    { label: 'Brands', onclick: 'showBrands()' },
+    { label: state.brand.name, onclick: `selectBrand('${state.brand.id}','${esc(state.brand.name)}')` },
+    { label: state.model.name, onclick: `selectModel('${state.model.id}','${esc(state.model.name)}')` },
+    { label: state.carLabel || 'Car' }
+  ]);
+
+  try {
+    const groups = await api(`/catalogs/${state.brand.id}/groups2?carId=${state.carId}`);
+
+    let html = pathBar() + `
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Part Groups</div>
+          <div class="card-sub">${groups.length} categories</div>
+        </div>
+        <div class="card-body">
+          <div class="section-label">Select category</div>
+          <div class="group-grid">
+    `;
+
+    for (const g of groups) {
+      const imgHtml = g.img
+        ? `<img class="group-tile-img" src="https://api.carcatonline.com/${g.img}" onerror="this.parentElement.querySelector('.group-tile-fallback').style.display='flex';this.style.display='none'" /><div class="group-tile-fallback" style="display:none">🔧</div>`
+        : `<div class="group-tile-fallback">🔧</div>`;
+
+      html += `
+        <div class="group-tile" onclick="selectGroup('${g.id}','${esc(g.name)}',${g.hasSubgroups},${g.hasParts})">
+          ${imgHtml}
+          <span class="group-tile-name">${g.name}</span>
+          <span class="group-tile-arrow">›</span>
+        </div>`;
+    }
+
+    html += '</div></div></div>';
+    app().innerHTML = html;
+  } catch(e) {
+    app().innerHTML = '<div class="error-box">⚠ ' + e.message + '</div>';
+  }
+}
+
+// SCREEN 4b: Subgroups
+async function selectGroup(id, name, hasSubgroups, hasParts) {
+  state.group = { id, name };
+  state.subgroup = null;
+
+  if (hasParts && !hasSubgroups) {
+    await showParts(id, name);
+    return;
+  }
+
+  setLoading();
+  setBreadcrumb([
+    { label: 'Brands', onclick: 'showBrands()' },
+    { label: state.brand.name, onclick: `selectBrand('${state.brand.id}','${esc(state.brand.name)}')` },
+    { label: state.model.name, onclick: `selectModel('${state.model.id}','${esc(state.model.name)}')` },
+    { label: state.carLabel || 'Car', onclick: 'showGroups()' },
+    { label: name }
+  ]);
+
+  try {
+    const subgroups = await api(`/catalogs/${state.brand.id}/groups2?carId=${state.carId}&groupId=${id}`);
+
+    let html = pathBar() + `
+      <div class="back-link" onclick="goBackFromSubgroups()">‹ Back</div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">${name}</div>
+          <div class="card-sub">${subgroups.length} subcategories</div>
+        </div>
+        <div class="card-body">
+          <div class="group-grid">
+    `;
+
+    for (const g of subgroups) {
+      const imgHtml = g.img
+        ? `<img class="group-tile-img" src="https://api.carcatonline.com/${g.img}" onerror="this.parentElement.querySelector('.group-tile-fallback').style.display='flex';this.style.display='none'" /><div class="group-tile-fallback" style="display:none">🔩</div>`
+        : `<div class="group-tile-fallback">🔩</div>`;
+
+      html += `
+        <div class="group-tile" onclick="selectSubgroup('${g.id}','${esc(g.name)}',${g.hasSubgroups},${g.hasParts})">
+          ${imgHtml}
+          <div style="flex:1">
+            <div class="group-tile-name">${g.name}</div>
+            ${g.description?.comment ? `<div style="font-size:10px;color:#aaa;margin-top:3px;line-height:1.3">${g.description.comment.substring(0,80)}${g.description.comment.length > 80 ? '…' : ''}</div>` : ''}
+          </div>
+          <span class="group-tile-arrow">›</span>
+        </div>`;
+    }
+
+    html += '</div></div></div>';
+    app().innerHTML = html;
+  } catch(e) {
+    app().innerHTML = '<div class="error-box">⚠ ' + e.message + '</div>';
+  }
+}
+
+async function selectSubgroup(id, name, hasSubgroups, hasParts) {
+  if (hasSubgroups) {
+    // Not a leaf — drill into the next level of subgroups
+    state.groupParent = state.group;
+    await selectGroup(id, name, hasSubgroups, hasParts);
+  } else {
+    state.subgroup = { id, name };
+    await showParts(id, name);
+  }
+}
+
+function goBackFromSubgroups() {
+  if (state.groupParent) {
+    const p = state.groupParent;
+    state.groupParent = null;
+    selectGroup(p.id, p.name, true, false);
+  } else {
+    showGroups();
+  }
+}
+
+// SCREEN 5: Parts with OE numbers
+async function showParts(groupId, groupName) {
+  setBreadcrumb([
+    { label: 'Brands', onclick: 'showBrands()' },
+    { label: state.brand.name, onclick: `selectBrand('${state.brand.id}','${esc(state.brand.name)}')` },
+    { label: state.model.name, onclick: `selectModel('${state.model.id}','${esc(state.model.name)}')` },
+    { label: state.carLabel || 'Car', onclick: 'showGroups()' },
+    { label: state.group?.name || groupName, onclick: state.group ? `selectGroup('${state.group.id}','${esc(state.group.name)}',true,false)` : '' },
+    { label: groupName }
+  ]);
+
+  try {
+    const data = await api(`/catalogs/${state.brand.id}/parts2?carId=${state.carId}&groupId=${groupId}`);
+
+    if (!data || !data.partGroups || data.partGroups.length === 0) {
+      app().innerHTML = pathBar() + `
+        <div class="back-link" onclick="selectGroup('${state.group?.id}','${esc(state.group?.name)}',true,false)">‹ Back to subcategories</div>
+        <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No parts found for this group.</div></div>`;
+      return;
+    }
+
+    const imgUrl = data.img ? `https://api.carcatonline.com/${data.img}` : null;
+
+    let html = pathBar() + `<div class="back-link" onclick="selectGroup('${state.group?.id || ''}','${esc(state.group?.name || '')}',true,false)">‹ Back to subcategories</div>`;
+
+    // Diagram image
+    if (imgUrl) {
+      html += `<div class="diagram-wrap"><img src="${imgUrl}" onerror="this.parentElement.remove()" /></div>`;
+    }
+
+    html += `<div class="card"><div class="card-head"><div class="card-title">${groupName}</div><div class="card-sub">${data.partGroups.reduce((s,g)=>s+g.parts.length,0)} parts</div></div><div class="card-body">`;
+
+    for (const pg of data.partGroups) {
+      if (pg.parts.length === 0) continue;
+
+      html += `<div class="part-group-header">
+        ${pg.name}
+        ${pg.number ? `<span class="part-group-ref">${pg.number}</span>` : ''}
+      </div>`;
+
+      html += '<table class="parts-table"><thead><tr><th>Pos</th><th>OE Number</th><th>Name</th><th>Remark</th><th>Qty</th></tr></thead><tbody>';
+
+      for (const p of pg.parts) {
+        html += `<tr>
+          <td><span class="part-pos">${p.positionNumber || '—'}</span></td>
+          <td>
+            <div class="oe-number">
+              ${p.number || '—'}
+              ${p.number ? `<button class="copy-btn btn-sm" onclick="copyOE('${p.number}',this)">copy</button>` : ''}
+            </div>
+          </td>
+          <td><div class="part-name">${p.name || '—'}</div></td>
+          <td><div class="part-remark">${p.description?.remark || ''}</div></td>
+          <td><div class="part-qty">${p.description?.qty ? '×' + p.description.qty : ''}</div></td>
+        </tr>`;
+      }
+
+      html += '</tbody></table><div style="height:20px"></div>';
+    }
+
+    html += '</div></div>';
+    app().innerHTML = html;
+
+  } catch(e) {
+    const backId  = state.group?.id  || '';
+    const backName = esc(state.group?.name || '');
+    app().innerHTML = pathBar() +
+      `<div class="back-link" onclick="goBackFromSubgroups()">‹ Back</div>` +
+      `<div class="error-box">⚠ ${e.message}</div>`;
+  }
+}
+
+// ── Util ─────────────────────────────────────────────────────────
+
+function esc(s) {
+  return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+
+showBrands();
+</script>
+</body>
+</html>
