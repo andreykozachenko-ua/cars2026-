@@ -431,7 +431,7 @@ let activeDiameters = new Set();
 let activeBrands = new Set();
 let abeOnly = false, aluOnly = false, mixedOnly = false, hideBestCase = false;
 let tyreSeason = 'ALL';
-const PLACEHOLDER = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="%23ccc" stroke-width="6"/><circle cx="50" cy="50" r="14" fill="%23ddd"/></svg>';
+const PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#ccc" stroke-width="6"/><circle cx="50" cy="50" r="14" fill="#ddd"/></svg>');
 
 function renderCarPicker() {
   const root = document.getElementById('carPicker');
