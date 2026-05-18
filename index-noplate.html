@@ -536,9 +536,9 @@ const FUEL_ORDER = ['Petrol', 'Diesel', 'Hybrid', 'Electric'];
 function normalizeFuel(raw) {
   if (!raw) return 'Petrol';
   const f = raw.toLowerCase();
-  if ((f.includes('electric') || f.includes('bev')) && (f.includes('hybrid') || f.includes('plug'))) return 'Hybrid';
-  if (f.includes('electric') || f === 'ev' || f === 'bev') return 'Electric';
-  if (f.includes('hybrid') || f.includes('hev') || f.includes('mhev') || f.includes('fhev')) return 'Hybrid';
+  if ((f.includes('electric') || f.includes('electro')) && f.includes('/')) return 'Hybrid';
+  if (f === 'electric' || f === 'electro') return 'Electric';
+  if (f.includes('hybrid') || f.includes('hev') || f.includes('mhev')) return 'Hybrid';
   if (f.includes('diesel')) return 'Diesel';
   return 'Petrol';
 }
@@ -647,6 +647,7 @@ function updateTrail() {
 }
 function clearFuelFilter() {
   fuelFilter = 'all';
+  updateTrail();
   renderStepContent(document.getElementById('stepSearch').value || '');
 }
 function getStateLabel(step) {
@@ -732,7 +733,7 @@ function buildItems() {
   }
   if (currentStep === 'model') {
     const map = new Map();
-    ALL_CARS.filter(c=>c[0]===state.make).forEach(c=>{ if(!map.has(c[1])) map.set(c[1],c[2]); });
+    ALL_CARS.filter(c=>c[0]===state.make&&(fuelFilter==='all'||normalizeFuel(c[5])===fuelFilter)).forEach(c=>{ if(!map.has(c[1])) map.set(c[1],c[2]); });
     return [...map.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>({id,label:name}));
   }
   if (currentStep === 'engine') {
