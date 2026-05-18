@@ -97,6 +97,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .fuel-chip { padding: 4px 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; }
 .fuel-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
 .fuel-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+.fuel-chip--disabled { opacity: .3; cursor: not-allowed; pointer-events: none; }
 
 /* Recent vehicles */
 .recent-list { display: flex; flex-direction: column; gap: 4px; }
@@ -663,6 +664,12 @@ function jumpToStep(step) {
   stepHistory = STEPS.slice(0, idx + 1); currentStep = step; updateTopbar();
   animateContent('back', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value = ''; });
 }
+function getAvailableFuels() {
+  let cars = ALL_CARS;
+  if (currentStep === 'model' && state.make !== null) cars = cars.filter(c => c[0] === state.make);
+  else if (currentStep === 'engine' && state.make !== null && state.model !== null) cars = cars.filter(c => c[0] === state.make && c[1] === state.model);
+  return new Set(cars.map(c => normalizeFuel(c[5])));
+}
 function pickFuelFilter(fuel) {
   fuelFilter = fuel;
   document.querySelectorAll('.fuel-chip').forEach(c => c.classList.toggle('active', c.dataset.fuel === fuel));
@@ -671,9 +678,13 @@ function pickFuelFilter(fuel) {
 function renderStepContent(filter) {
   const fuelBar = document.getElementById('fuelFilterBar');
   if (fuelBar) {
-    const show = currentStep === 'make';
-    fuelBar.style.display = show ? 'flex' : 'none';
-    if (show) fuelBar.querySelectorAll('.fuel-chip').forEach(c => c.classList.toggle('active', c.dataset.fuel === fuelFilter));
+    fuelBar.style.display = 'flex';
+    const available = getAvailableFuels();
+    fuelBar.querySelectorAll('.fuel-chip').forEach(c => {
+      const fuel = c.dataset.fuel;
+      c.classList.toggle('active', fuel === fuelFilter);
+      c.classList.toggle('fuel-chip--disabled', fuel !== 'all' && !available.has(fuel));
+    });
   }
   const f = filter.trim().toLowerCase();
   allStepItems = buildItems();
