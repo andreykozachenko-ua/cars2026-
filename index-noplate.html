@@ -92,6 +92,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .maker-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
 .maker-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
 
+/* Fuel filter bar */
+.fuel-filter-bar { display: none; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.fuel-chip { padding: 4px 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; }
+.fuel-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.fuel-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+
 /* Recent vehicles */
 .recent-list { display: flex; flex-direction: column; gap: 4px; }
 .recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; transition: border-color .12s; }
@@ -457,6 +463,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input id="stepSearch" type="text" placeholder="Search…" autocomplete="off" spellcheck="false">
         </div>
+        <div class="fuel-filter-bar" id="fuelFilterBar">
+          <button class="fuel-chip active" data-fuel="all" onclick="pickFuelFilter('all')">All</button>
+          <button class="fuel-chip" data-fuel="petrol" onclick="pickFuelFilter('petrol')">Petrol</button>
+          <button class="fuel-chip" data-fuel="diesel" onclick="pickFuelFilter('diesel')">Diesel</button>
+        </div>
       </div>
       <div class="step-content-wrap">
         <div class="step-content" id="stepContent">
@@ -485,6 +496,7 @@ let currentStep = null;
 let stepHistory = [];
 let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
+let fuelFilter = 'all';
 
 const STEPS = ['make','model','engine'];
 const SYNONYM_GROUPS = [
@@ -561,10 +573,11 @@ function hideStepPanel() {
   document.getElementById('panel-step').classList.remove('active');
   document.getElementById('backBtn').setAttribute('hidden','');
   document.getElementById('topbarTitle').textContent = 'Select Your Vehicle';
-  currentStep = null; stepHistory = [];
+  currentStep = null; stepHistory = []; fuelFilter = 'all';
 }
 function openSelector() { openSidebar(); }
 function openStep(step, direction) {
+  if (step !== 'make') fuelFilter = 'all';
   const wasStepOpen = document.getElementById('panel-step').classList.contains('active');
   currentStep = step;
   if (!stepHistory.includes(step)) stepHistory.push(step);
@@ -630,7 +643,18 @@ function jumpToStep(step) {
   stepHistory = STEPS.slice(0, idx + 1); currentStep = step; updateTopbar();
   animateContent('back', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value = ''; });
 }
+function pickFuelFilter(fuel) {
+  fuelFilter = fuel;
+  document.querySelectorAll('.fuel-chip').forEach(c => c.classList.toggle('active', c.dataset.fuel === fuel));
+  renderStepContent(document.getElementById('stepSearch').value || '');
+}
 function renderStepContent(filter) {
+  const fuelBar = document.getElementById('fuelFilterBar');
+  if (fuelBar) {
+    const show = currentStep === 'make';
+    fuelBar.style.display = show ? 'flex' : 'none';
+    if (show) fuelBar.querySelectorAll('.fuel-chip').forEach(c => c.classList.toggle('active', c.dataset.fuel === fuelFilter));
+  }
   const f = filter.trim().toLowerCase();
   allStepItems = buildItems();
   const filtered = f ? allStepItems.filter(i => i.label.toLowerCase().includes(f) || (i.sub||'').toLowerCase().includes(f)) : allStepItems;
@@ -678,7 +702,19 @@ function toggleModelGroup(idx) {
   header.classList.toggle('open', !isOpen); items.classList.toggle('open', !isOpen);
 }
 function buildItems() {
-  if (currentStep === 'make') return MAKERS.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
+  if (currentStep === 'make') {
+    let makers = MAKERS;
+    if (fuelFilter !== 'all') {
+      const isDiesel = fuelFilter === 'diesel';
+      const filteredIds = new Set(ALL_CARS.filter(c => {
+        if (!c[5]) return false;
+        const fl = c[5].toLowerCase();
+        return isDiesel ? fl.includes('diesel') : (fl.includes('petrol') || fl.includes('gasoline') || fl.includes('benzin'));
+      }).map(c => c[0]));
+      makers = makers.filter(m => filteredIds.has(m.id));
+    }
+    return makers.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
+  }
   if (currentStep === 'model') {
     const map = new Map();
     ALL_CARS.filter(c=>c[0]===state.make).forEach(c=>{ if(!map.has(c[1])) map.set(c[1],c[2]); });
