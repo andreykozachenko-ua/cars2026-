@@ -634,12 +634,20 @@ function updateTopbar() {
 function updateTrail() {
   const trail = document.getElementById('stepTrail');
   const cIdx = STEPS.indexOf(currentStep);
-  const chips = STEPS.filter(s => s !== currentStep && state[s] !== null && STEPS.indexOf(s) < cIdx);
-  if (!chips.length) { trail.innerHTML = ''; return; }
-  trail.innerHTML = chips.map(s => {
+  const stepChips = STEPS.filter(s => s !== currentStep && state[s] !== null && STEPS.indexOf(s) < cIdx);
+  let html = '';
+  if (fuelFilter !== 'all' && currentStep !== 'make') {
+    html += `<div class="trail-chip" onclick="clearFuelFilter()">${fuelFilter} <span class="trail-chip-x">×</span></div>`;
+  }
+  html += stepChips.map(s => {
     const label = getStateLabel(s);
     return `<div class="trail-chip" onclick="jumpToStep('${s}')">${label} <span class="trail-chip-x">×</span></div>`;
   }).join('');
+  trail.innerHTML = html;
+}
+function clearFuelFilter() {
+  fuelFilter = 'all';
+  renderStepContent(document.getElementById('stepSearch').value || '');
 }
 function getStateLabel(step) {
   if (step === 'make') { const m = MAKERS.find(mk=>mk.id===state.make); return m?.n||''; }
