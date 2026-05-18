@@ -589,7 +589,6 @@ function hideStepPanel() {
 }
 function openSelector() { openSidebar(); }
 function openStep(step, direction) {
-  if (step !== 'make') fuelFilter = 'all';
   const wasStepOpen = document.getElementById('panel-step').classList.contains('active');
   currentStep = step;
   if (!stepHistory.includes(step)) stepHistory.push(step);
@@ -729,7 +728,7 @@ function buildItems() {
     return [...map.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>({id,label:name}));
   }
   if (currentStep === 'engine') {
-    return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model).map(c=>({
+    return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model&&(fuelFilter==='all'||normalizeFuel(c[5])===fuelFilter)).map(c=>({
       id:c[3],label:c[4],fuel:normalizeFuel(c[5]),
       sub:[c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · '),
       subWithFuel:[normalizeFuel(c[5]),c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
