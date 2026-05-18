@@ -465,8 +465,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
         <div class="fuel-filter-bar" id="fuelFilterBar">
           <button class="fuel-chip active" data-fuel="all" onclick="pickFuelFilter('all')">All</button>
-          <button class="fuel-chip" data-fuel="petrol" onclick="pickFuelFilter('petrol')">Petrol</button>
-          <button class="fuel-chip" data-fuel="diesel" onclick="pickFuelFilter('diesel')">Diesel</button>
+          <button class="fuel-chip" data-fuel="Petrol" onclick="pickFuelFilter('Petrol')">Petrol</button>
+          <button class="fuel-chip" data-fuel="Diesel" onclick="pickFuelFilter('Diesel')">Diesel</button>
+          <button class="fuel-chip" data-fuel="Hybrid" onclick="pickFuelFilter('Hybrid')">Hybrid</button>
+          <button class="fuel-chip" data-fuel="Electric" onclick="pickFuelFilter('Electric')">Electric</button>
         </div>
       </div>
       <div class="step-content-wrap">
@@ -530,6 +532,16 @@ function termMatchers(t) {
 }
 const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
+const FUEL_ORDER = ['Petrol', 'Diesel', 'Hybrid', 'Electric'];
+function normalizeFuel(raw) {
+  if (!raw) return 'Petrol';
+  const f = raw.toLowerCase();
+  if ((f.includes('electric') || f.includes('bev')) && (f.includes('hybrid') || f.includes('plug'))) return 'Hybrid';
+  if (f.includes('electric') || f === 'ev' || f === 'bev') return 'Electric';
+  if (f.includes('hybrid') || f.includes('hev') || f.includes('mhev') || f.includes('fhev')) return 'Hybrid';
+  if (f.includes('diesel')) return 'Diesel';
+  return 'Petrol';
+}
 
 function parseRatingsCsv(text) {
   text.trim().split('\n').slice(1).forEach(line => {
@@ -674,8 +686,9 @@ function renderStepContent(filter) {
   }
   if (currentStep === 'engine' && !f) {
     const fuelMap = new Map();
-    for (const item of filtered) { const key = item.fuel || 'Other'; if (!fuelMap.has(key)) fuelMap.set(key, []); fuelMap.get(key).push(item); }
-    list.innerHTML = [...fuelMap.entries()].sort((a,b)=>b[1].length-a[1].length).map(([fuel, items], idx) => {
+    FUEL_ORDER.forEach(g => fuelMap.set(g, []));
+    for (const item of filtered) { const key = item.fuel; if (!fuelMap.has(key)) fuelMap.set(key, []); fuelMap.get(key).push(item); }
+    list.innerHTML = [...fuelMap.entries()].filter(([,items]) => items.length > 0).map(([fuel, items], idx) => {
       const hasSel = items.some(i => i.id == state.engine);
       return `<div class="model-group"><div class="model-group-header has-fuel open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${fuel}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item => { const isSel = item.id == state.engine; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.sub?`<div class="step-item-sub">${item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
     }).join(''); return;
@@ -705,12 +718,7 @@ function buildItems() {
   if (currentStep === 'make') {
     let makers = MAKERS;
     if (fuelFilter !== 'all') {
-      const isDiesel = fuelFilter === 'diesel';
-      const filteredIds = new Set(ALL_CARS.filter(c => {
-        if (!c[5]) return false;
-        const fl = c[5].toLowerCase();
-        return isDiesel ? fl.includes('diesel') : (fl.includes('petrol') || fl.includes('gasoline') || fl.includes('benzin'));
-      }).map(c => c[0]));
+      const filteredIds = new Set(ALL_CARS.filter(c => normalizeFuel(c[5]) === fuelFilter).map(c => c[0]));
       makers = makers.filter(m => filteredIds.has(m.id));
     }
     return makers.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
@@ -722,9 +730,9 @@ function buildItems() {
   }
   if (currentStep === 'engine') {
     return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model).map(c=>({
-      id:c[3],label:c[4],fuel:c[5]?c[5].split('/')[0].trim():'Other',
+      id:c[3],label:c[4],fuel:normalizeFuel(c[5]),
       sub:[c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · '),
-      subWithFuel:[c[5]?c[5].split('/')[0]:'',c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
+      subWithFuel:[normalizeFuel(c[5]),c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
     }));
   }
   return [];
