@@ -500,6 +500,7 @@ let stepHistory = [];
 let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 let fuelFilter = 'all';
+let MAKERS_MAP = new Map();
 
 const STEPS = ['make','model','engine'];
 const SYNONYM_GROUPS = [
@@ -558,6 +559,8 @@ Promise.all([
   fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
 ]).then(([data, csv, groups]) => {
   MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+  MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+  ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
   if (csv) parseRatingsCsv(csv);
   resetFindBtn(); renderMakerShortcuts();
 }).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load — use a local server'; });
@@ -881,10 +884,17 @@ document.addEventListener('click', e => {
   }
 });
 const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
+  const base = deaccent([makeName, modelName, trimName, fuel||'', driveType||'', bodyType||''].join(' ')).toLowerCase();
+  const n1 = base.replace(/[-()_\/]/g,' ');
+  const n2 = base.replace(/[()_\/]/g,' ').replace(/-/g,'');
+  const n3 = n1.replace(/\b([a-z]) (\d+)\b/g,'$1$2');
+  return n1+' '+n2+' '+n3;
+}
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
   if (q.length < 2) { dd.style.display='none'; return; }
-  const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').split(/\s+/).filter(Boolean);
+  const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
   const termForms = tt.map(termMatchers);
@@ -892,11 +902,7 @@ function runAc(q, dropId) {
   for (let i=0;i<ALL_CARS.length;i++) {
     const c=ALL_CARS[i];
     if(yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf)))continue;
-    if(termForms.length){ const m=MAKERS.find(mk=>mk.id===c[0]); const _base=deaccent(`${m?.n||''} ${c[2]} ${c[4]}`).toLowerCase();
-        const _n1=_base.replace(/[-()_\/]/g,' ');
-        const _n2=_base.replace(/[()_\/]/g,' ').replace(/-/g,'');
-        const _n3=_n1.replace(/\b([a-z]) (\d+)\b/g,'$1$2');
-        const hay=_n1+' '+_n2+' '+_n3; if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue; }
+    if(termForms.length){ const hay=c._hay; if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue; }
     res.push(c);
   }
   res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));

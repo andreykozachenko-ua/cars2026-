@@ -722,6 +722,149 @@ body {
 }
 .cart-btn svg { width: 18px; height: 18px; }
 
+/* ── 3-step selector flow ─────────────────────────────── */
+.step-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 0;
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer; transition: opacity .1s;
+}
+.step-row:last-child { border-bottom: none; }
+.step-row:active { opacity: .6; }
+.step-row.disabled { opacity: .38; pointer-events: none; }
+
+.step-row-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.step-row.filled .step-row-num { background: var(--green); }
+.step-row.disabled .step-row-num { background: var(--fill2); color: var(--gray); }
+
+.step-row-body { flex: 1; min-width: 0; }
+.step-row-label {
+  font-size: 11px; color: var(--text2); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px;
+}
+.step-row-value { font-size: 16px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step-row-ph { color: var(--text2) !important; font-weight: 400 !important; font-size: 15px !important; }
+.step-row-chevron { color: var(--gray); font-size: 20px; font-weight: 300; flex-shrink: 0; }
+
+/* Step screen nav */
+.step-screen-nav {
+  background: rgba(249,249,249,.94);
+  backdrop-filter: blur(20px);
+  border-bottom: .5px solid var(--sep);
+  padding: 12px 16px 10px;
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 4px;
+}
+.step-back-btn {
+  display: flex; align-items: center; gap: 3px;
+  background: none; border: none; color: var(--blue);
+  font-size: 17px; cursor: pointer; font-family: inherit;
+  padding: 4px 0; flex-shrink: 0; min-width: 60px;
+}
+.step-screen-title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; color: var(--text); }
+.step-counter-lbl { font-size: 13px; color: var(--text2); flex-shrink: 0; min-width: 60px; text-align: right; }
+
+/* Trail chips */
+.trail-chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px 4px; }
+.trail-chip {
+  background: var(--fill); border-radius: 20px; padding: 6px 12px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  cursor: pointer; border: none; font-family: inherit;
+  transition: background .1s; white-space: nowrap;
+}
+.trail-chip:active { background: var(--fill2); }
+
+/* Options count */
+.opts-count { font-size: 13px; color: var(--text2); padding: 2px 16px 8px; }
+
+/* Step list items */
+.step-item {
+  display: flex; align-items: center;
+  padding: 13px 16px;
+  background: var(--card);
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer; transition: background .1s;
+}
+.step-item:last-child { border-bottom: none; }
+.step-item:active { background: var(--fill); }
+.step-item.selected { background: rgba(0,122,255,.06); }
+.step-item-body { flex: 1; min-width: 0; }
+.step-item-name { font-size: 17px; color: var(--text); }
+.step-item.selected .step-item-name { color: var(--blue); font-weight: 600; }
+.step-item-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.step-item-check { color: var(--blue); font-size: 22px; font-weight: 600; margin-left: 8px; opacity: 0; flex-shrink: 0; }
+.step-item.selected .step-item-check { opacity: 1; }
+
+/* Model groups */
+.model-group-hd {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer; transition: background .1s;
+}
+.model-group-hd:active { background: var(--fill); }
+.model-group-nm { flex: 1; font-size: 17px; font-weight: 600; color: var(--text); }
+.model-group-rt { display: flex; align-items: center; gap: 6px; }
+.model-group-badge {
+  background: var(--fill2); color: var(--gray);
+  font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+}
+.model-group-chev { color: var(--gray); font-size: 14px; transition: transform .2s; flex-shrink: 0; }
+.model-group-hd.open .model-group-chev { transform: rotate(90deg); }
+.model-group-kids { display: none; background: var(--card); }
+.model-group-kids.open { display: block; }
+.model-sub-item {
+  display: flex; align-items: center;
+  padding: 11px 16px 11px 44px;
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer; transition: background .1s;
+  background: var(--card);
+}
+.model-sub-item:last-child { border-bottom: none; }
+.model-sub-item:active { background: var(--fill); }
+.model-sub-item.selected { background: rgba(0,122,255,.06); }
+.model-sub-nm { flex: 1; font-size: 15px; color: var(--text); }
+.model-sub-item.selected .model-sub-nm { color: var(--blue); font-weight: 600; }
+.model-sub-chk { color: var(--blue); font-size: 18px; opacity: 0; flex-shrink: 0; }
+.model-sub-item.selected .model-sub-chk { opacity: 1; }
+
+/* Fuel sections */
+.fuel-hd {
+  padding: 10px 16px 6px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: .5px;
+  background: var(--bg); border-bottom: .5px solid var(--sep);
+}
+
+/* Recent cars in selector */
+.sel-rec-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
+  border-bottom: .5px solid var(--sep);
+  cursor: pointer; transition: opacity .1s;
+}
+.sel-rec-item:last-child { border-bottom: none; }
+.sel-rec-item:active { opacity: .6; }
+.sel-rec-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--fill); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.sel-rec-body { flex: 1; min-width: 0; }
+.sel-rec-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel-rec-sub { font-size: 12px; color: var(--text2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel-rec-chev { color: var(--gray); font-size: 16px; }
+
+/* Slide-out animation for step back */
+@keyframes slideOutR { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: .8; } }
+.screen.slide-out-right { animation: slideOutR .25s ease forwards; }
+
 /* ── Spinner / Loading ── */
 .screen-loader {
   display: flex; flex-direction: column; align-items: center;
@@ -839,39 +982,40 @@ body {
               </div>
             </div>
 
-            <!-- Select Car panel -->
+            <!-- Select Car panel — 3-step flow -->
             <div id="home-panel-car" style="display:none">
               <div id="homeLoader" class="screen-loader" style="padding:20px">
                 <div class="spinner"></div>
                 <div class="loader-text">Loading database...</div>
               </div>
-              <div id="homeSelector" style="display:none">
-                <div class="sel-field">
-                  <div class="sel-label">Make</div>
-                  <select class="sel-select" id="hsMaker"><option value="">Select make</option></select>
-                </div>
-                <div class="sel-row">
-                  <div class="sel-field">
-                    <div class="sel-label">Year</div>
-                    <select class="sel-select" id="hsYear" disabled><option value="">Year</option></select>
+              <div id="homeStepPanel" style="display:none">
+                <div id="homeStepRows">
+                  <div class="step-row" id="srow-make" onclick="openStep('make')">
+                    <div class="step-row-num" id="snum-make">1</div>
+                    <div class="step-row-body">
+                      <div class="step-row-label">Make</div>
+                      <div class="step-row-value step-row-ph" id="sval-make">Select make</div>
+                    </div>
+                    <div class="step-row-chevron">›</div>
                   </div>
-                  <div class="sel-field">
-                    <div class="sel-label">Model</div>
-                    <select class="sel-select" id="hsModel" disabled><option value="">Model</option></select>
+                  <div class="step-row disabled" id="srow-model" onclick="openStep('model')">
+                    <div class="step-row-num" id="snum-model">2</div>
+                    <div class="step-row-body">
+                      <div class="step-row-label">Model</div>
+                      <div class="step-row-value step-row-ph" id="sval-model">Select model</div>
+                    </div>
+                    <div class="step-row-chevron">›</div>
+                  </div>
+                  <div class="step-row disabled" id="srow-engine" onclick="openStep('engine')">
+                    <div class="step-row-num" id="snum-engine">3</div>
+                    <div class="step-row-body">
+                      <div class="step-row-label">Engine</div>
+                      <div class="step-row-value step-row-ph" id="sval-engine">Select engine</div>
+                    </div>
+                    <div class="step-row-chevron">›</div>
                   </div>
                 </div>
-                <div class="sel-field">
-                  <div class="sel-label">Engine / Trim</div>
-                  <select class="sel-select" id="hsCar" disabled><option value="">Engine / Trim</option></select>
-                </div>
-                <div class="car-result" id="hsResult">
-                  <div class="car-result-name" id="hsResultName"></div>
-                  <div class="car-result-meta" id="hsResultMeta"></div>
-                </div>
-                <button class="find-btn" id="hsFindBtn" onclick="goToResults()">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                  Find Parts
-                </button>
+                <div id="homeRecentCars" style="margin-top:4px"></div>
               </div>
             </div>
           </div>
@@ -927,6 +1071,74 @@ body {
           <div style="height:16px"></div>
         </div>
 
+        <!-- ── MAKE STEP ── -->
+        <div class="screen" id="screen-make">
+          <div class="step-screen-nav">
+            <button class="step-back-btn" onclick="goBackFromStep()">
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 1 1 8 9 15"/></svg>
+              Back
+            </button>
+            <div class="step-screen-title">Select Make</div>
+            <div class="step-counter-lbl">1 of 3</div>
+          </div>
+          <div style="padding:8px 16px 4px">
+            <div style="display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:8px 12px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="makeFilter" type="text" placeholder="Search make…" autocomplete="off" spellcheck="false"
+                style="flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text);font-family:inherit"
+                oninput="renderMakeList(this.value)">
+            </div>
+          </div>
+          <div id="makeCount" class="opts-count"></div>
+          <div class="card" style="margin:0 16px 20px" id="makeList"></div>
+        </div>
+
+        <!-- ── MODEL STEP ── -->
+        <div class="screen" id="screen-model">
+          <div class="step-screen-nav">
+            <button class="step-back-btn" onclick="goBackFromStep()">
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 1 1 8 9 15"/></svg>
+              Back
+            </button>
+            <div class="step-screen-title">Select Model</div>
+            <div class="step-counter-lbl">2 of 3</div>
+          </div>
+          <div id="modelTrailChips" class="trail-chips" style="display:none"></div>
+          <div style="padding:4px 16px 4px">
+            <div style="display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:8px 12px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="modelFilter" type="text" placeholder="Search model…" autocomplete="off" spellcheck="false"
+                style="flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text);font-family:inherit"
+                oninput="renderModelList(this.value)">
+            </div>
+          </div>
+          <div id="modelCount" class="opts-count"></div>
+          <div id="modelList" style="margin:0 16px 20px"></div>
+        </div>
+
+        <!-- ── ENGINE STEP ── -->
+        <div class="screen" id="screen-engine">
+          <div class="step-screen-nav">
+            <button class="step-back-btn" onclick="goBackFromStep()">
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 1 1 8 9 15"/></svg>
+              Back
+            </button>
+            <div class="step-screen-title">Select Engine</div>
+            <div class="step-counter-lbl">3 of 3</div>
+          </div>
+          <div id="engineTrailChips" class="trail-chips" style="display:none"></div>
+          <div style="padding:4px 16px 4px">
+            <div style="display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:8px 12px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="engineFilter" type="text" placeholder="Search engine…" autocomplete="off" spellcheck="false"
+                style="flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text);font-family:inherit"
+                oninput="renderEngineList(this.value)">
+            </div>
+          </div>
+          <div id="engineCount" class="opts-count"></div>
+          <div id="engineList" style="margin:0 16px 20px"></div>
+        </div>
+
       </div>
 
       <!-- Tab bar -->
@@ -953,10 +1165,12 @@ body {
 </div>
 
 <script>
-let ALL_CARS = [], MAKERS = [];
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {}, CAR_RATINGS = {};
 let currentTab = 0;
 let selectedCar = null;
 let selectedRegPlate = null;
+let stepMaker = null;   // {id, n}
+let stepModel = null;   // {id, name}
 let garage = JSON.parse(localStorage.getItem('ios_garage') || '[]');
 let searchDebounce;
 
@@ -975,17 +1189,22 @@ const PARTS_DATA = [
 
 // ── Load data ─────────────────────────────────────────────────
 
-fetch('cars_data.json')
-  .then(r => r.json())
-  .then(data => {
-    MAKERS = data.makers;
-    ALL_CARS = data.cars;
-    initHomeSelector();
-  });
+Promise.all([
+  fetch('cars_data.json').then(r => r.json()),
+  fetch('model_groups.json').then(r => r.json()).catch(() => ({})),
+  fetch('car_ratings.json').then(r => r.json()).catch(() => ({}))
+]).then(([data, groups, ratings]) => {
+  MAKERS = data.makers;
+  ALL_CARS = data.cars;
+  MODEL_GROUPS = groups;
+  CAR_RATINGS = ratings;
+  initStepFlow();
+});
 
 // ── Tab switching ─────────────────────────────────────────────
 
 function switchTab(idx) {
+  closeAllStepScreens();
   const screens = ['home', 'search', 'garage', 'results'];
   const prev = currentTab;
 
@@ -1118,6 +1337,9 @@ function renderGarageDropdown() {
 function switchGarageCar(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  stepMaker = { id: car[0], n: maker?.n || '' };
+  stepModel = { id: car[1], name: car[2] };
   selectedCar = car;
   selectedRegPlate = null;
   updateHomeHeader();
@@ -1126,7 +1348,7 @@ function switchGarageCar(carId) {
   document.getElementById('homeNavArea').onclick = toggleGarageDropdown;
 }
 
-// ── Home Selector ─────────────────────────────────────────────
+// ── 3-Step Selector ────────────────────────────────────────────
 
 function switchHomeSeg(seg) {
   document.getElementById('home-seg-reg').classList.toggle('active', seg === 'reg');
@@ -1134,102 +1356,328 @@ function switchHomeSeg(seg) {
   document.getElementById('home-panel-reg').style.display = seg === 'reg' ? 'block' : 'none';
   document.getElementById('home-panel-car').style.display = seg === 'car' ? 'block' : 'none';
   if (seg === 'reg') setTimeout(() => document.getElementById('regInput').focus(), 100);
+  if (seg === 'car') { updateStepRows(); renderRecentCars(); }
 }
 
-function initHomeSelector() {
+function initStepFlow() {
   document.getElementById('homeLoader').style.display = 'none';
-  document.getElementById('homeSelector').style.display = 'block';
-
-  const sel = document.getElementById('hsMaker');
-  MAKERS.forEach(m => sel.add(new Option(m.n, m.id)));
-
-  sel.addEventListener('change', hsOnMaker);
-  document.getElementById('hsYear').addEventListener('change', hsOnYear);
-  document.getElementById('hsModel').addEventListener('change', hsOnModel);
-  document.getElementById('hsCar').addEventListener('change', hsOnCar);
+  document.getElementById('homeStepPanel').style.display = 'block';
+  updateStepRows();
+  renderRecentCars();
 }
 
-function hsOnMaker() {
-  const makerId = +this.value;
-  hsReset(2);
-  if (!makerId) return;
+function updateStepRows() {
+  // Make
+  const mRow = document.getElementById('srow-make');
+  const mVal  = document.getElementById('sval-make');
+  const mNum  = document.getElementById('snum-make');
+  if (stepMaker) {
+    mRow.classList.add('filled'); mNum.textContent = '✓';
+    mVal.textContent = stepMaker.n; mVal.classList.remove('step-row-ph');
+  } else {
+    mRow.classList.remove('filled'); mNum.textContent = '1';
+    mVal.textContent = 'Select make'; mVal.classList.add('step-row-ph');
+  }
+  // Model
+  const moRow = document.getElementById('srow-model');
+  const moVal  = document.getElementById('sval-model');
+  const moNum  = document.getElementById('snum-model');
+  moRow.classList.toggle('disabled', !stepMaker);
+  if (stepModel) {
+    moRow.classList.add('filled'); moNum.textContent = '✓';
+    moVal.textContent = stepModel.name; moVal.classList.remove('step-row-ph');
+  } else {
+    moRow.classList.remove('filled'); moNum.textContent = '2';
+    moVal.textContent = 'Select model'; moVal.classList.add('step-row-ph');
+  }
+  // Engine
+  const eRow = document.getElementById('srow-engine');
+  const eVal  = document.getElementById('sval-engine');
+  const eNum  = document.getElementById('snum-engine');
+  eRow.classList.toggle('disabled', !stepModel);
+  if (selectedCar && stepModel) {
+    eRow.classList.add('filled'); eNum.textContent = '✓';
+    eVal.textContent = selectedCar[4]; eVal.classList.remove('step-row-ph');
+  } else {
+    eRow.classList.remove('filled'); eNum.textContent = '3';
+    eVal.textContent = 'Select engine'; eVal.classList.add('step-row-ph');
+  }
+}
 
-  const yearsSet = new Set();
-  ALL_CARS.filter(c => c[0] === makerId).forEach(c => {
-    if (!c[6]) return;
-    const end = c[7] || new Date().getFullYear();
-    for (let y = c[6]; y <= Math.min(end, new Date().getFullYear()); y++) yearsSet.add(y);
+function openStep(step) {
+  if (step === 'model' && !stepMaker) return;
+  if (step === 'engine' && !stepModel) return;
+
+  const el = document.getElementById('screen-' + step);
+  const filterEl = document.getElementById(step + 'Filter');
+  if (filterEl) filterEl.value = '';
+
+  if (step === 'make') renderMakeList('');
+  else if (step === 'model') { renderTrailChips('model'); renderModelList(''); }
+  else if (step === 'engine') { renderTrailChips('engine'); renderEngineList(''); }
+
+  el.classList.add('active', 'slide-in-right');
+  el.addEventListener('animationend', () => el.classList.remove('slide-in-right'), { once: true });
+}
+
+function goBackFromStep() {
+  ['screen-make','screen-model','screen-engine'].forEach(id => {
+    const s = document.getElementById(id);
+    if (s.classList.contains('active')) {
+      s.classList.add('slide-out-right');
+      s.addEventListener('animationend', () => s.classList.remove('active','slide-out-right'), { once: true });
+    }
   });
-
-  const sel = document.getElementById('hsYear');
-  const years = [...yearsSet].sort((a,b) => b-a);
-  sel.innerHTML = `<option value="">Year (${years.length})</option>`;
-  years.forEach(y => sel.add(new Option(y, y)));
-  sel.disabled = false;
 }
 
-function hsOnYear() {
-  const year = +this.value, makerId = +document.getElementById('hsMaker').value;
-  hsReset(3);
-  if (!year) return;
-
-  const filtered = ALL_CARS.filter(c => c[0] === makerId && c[6] && c[6] <= year && (c[7] === null || c[7] >= year));
-  const map = new Map();
-  filtered.forEach(c => { if (!map.has(c[1])) map.set(c[1], c[2]); });
-  const models = [...map.entries()].sort((a,b) => a[1].localeCompare(b[1]));
-
-  const sel = document.getElementById('hsModel');
-  sel.innerHTML = `<option value="">Model (${models.length})</option>`;
-  models.forEach(([id, name]) => sel.add(new Option(name, id)));
-  sel.disabled = false;
-}
-
-function hsOnModel() {
-  const modelId = +this.value;
-  const makerId = +document.getElementById('hsMaker').value;
-  const year = +document.getElementById('hsYear').value;
-  hsReset(4);
-  if (!modelId) return;
-
-  const filtered = ALL_CARS.filter(c =>
-    c[0] === makerId && c[1] === modelId && c[6] && c[6] <= year && (c[7] === null || c[7] >= year)
+function closeAllStepScreens() {
+  ['screen-make','screen-model','screen-engine'].forEach(id =>
+    document.getElementById(id).classList.remove('active','slide-in-right','slide-out-right')
   );
-  const sel = document.getElementById('hsCar');
-  sel.innerHTML = `<option value="">Engine / Trim (${filtered.length})</option>`;
-  filtered.forEach(c => {
-    const kw = c[8] ? ` · ${c[8]} kW` : '';
-    const fuel = c[5] ? ` · ${c[5].split('/')[0]}` : '';
-    sel.add(new Option(`${c[4]}${fuel}${kw}`, c[3]));
-  });
-  sel.disabled = false;
 }
 
-function hsOnCar() {
-  const carId = +this.value;
-  const result = document.getElementById('hsResult');
-  if (!carId) { result.classList.remove('show'); selectedCar = null; return; }
+// ── Trail chips ──
 
+function renderTrailChips(step) {
+  const el = document.getElementById(step + 'TrailChips');
+  if (!el) return;
+  const chips = [];
+  if ((step === 'model' || step === 'engine') && stepMaker)
+    chips.push({ label: stepMaker.n, target: 'make' });
+  if (step === 'engine' && stepModel)
+    chips.push({ label: stepModel.name, target: 'model' });
+  if (!chips.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = chips.map(c =>
+    `<button class="trail-chip" onclick="trailJump('${step}','${c.target}')">${c.label}</button>`
+  ).join('');
+}
+
+function trailJump(fromStep, toStep) {
+  goBackFromStep();
+  setTimeout(() => openStep(toStep), 280);
+}
+
+// ── Make list ──
+
+function renderMakeList(q) {
+  const list = document.getElementById('makeList');
+  const count = document.getElementById('makeCount');
+  let makers = MAKERS.slice().sort((a,b) => a.n.localeCompare(b.n));
+  if (q.trim()) makers = makers.filter(m => m.n.toLowerCase().includes(q.toLowerCase()));
+  count.textContent = makers.length + ' makes';
+  if (!makers.length) {
+    list.innerHTML = `<div style="padding:20px 16px;text-align:center;color:var(--text2)">No makes found</div>`;
+    return;
+  }
+  list.innerHTML = makers.map(m =>
+    `<div class="step-item ${stepMaker && stepMaker.id === m.id ? 'selected' : ''}" onclick="pickMake(${m.id})">
+      <div class="step-item-body"><div class="step-item-name">${m.n}</div></div>
+      <span class="step-item-check">✓</span>
+    </div>`
+  ).join('');
+}
+
+function pickMake(makerId) {
+  const maker = MAKERS.find(m => m.id === makerId);
+  if (!maker) return;
+  if (!stepMaker || stepMaker.id !== makerId) { stepModel = null; selectedCar = null; selectedRegPlate = null; }
+  stepMaker = { id: maker.id, n: maker.n };
+  updateStepRows();
+  goBackFromStep();
+  setTimeout(() => openStep('model'), 280);
+}
+
+// ── Model list ──
+
+function buildModelGroups(models) {
+  const groups = {}, ungrouped = [];
+  models.forEach(m => {
+    const g = MODEL_GROUPS[String(m.id)];
+    if (g && g.gn) {
+      if (!groups[g.gid]) groups[g.gid] = { name: g.gn, models: [] };
+      groups[g.gid].models.push(m);
+    } else {
+      ungrouped.push(m);
+    }
+  });
+  return { groups, ungrouped };
+}
+
+function renderModelList(q) {
+  const list = document.getElementById('modelList');
+  const count = document.getElementById('modelCount');
+  if (!stepMaker) return;
+  const seen = new Map();
+  ALL_CARS.filter(c => c[0] === stepMaker.id).forEach(c => { if (!seen.has(c[1])) seen.set(c[1], c[2]); });
+  let models = [...seen.entries()].map(([id, name]) => ({ id, name }));
+
+  if (q.trim()) {
+    const t = q.toLowerCase();
+    const flat = models.filter(m => m.name.toLowerCase().includes(t));
+    count.textContent = flat.length + ' models';
+    list.innerHTML = `<div class="card">` + flat.map(m => modelFlatItem(m)).join('') + `</div>`;
+    return;
+  }
+
+  count.textContent = models.length + ' models';
+  const { groups, ungrouped } = buildModelGroups(models);
+  let html = '';
+
+  Object.entries(groups).sort((a,b) => a[1].name.localeCompare(b[1].name)).forEach(([gid, g]) => {
+    if (g.models.length === 1) {
+      html += `<div class="card" style="margin-bottom:1px">${modelFlatItem(g.models[0])}</div>`;
+    } else {
+      const isOpen = g.models.some(m => stepModel && m.id === stepModel.id);
+      html += `<div class="card" style="margin-bottom:2px">
+        <div class="model-group-hd ${isOpen ? 'open' : ''}" onclick="toggleModelGroup(this)">
+          <div class="model-group-nm">${g.name}</div>
+          <div class="model-group-rt">
+            <span class="model-group-badge">${g.models.length}</span>
+            <span class="model-group-chev">›</span>
+          </div>
+        </div>
+        <div class="model-group-kids ${isOpen ? 'open' : ''}">
+          ${g.models.sort((a,b) => a.name.localeCompare(b.name)).map(m =>
+            `<div class="model-sub-item ${stepModel && stepModel.id === m.id ? 'selected' : ''}"
+              onclick="pickModel(${m.id})">
+              <span class="model-sub-nm">${m.name}</span>
+              <span class="model-sub-chk">✓</span>
+            </div>`
+          ).join('')}
+        </div>
+      </div>`;
+    }
+  });
+
+  if (ungrouped.length) {
+    html += `<div class="card" style="margin-top:2px">` +
+      ungrouped.sort((a,b) => a.name.localeCompare(b.name)).map(m => modelFlatItem(m)).join('') + `</div>`;
+  }
+
+  list.innerHTML = html || `<div class="card" style="padding:20px;text-align:center;color:var(--text2)">No models found</div>`;
+}
+
+function modelFlatItem(m) {
+  const sel = stepModel && stepModel.id === m.id ? 'selected' : '';
+  return `<div class="step-item ${sel}" onclick="pickModel(${m.id})">
+    <div class="step-item-body"><div class="step-item-name">${m.name}</div></div>
+    <span class="step-item-check">✓</span>
+  </div>`;
+}
+
+function toggleModelGroup(header) {
+  header.classList.toggle('open');
+  const kids = header.nextElementSibling;
+  if (kids) kids.classList.toggle('open');
+}
+
+function pickModel(modelId) {
+  if (selectedCar && selectedCar[1] !== modelId) { selectedCar = null; selectedRegPlate = null; }
+  const car = ALL_CARS.find(c => c[0] === stepMaker.id && c[1] === modelId);
+  const modelName = car ? car[2] : String(modelId);
+  stepModel = { id: modelId, name: modelName };
+  updateStepRows();
+  goBackFromStep();
+  setTimeout(() => openStep('engine'), 280);
+}
+
+// ── Engine list ──
+
+function renderEngineList(q) {
+  const list = document.getElementById('engineList');
+  const count = document.getElementById('engineCount');
+  if (!stepModel) return;
+  let engines = ALL_CARS.filter(c => c[0] === stepMaker.id && c[1] === stepModel.id);
+
+  if (q.trim()) {
+    const t = q.toLowerCase();
+    engines = engines.filter(c => `${c[4]} ${c[5]||''}`.toLowerCase().includes(t));
+    count.textContent = engines.length + ' engines';
+    list.innerHTML = `<div class="card">` + engines.map(engineItem).join('') + `</div>`;
+    return;
+  }
+
+  count.textContent = engines.length + ' engines';
+  const fuelOrder = ['Diesel','Petrol','Gasoline','Electric','Hybrid','LPG','CNG'];
+  const fuelGroups = {};
+  const unknown = [];
+
+  engines.forEach(c => {
+    const fuel = c[5] ? c[5].split('/')[0].trim() : null;
+    if (fuel) { if (!fuelGroups[fuel]) fuelGroups[fuel] = []; fuelGroups[fuel].push(c); }
+    else unknown.push(c);
+  });
+
+  const sortedFuels = Object.keys(fuelGroups).sort((a,b) => {
+    const ai = fuelOrder.indexOf(a), bi = fuelOrder.indexOf(b);
+    return (ai >= 0 && bi >= 0) ? ai - bi : ai >= 0 ? -1 : bi >= 0 ? 1 : a.localeCompare(b);
+  });
+
+  let html = '';
+  sortedFuels.forEach(fuel => {
+    html += `<div class="fuel-hd">${fuel}</div>
+      <div class="card" style="margin-bottom:2px">${fuelGroups[fuel].map(engineItem).join('')}</div>`;
+  });
+  if (unknown.length) html += `<div class="card" style="margin-top:2px">${unknown.map(engineItem).join('')}</div>`;
+
+  list.innerHTML = html || `<div class="card" style="padding:20px;text-align:center;color:var(--text2)">No engines found</div>`;
+}
+
+function engineItem(c) {
+  const isSel = selectedCar && selectedCar[3] === c[3];
+  const years = c[6] ? (c[7] ? `${c[6]}–${c[7]}` : `${c[6]}+`) : '';
+  const fuel = c[5] ? c[5].split('/')[0] : '';
+  const sub = [fuel, c[8] ? `${c[8]} kW / ${c[9]} hp` : '', years].filter(Boolean).join(' · ');
+  return `<div class="step-item ${isSel ? 'selected' : ''}" onclick="pickEngine(${c[3]})">
+    <div class="step-item-body">
+      <div class="step-item-name">${c[4]}</div>
+      ${sub ? `<div class="step-item-sub">${sub}</div>` : ''}
+    </div>
+    <span class="step-item-check">✓</span>
+  </div>`;
+}
+
+function pickEngine(carId) {
+  const car = ALL_CARS.find(c => c[3] === carId);
+  if (!car) return;
+  selectedCar = car;
+  selectedRegPlate = null;
+  updateStepRows();
+  updateHomeHeader();
+  saveToGarage(car);
+  closeAllStepScreens();
+  switchTab(3);
+}
+
+// ── Recent cars ──
+
+function renderRecentCars() {
+  const el = document.getElementById('homeRecentCars');
+  if (!el || !garage.length) { if (el) el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="section-title-sm" style="padding:14px 0 8px">Recent</div>` +
+    garage.slice(0, 3).map(g => {
+      const sub = [g.fuel ? g.fuel.split('/')[0] : '', g.kw ? g.kw + ' kW' : '', g.yearFrom || ''].filter(Boolean).join(' · ');
+      return `<div class="sel-rec-item" onclick="pickRecentCar(${g.carId})">
+        <div class="sel-rec-icon">🚗</div>
+        <div class="sel-rec-body">
+          <div class="sel-rec-name">${g.makerName} ${g.modelName}</div>
+          <div class="sel-rec-sub">${sub}</div>
+        </div>
+        <span class="sel-rec-chev">›</span>
+      </div>`;
+    }).join('');
+}
+
+function pickRecentCar(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
   const maker = MAKERS.find(m => m.id === car[0]);
-  selectedCar = car;
-
-  document.getElementById('hsResultName').textContent = `${maker?.n} ${car[2]} · ${car[4]}`;
-  document.getElementById('hsResultMeta').textContent = `${car[5] || ''}${car[8] ? ' · ' + car[8] + ' kW / ' + car[9] + ' hp' : ''} · ${car[6] || ''}${car[7] ? '–' + car[7] : '+'}`;
-  result.classList.add('show');
-
-  selectedRegPlate = null;
-  updateHomeHeader();
-  saveToGarage(car);
-}
-
-function hsReset(step) {
-  const res = document.getElementById('hsResult');
-  res.classList.remove('show');
-  selectedCar = null;
-  if (step <= 2) { const s = document.getElementById('hsYear'); s.innerHTML='<option value="">Year</option>'; s.disabled=true; }
-  if (step <= 3) { const s = document.getElementById('hsModel'); s.innerHTML='<option value="">Model</option>'; s.disabled=true; }
-  if (step <= 4) { const s = document.getElementById('hsCar'); s.innerHTML='<option value="">Engine / Trim</option>'; s.disabled=true; }
+  stepMaker = { id: car[0], n: maker?.n || '' };
+  stepModel = { id: car[1], name: car[2] };
+  selectedCar = car; selectedRegPlate = null;
+  updateStepRows(); updateHomeHeader();
+  switchTab(3);
 }
 
 // ── Garage ────────────────────────────────────────────────────
@@ -1292,6 +1740,9 @@ function renderGarage() {
 function selectGarageCar(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  stepMaker = { id: car[0], n: maker?.n || '' };
+  stepModel = { id: car[1], name: car[2] };
   selectedCar = car;
   selectedRegPlate = null;
   updateHomeHeader();
@@ -1407,40 +1858,165 @@ function saveRegCar() {
   setTimeout(() => { btn.textContent = 'Save to Garage'; btn.style.color = ''; }, 2000);
 }
 
+// ── Autocomplete helpers ───────────────────────────────────────
+
+let acActiveIdx = -1;
+let acActiveCtx = null; // 'home' | 'search'
+
+// ── Synonym groups (ported from index-3step.html + Russian terms) ──────────
+// Each group: all terms are interchangeable in search
+const SYNONYM_GROUPS = [
+  ['estate','variant','touring','avant','sw','kombi','break','wagon','универсал'],
+  ['cabriolet','cabrio','convertible','roadster','spider','spyder','кабриолет','кабрио'],
+  ['coupe','coupé','купе'],
+  ['saloon','sedan','berline','limousine','седан'],
+  ['suv','crossover','внедорожник','кроссовер'],
+  ['van','minivan','минивэн','фургон'],
+  ['4motion','quattro','xdrive','awd','4wd','4x4','syncro','allrad'],
+  ['diesel','tdi','dci','hdi','cdti','cdi','jtd','d4d','tdci','дизель','дизельный'],
+  ['petrol','tsi','tfsi','fsi','бензин','бензиновый'],
+  ['hybrid','hev','phev','mhev','гибрид','гибридный'],
+  ['electric','ev','bev','e-tron','электро','электрический'],
+  ['auto','automatic','dsg','tiptronic','s-tronic','cvt','multitronic','pdk'],
+  ['lpg','cng','газ','лпг'],
+];
+const SYNONYM_MAP = new Map();
+SYNONYM_GROUPS.forEach(g => g.forEach(w => SYNONYM_MAP.set(w, g)));
+
+// Roman ↔ Arabic: "Golf V" = "Golf 5"
+const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii','8':'viii','9':'ix','10':'x'};
+const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v]) => [v, k]));
+
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const wbRe  = s => new RegExp('(?:^|\\s)' + escRe(s) + '(?=\\s|$)');
+
+// For a query token: return all forms to match (synonym group or roman/arabic pair)
+function termMatchers(t) {
+  const group = SYNONYM_MAP.get(t);
+  if (group) return group.map(f => ({ str: f, re: wbRe(f) }));
+  const syn = NUM2ROM[t] || ROM2NUM[t];
+  if (!syn) return [{ str: t, re: null }];
+  return [t, syn].map(f => ({ str: f, re: wbRe(f) }));
+}
+
+// Search: synonym-aware filter → sort by rating → slice
+// Haystack per spec: maker.name + modelName + trimName + fuel
+function acSearch(q, limit) {
+  // Split letter(2+)-digit boundary: "TDI4" → "TDI 4", "320d" untouched
+  const raw = q.toLowerCase().replace(/([a-zA-Z]{2,})(\d)/g, '$1 $2').split(/\s+/).filter(Boolean);
+  let yearFilter = null;
+  const textTerms = [];
+  raw.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
+  const termForms = textTerms.map(termMatchers);
+
+  const results = [];
+  for (let i = 0; i < ALL_CARS.length; i++) {
+    const c = ALL_CARS[i];
+    if (yearFilter !== null) {
+      if (c[6] > yearFilter) continue;
+      if (c[7] !== null && c[7] < yearFilter) continue;
+    }
+    if (termForms.length) {
+      const maker = MAKERS.find(m => m.id === c[0]);
+      const hay = `${maker?.n||''} ${c[2]} ${c[4]} ${c[5]||''}`.toLowerCase();
+      if (!termForms.every(forms => forms.some(({ str, re }) => re ? re.test(hay) : hay.includes(str)))) continue;
+    }
+    results.push(c);
+  }
+
+  results.sort((a, b) => (CAR_RATINGS[b[3]] || 0) - (CAR_RATINGS[a[3]] || 0));
+  return { results: results.slice(0, limit), total: results.length, textTerms, yearFilter };
+}
+
+// Build one suggestion row HTML
+// Spec: main = "[Make] [ModelName] · [TrimName]" with terms highlighted
+//       sub  = "[YearFrom–YearTo] · [Fuel] · [kW / hp]"; year highlighted if yearFilter present
+function acSuggestionHTML(c, textTerms, yearFilter, onpickFn, idx) {
+  const maker = MAKERS.find(m => m.id === c[0]);
+  const main = hl(`${maker?.n||''} ${c[2]} · ${c[4]}`, textTerms);
+
+  const yearStr = c[6] ? (c[7] ? `${c[6]}–${c[7]}` : `${c[6]}+`) : '';
+  const yearHtml = yearStr
+    ? (yearFilter ? `<span style="color:var(--blue);font-weight:600">${yearStr}</span>` : yearStr)
+    : '';
+  const fuelStr = c[5] ? c[5].split('/')[0] : '';
+  const pwrStr  = c[8] ? `${c[8]} kW / ${c[9]} hp` : '';
+  const sub = [yearHtml, fuelStr, pwrStr].filter(Boolean).join(' · ');
+
+  const rated = CAR_RATINGS[c[3]] ? `<span style="font-size:10px;color:var(--green);margin-left:4px">★</span>` : '';
+
+  return `<div class="search-suggestion ac-item" data-idx="${idx}" data-carid="${c[3]}" data-fn="${onpickFn}"
+    onclick="${onpickFn}(${c[3]})"
+    onmouseenter="acHover(${idx},'${onpickFn}')">
+    <div class="suggestion-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+    <div style="flex:1;min-width:0">
+      <div class="suggestion-main">${main}${rated}</div>
+      <div class="suggestion-sub">${sub}</div>
+    </div>
+    <span class="suggestion-chevron">›</span>
+  </div>`;
+}
+
+// Keyboard navigation helpers
+function acHover(idx, ctx) {
+  acActiveIdx = idx;
+  acActiveCtx = ctx;
+  acHighlight();
+}
+
+function acHighlight() {
+  document.querySelectorAll('.ac-item').forEach((el, i) => {
+    el.style.background = i === acActiveIdx ? 'var(--fill)' : '';
+  });
+}
+
+function acHandleKey(e, ctx) {
+  const items = document.querySelectorAll('.ac-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acActiveIdx = Math.min(acActiveIdx + 1, items.length - 1);
+    acActiveCtx = ctx;
+    acHighlight();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acActiveIdx = Math.max(acActiveIdx - 1, 0);
+    acActiveCtx = ctx;
+    acHighlight();
+  } else if (e.key === 'Enter' && acActiveIdx >= 0) {
+    e.preventDefault();
+    items[acActiveIdx]?.click();
+  } else if (e.key === 'Escape') {
+    acActiveIdx = -1;
+    if (ctx === 'home') { document.getElementById('homeDropdown').innerHTML = ''; }
+    if (ctx === 'search') { document.getElementById('searchDropdownList').innerHTML = ''; }
+  }
+}
+
 // ── Home search (autocomplete) ────────────────────────────────
 
-document.getElementById('homeSearchInput').addEventListener('input', function() {
+const homeSearchInput = document.getElementById('homeSearchInput');
+homeSearchInput.addEventListener('input', function() {
   document.getElementById('homeSearchClear').style.display = this.value ? 'block' : 'none';
+  acActiveIdx = -1;
   clearTimeout(searchDebounce);
   searchDebounce = setTimeout(() => runHomeSearch(this.value.trim()), 150);
 });
+homeSearchInput.addEventListener('keydown', e => acHandleKey(e, 'home'));
 
 function clearHomeSearch() {
-  document.getElementById('homeSearchInput').value = '';
+  homeSearchInput.value = '';
   document.getElementById('homeSearchClear').style.display = 'none';
   document.getElementById('homeDropdown').innerHTML = '';
+  acActiveIdx = -1;
 }
 
 function runHomeSearch(q) {
   const el = document.getElementById('homeDropdown');
-  if (q.length < 2) { el.innerHTML = ''; return; }
+  // Spec: min 2 chars, OR a 4-digit year alone
+  if (q.length < 2 && !/^(19|20)\d{2}$/.test(q)) { el.innerHTML = ''; return; }
 
-  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
-  let yearFilter = null;
-  const textTerms = [];
-  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
-
-  const results = [];
-  for (let i = 0; i < ALL_CARS.length && results.length < 8; i++) {
-    const c = ALL_CARS[i];
-    if (yearFilter && (c[6] > yearFilter || (c[7] !== null && c[7] < yearFilter))) continue;
-    if (textTerms.length) {
-      const maker = MAKERS.find(m => m.id === c[0]);
-      const hay = `${maker?.n||''} ${c[2]} ${c[4]}`.toLowerCase();
-      if (!textTerms.every(t => hay.includes(t))) continue;
-    }
-    results.push(c);
-  }
+  const { results, total, textTerms, yearFilter } = acSearch(q, 20);
 
   if (!results.length) {
     el.innerHTML = `<div style="background:var(--card);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--text2);text-align:center">No vehicles found</div>`;
@@ -1448,26 +2024,17 @@ function runHomeSearch(q) {
   }
 
   el.innerHTML = `<div class="card" style="border-radius:12px;overflow:hidden">` +
-    results.map(c => {
-      const maker = MAKERS.find(m => m.id === c[0]);
-      const main = hl(`${maker?.n||''} ${c[2]} · ${c[4]}`, textTerms);
-      const sub = [c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'', c[5]?c[5].split('/')[0]:'', c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
-      return `<div class="search-suggestion" onclick="pickHomeResult(${c[3]})">
-        <div class="suggestion-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-        <div style="flex:1;min-width:0">
-          <div class="suggestion-main">${main}</div>
-          <div class="suggestion-sub">${sub}</div>
-        </div>
-        <span class="suggestion-chevron">›</span>
-      </div>`;
-    }).join('') +
-    (results.length === 8 ? `<div class="suggestions-more">Refine your search for more results</div>` : '') +
+    results.map((c, i) => acSuggestionHTML(c, textTerms, yearFilter, 'pickHomeResult', i)).join('') +
+    (total > 20 ? `<div class="suggestions-more">Refine your search for more results</div>` : '') +
     `</div>`;
 }
 
 function pickHomeResult(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  stepMaker = { id: car[0], n: maker?.n || '' };
+  stepModel = { id: car[1], name: car[2] };
   selectedCar = car;
   selectedRegPlate = null;
   updateHomeHeader();
@@ -1478,31 +2045,20 @@ function pickHomeResult(carId) {
 
 // ── Search ────────────────────────────────────────────────────
 
-document.getElementById('searchInput').addEventListener('input', function() {
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', function() {
+  acActiveIdx = -1;
   clearTimeout(searchDebounce);
   searchDebounce = setTimeout(() => runSearch(this.value.trim()), 150);
 });
+searchInput.addEventListener('keydown', e => acHandleKey(e, 'search'));
 
 function runSearch(q) {
   const list = document.getElementById('searchDropdownList');
-  if (q.length < 2) { list.innerHTML = ''; return; }
+  // Spec: min 2 chars, OR a 4-digit year alone
+  if (q.length < 2 && !/^(19|20)\d{2}$/.test(q)) { list.innerHTML = ''; return; }
 
-  const parts = q.toLowerCase().split(/\s+/).filter(Boolean);
-  let yearFilter = null;
-  const textTerms = [];
-  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yearFilter = +p) : textTerms.push(p));
-
-  const results = [];
-  for (let i = 0; i < ALL_CARS.length && results.length < 12; i++) {
-    const c = ALL_CARS[i];
-    if (yearFilter && (c[6] > yearFilter || (c[7] !== null && c[7] < yearFilter))) continue;
-    if (textTerms.length) {
-      const maker = MAKERS.find(m => m.id === c[0]);
-      const hay = `${maker?.n||''} ${c[2]} ${c[4]}`.toLowerCase();
-      if (!textTerms.every(t => hay.includes(t))) continue;
-    }
-    results.push(c);
-  }
+  const { results, total, textTerms, yearFilter } = acSearch(q, 20);
 
   if (!results.length) {
     list.innerHTML = `<div class="suggestions-more">No vehicles found</div>`;
@@ -1510,25 +2066,17 @@ function runSearch(q) {
   }
 
   list.innerHTML = `<div class="card" style="margin:8px 16px">` +
-    results.map((c, i) => {
-      const maker = MAKERS.find(m => m.id === c[0]);
-      const main = hl(`${maker?.n||''} ${c[2]} · ${c[4]}`, textTerms);
-      const sub = [c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'', c[5]?c[5].split('/')[0]:'', c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
-      return `<div class="search-suggestion" onclick="pickSearchResult(${c[3]})">
-        <div class="suggestion-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-        <div style="flex:1;min-width:0">
-          <div class="suggestion-main">${main}</div>
-          <div class="suggestion-sub">${sub}</div>
-        </div>
-        <span class="suggestion-chevron">›</span>
-      </div>`;
-    }).join('') + `</div>` +
-    (results.length === 12 ? `<div class="suggestions-more">Showing top 12 — refine your search</div>` : '');
+    results.map((c, i) => acSuggestionHTML(c, textTerms, yearFilter, 'pickSearchResult', i)).join('') +
+    `</div>` +
+    (total > 20 ? `<div class="suggestions-more">Refine your search for more results</div>` : '');
 }
 
 function pickSearchResult(carId) {
   const car = ALL_CARS.find(c => c[3] === carId);
   if (!car) return;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  stepMaker = { id: car[0], n: maker?.n || '' };
+  stepModel = { id: car[1], name: car[2] };
   selectedCar = car;
   selectedRegPlate = null;
   updateHomeHeader();
@@ -1586,10 +2134,6 @@ function renderParts() {
     </div>`).join('');
 }
 
-function goToResults() {
-  if (!selectedCar) return;
-  switchTab(3);
-}
 </script>
 </body>
 </html>

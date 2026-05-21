@@ -78,11 +78,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .selector-entry-btn { width: 100%; display: flex; align-items: center; gap: 12px; background: #fff; border: 1.5px solid #e8e8e8; border-radius: 12px; padding: 12px 14px; cursor: pointer; font-family: inherit; text-align: left; transition: border-color .15s, background .15s; }
 .selector-entry-btn:hover { border-color: #0f3460; background: #f5f8ff; }
 .selector-entry-btn.has-selection { border-color: #0f3460; background: #f0f5ff; }
-.seb-icon { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: #f0f5ff; }
-.seb-car-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.widget-body .selector-entry-btn { margin-top: 0; }
+.seb-icon { width: 72px; height: 48px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: #f0f5ff; }
+.seb-car-img { width: 72px; height: 48px; object-fit: contain; display: block; background: #f0f5ff; }
+.widget-body .selector-entry-btn { margin-top: 12px; }
 .seb-body { flex: 1; min-width: 0; }
-.seb-title { font-size: 14px; font-weight: 600; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seb-title { font-size: 13px; font-weight: 600; color: #1a1a2e; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .seb-steps { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; color: #aaa; }
 .seb-steps span { white-space: nowrap; }
 .seb-steps span.done { color: #0f3460; font-weight: 600; }
@@ -90,18 +90,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .seb-chev { color: #ccc; font-size: 18px; line-height: 1; flex-shrink: 0; }
 
 /* ── Autocomplete ── */
-.ac-wrap { }
+.ac-wrap { position: relative; }
 .ac-box { display: flex; align-items: center; gap: 8px; border: 1.5px solid #e8e8e8; border-radius: 8px; padding: 9px 12px; background: #fafafa; transition: border-color .15s; }
 .ac-box:focus-within { border-color: #0f3460; background: #fff; }
 .ac-box svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
 .ac-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #1a1a2e; font-family: inherit; }
 .ac-box input::placeholder { color: #bbb; }
-.ac-drop { display: none; background: #fff; border: 1.5px solid #eee; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.08); overflow: hidden; margin-top: 4px; }
+.ac-drop { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1.5px solid #eee; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.08); overflow: hidden; z-index: 200; }
 .ac-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
 .ac-item:last-child { border-bottom: none; }
 .ac-item:hover { background: #f5f8ff; }
-.ac-ico { width: 28px; height: 28px; border-radius: 7px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.ac-ico svg { width: 14px; height: 14px; color: #0f3460; }
+.ac-ico { width: 56px; height: 40px; border-radius: 7px; background: #f0f2f5; overflow: hidden; flex-shrink: 0; }
+.ac-ico img { width: 56px; height: 40px; object-fit: contain; display: block; }
 .ac-name { font-size: 13px; color: #1a1a2e; }
 .ac-name mark { background: none; color: #0f3460; font-weight: 700; }
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
@@ -155,8 +155,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .recent-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 4px; }
 .recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f8f9fc; border: 1.5px solid #eee; border-radius: 9px; cursor: pointer; transition: border-color .12s, background .12s; }
 .recent-item:hover { border-color: #0f3460; background: #f0f5ff; }
-.recent-item-icon { width: 44px; height: 44px; border-radius: 50%; background: #eef1fb; overflow: hidden; flex-shrink: 0; }
-.recent-item-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.recent-item-icon { width: 72px; height: 48px; border-radius: 10px; background: #eef1fb; overflow: hidden; flex-shrink: 0; }
+.recent-item-icon img { width: 72px; height: 48px; object-fit: contain; display: block; background: #f0f5ff; }
 .recent-item-body { flex: 1; min-width: 0; }
 .recent-item-name { font-size: 13px; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .recent-item-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -208,6 +208,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .cat-name { font-size: 14px; font-weight: 700; color: #1a1a2e; }
 .cat-count { font-size: 12px; color: #999; }
 
+/* ── Sidebar step rows ── */
+.step-rows { border: 1.5px solid #e8e8e8; border-radius: 12px; overflow: hidden; }
+.step-row { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; background: #fff; transition: background .1s; }
+.step-row:last-child { border-bottom: none; }
+.step-row:hover:not(.step-row-disabled) { background: #f5f8ff; }
+.step-row-disabled { cursor: default; opacity: .45; pointer-events: none; }
+.step-row-label { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .6px; width: 50px; flex-shrink: 0; }
+.step-row-value { flex: 1; font-size: 14px; color: #bbb; }
+.step-row-value.filled { color: #1a1a2e; font-weight: 600; }
+.step-row-chev { color: #ddd; font-size: 16px; flex-shrink: 0; }
+.step-row:not(.step-row-disabled) .step-row-chev { color: #b0c4e8; }
+
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; gap: 40px; }
@@ -223,6 +235,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   .cats-grid { grid-template-columns: repeat(2, 1fr); }
   .cats-section { padding: 36px 16px 48px; }
 }
+/* ── Model Groups ───────────────────────────────────────────── */
+.model-group { border-bottom: 1px solid #f0f0f0; }
+.model-group:last-child { border-bottom: none; }
+.model-group-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; cursor: pointer; background: #fff; transition: background .1s; user-select: none; }
+.model-group-header:hover { background: #f5f8ff; }
+.model-group-header.has-sel, .model-group-header.open { background: #f0f5ff; }
+.model-group-name { font-size: 15px; color: #1a1a2e; }
+.model-group-header.has-sel .model-group-name { font-weight: 700; color: #0f3460; }
+.model-group-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.model-group-count { font-size: 12px; color: #bbb; }
+.model-group-arrow { font-size: 18px; color: #bbb; transition: transform .2s; line-height: 1; }
+.model-group-header.open .model-group-arrow { transform: rotate(90deg); }
+.model-group-items { display: none; border-top: 1px solid #eef0f8; background: #fafbff; }
+.model-group-items.open { display: block; }
+.model-group-items .step-item { padding-left: 28px; background: transparent; }
+.model-group-items .step-item:hover { background: #eef2ff; }
 </style>
 </head>
 <body>
@@ -256,9 +284,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="widget-card">
       <div class="widget-body">
 
-        <!-- Popular makes -->
-        <div class="w-label">Popular makes</div>
-        <div class="maker-shortcuts" id="widgetMakerShortcuts"></div>
+        <!-- Search autocomplete -->
+        <div class="w-label">Search your car</div>
+        <div class="ac-wrap">
+          <div class="ac-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d, Audi A4…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ac-drop" id="acDrop"></div>
+        </div>
+
+        <!-- Divider -->
+        <div class="w-divider">or select step by step</div>
 
         <!-- Selector entry button -->
         <button class="selector-entry-btn" id="selectorEntryBtn" onclick="openSelector()">
@@ -362,47 +399,36 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="panel" id="panel-main">
       <div class="sb-body">
 
-        <!-- Active vehicle / step selector button -->
-        <button class="selector-entry-btn" id="sbEntryBtn" onclick="openStepFromSidebar()">
-          <div class="seb-icon">
-            <img class="seb-car-img" src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=144&h=92&fit=crop&q=80" alt="car">
+        <!-- 4-step selector rows -->
+        <div class="step-rows">
+          <div class="step-row" id="row-make" onclick="openStepRow('make')">
+            <span class="step-row-label">Make</span>
+            <span class="step-row-value" id="rowval-make">Select make</span>
+            <span class="step-row-chev">›</span>
           </div>
-          <div class="seb-body">
-            <div class="seb-title" id="sbSebTitle">Select by Make, Year, Model…</div>
-            <div class="seb-steps">
-              <span id="sbseb-make">Make</span>
-              <span class="seb-arrow">›</span>
-              <span id="sbseb-year">Year</span>
-              <span class="seb-arrow">›</span>
-              <span id="sbseb-model">Model</span>
-              <span class="seb-arrow">›</span>
-              <span id="sbseb-engine">Engine</span>
-            </div>
+          <div class="step-row step-row-disabled" id="row-year" onclick="openStepRow('year')">
+            <span class="step-row-label">Year</span>
+            <span class="step-row-value" id="rowval-year">Select year</span>
+            <span class="step-row-chev">›</span>
           </div>
-          <div class="seb-chev">›</div>
-        </button>
+          <div class="step-row step-row-disabled" id="row-model" onclick="openStepRow('model')">
+            <span class="step-row-label">Model</span>
+            <span class="step-row-value" id="rowval-model">Select model</span>
+            <span class="step-row-chev">›</span>
+          </div>
+          <div class="step-row step-row-disabled" id="row-engine" onclick="openStepRow('engine')">
+            <span class="step-row-label">Engine</span>
+            <span class="step-row-value" id="rowval-engine">Select engine</span>
+            <span class="step-row-chev">›</span>
+          </div>
+        </div>
 
         <!-- Recent vehicles -->
         <div id="recentSection" style="display:none">
           <div class="sb-divider" style="margin-top:14px">recent vehicles</div>
           <div id="recentList" class="recent-list"></div>
-          <div class="sb-divider" style="margin-top:2px">or search for another vehicle</div>
         </div>
 
-        <!-- Search autocomplete -->
-        <div class="sb-label" style="margin-top:14px">Search by name</div>
-        <div class="ac-wrap">
-          <div class="ac-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input id="searchInput" type="text" placeholder="e.g. Golf 5 TDI, BMW 320d, Audi A4…" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="ac-drop" id="acDrop"></div>
-        </div>
-
-        <!-- Popular makes -->
-        <div class="sb-divider" style="margin-top:4px">or browse by make</div>
-        <div class="sb-label" style="margin-top:12px">Popular makes</div>
-        <div class="maker-shortcuts" id="makerShortcuts"></div>
 
       </div>
     </div>
@@ -439,7 +465,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 </div>
 
 <script>
-let ALL_CARS = [], MAKERS = [];
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {};
 let selectedCar = null;
 let RATINGS = new Map();
 let state = { make: null, year: null, model: null, engine: null };
@@ -491,10 +517,12 @@ function parseRatingsCsv(text) {
 renderHistory();
 Promise.all([
   fetch('cars_data.json').then(r => r.json()),
-  fetch('bmw.csv').then(r => r.text()).catch(() => '')
-]).then(([data, csv]) => {
+  fetch('bmw.csv').then(r => r.text()).catch(() => ''),
+  fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
+]).then(([data, csv, groups]) => {
   MAKERS = data.makers;
   ALL_CARS = data.cars;
+  MODEL_GROUPS = groups;
   if (csv) parseRatingsCsv(csv);
   resetFindBtn();
   renderMakerShortcuts();
@@ -533,12 +561,6 @@ function hideStepPanel() {
 // ── Open selector from widget ─────────────────────────────
 function openSelector() {
   openSidebar();
-  // If partially filled — resume at the first unfilled step
-  if (state.make !== null && selectedCar === null) {
-    openStepFromSidebar();
-  } else {
-    setTimeout(() => document.getElementById('searchInput').focus(), 350);
-  }
 }
 
 // ── Open step panel from sidebar entry button ─────────────
@@ -669,6 +691,42 @@ function renderStepContent(filter) {
     filtered.length ? `${filtered.length} option${filtered.length!==1?'s':''}` : '';
   const list = document.getElementById('stepList');
   if (!filtered.length) { list.innerHTML = `<div class="step-empty">No results found</div>`; return; }
+
+  // Model step without filter → grouped view
+  if (currentStep === 'model' && !f) {
+    const groups = buildModelGroups(filtered);
+    list.innerHTML = groups.map((g, idx) => {
+      if (g.models.length === 1) {
+        const item = g.models[0];
+        const isSel = item.id == state.model;
+        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})">
+          <div class="step-item-body"><div class="step-item-name">${item.label}</div></div>
+          <span class="step-item-check">✓</span>
+        </div>`;
+      }
+      const hasSel = g.models.some(m => m.id == state.model);
+      return `<div class="model-group">
+        <div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})">
+          <div class="model-group-name">${g.name}</div>
+          <div class="model-group-meta">
+            <span class="model-group-count">${g.models.length}</span>
+            <span class="model-group-arrow">›</span>
+          </div>
+        </div>
+        <div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">
+          ${g.models.map(item => {
+            const isSel = item.id == state.model;
+            return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})">
+              <div class="step-item-body"><div class="step-item-name">${item.label}</div></div>
+              <span class="step-item-check">✓</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   list.innerHTML = filtered.map(item => {
     const isSel = item.id == state[currentStep];
     return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})">
@@ -679,6 +737,33 @@ function renderStepContent(filter) {
       <span class="step-item-check">✓</span>
     </div>`;
   }).join('');
+}
+
+function buildModelGroups(models) {
+  const grouped = new Map(); // gid → { name, models }
+  const ungrouped = [];
+  for (const model of models) {
+    const g = MODEL_GROUPS[String(model.id)];
+    if (g) {
+      if (!grouped.has(g.gid)) grouped.set(g.gid, { name: g.gn, models: [] });
+      grouped.get(g.gid).models.push(model);
+    } else {
+      ungrouped.push({ name: model.label, models: [model] });
+    }
+  }
+  const groups = [...grouped.values()].sort((a, b) => a.name.localeCompare(b.name));
+  groups.forEach(g => g.models.sort((a, b) => a.label.localeCompare(b.label)));
+  ungrouped.sort((a, b) => a.name.localeCompare(b.name));
+  return [...groups, ...ungrouped];
+}
+
+function toggleModelGroup(idx) {
+  const header = document.querySelector(`.model-group-header[data-gidx="${idx}"]`);
+  const items = document.getElementById('mg-' + idx);
+  if (!header || !items) return;
+  const isOpen = items.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  items.classList.toggle('open', !isOpen);
 }
 
 function buildItems() {
@@ -771,15 +856,10 @@ function updateSelectorBtn() {
   // Sync maker chip highlight
   document.querySelectorAll('.maker-chip').forEach(c => c.classList.toggle('active', +c.dataset.make === state.make));
 
-  // Both entry buttons
-  const pairs = [
-    ['selectorEntryBtn', 'sebTitle', 'seb-'],
-    ['sbEntryBtn', 'sbSebTitle', 'sbseb-'],
-  ];
-  pairs.forEach(([btnId, titleId, prefix]) => {
-    const btn = document.getElementById(btnId);
-    const titleEl = document.getElementById(titleId);
-    if (!btn || !titleEl) return;
+  // Main page entry button
+  const btn = document.getElementById('selectorEntryBtn');
+  const titleEl = document.getElementById('sebTitle');
+  if (btn && titleEl) {
     btn.classList.toggle('has-selection', anyDone);
     const v = s => document.getElementById('val-'+s).textContent;
     if (anyDone) {
@@ -787,12 +867,50 @@ function updateSelectorBtn() {
       const details = [v('year'), v('engine')].filter(Boolean);
       btn.querySelector('.seb-steps').innerHTML = details.length
         ? details.map(d => `<span class="done">${d}</span>`).join('<span class="seb-arrow"> · </span>')
-        : `<span id="${prefix}year">Year</span><span class="seb-arrow">›</span><span id="${prefix}model">Model</span><span class="seb-arrow">›</span><span id="${prefix}engine">Engine</span>`;
+        : `<span>Year</span><span class="seb-arrow">›</span><span>Model</span><span class="seb-arrow">›</span><span>Engine</span>`;
     } else {
       titleEl.textContent = 'Select by Make, Year, Model…';
-      btn.querySelector('.seb-steps').innerHTML = `<span id="${prefix}make">Make</span><span class="seb-arrow">›</span><span id="${prefix}year">Year</span><span class="seb-arrow">›</span><span id="${prefix}model">Model</span><span class="seb-arrow">›</span><span id="${prefix}engine">Engine</span>`;
+      btn.querySelector('.seb-steps').innerHTML = `<span>Make</span><span class="seb-arrow">›</span><span>Year</span><span class="seb-arrow">›</span><span>Model</span><span class="seb-arrow">›</span><span>Engine</span>`;
+    }
+  }
+
+  // Sidebar step rows
+  const rowValues = {
+    make:   () => { const m = MAKERS.find(mk => mk.id === state.make); return m ? m.n : ''; },
+    year:   () => state.year ? String(state.year) : '',
+    model:  () => document.getElementById('val-model').textContent,
+    engine: () => document.getElementById('val-engine').textContent,
+  };
+  STEPS.forEach((s, idx) => {
+    const row = document.getElementById('row-' + s);
+    const val = document.getElementById('rowval-' + s);
+    if (!row || !val) return;
+    const prevFilled = idx === 0 || state[STEPS[idx - 1]] !== null;
+    row.classList.toggle('step-row-disabled', !prevFilled);
+    const value = rowValues[s]();
+    if (value) {
+      val.textContent = value;
+      val.classList.add('filled');
+    } else {
+      val.textContent = `Select ${STEP_SHORT[s].toLowerCase()}`;
+      val.classList.remove('filled');
     }
   });
+}
+
+// ── Open step from sidebar row ────────────────────────────
+function openStepRow(step) {
+  const idx = STEPS.indexOf(step);
+  // Block if previous step not filled
+  for (let i = 0; i < idx; i++) { if (state[STEPS[i]] === null) return; }
+  // Clear from this step onward
+  STEPS.slice(idx).forEach(s => {
+    state[s] = null;
+    setRowValue(s, `Select ${STEP_SHORT[s].toLowerCase()}`, false);
+  });
+  updateBubbles(); enableRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx + 1);
+  openStep(step);
 }
 
 // ── Step search ───────────────────────────────────────────
@@ -837,7 +955,7 @@ function runAc(q) {
     const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt);
     const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · ');
     return `<div class="ac-item" onclick="pickAc(${c[3]})">
-      <div class="ac-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+      <div class="ac-ico"><img src="${carImg(c[3])}" onerror="this.src='${PLACEHOLDER_IMG}'" alt=""></div>
       <div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div>
       <span style="color:#ccc;font-size:14px">›</span>
     </div>`;
@@ -865,12 +983,22 @@ function hl(text,terms){
 
 // ── Selected car ──────────────────────────────────────────
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=144&h=92&fit=crop&q=80';
+function carImg(carId) { return `imageURL800/${carId}.jpg`; }
 
 function setSelectedCar(car, regPlate) {
   selectedCar = car;
-  if (!car) { resetFindBtn(); return; }
+  if (!car) {
+    resetFindBtn();
+    document.querySelectorAll('.seb-car-img').forEach(img => { img.src = PLACEHOLDER_IMG; img.onerror = null; });
+    return;
+  }
   saveToHistory(car);
   renderHistory();
+  document.querySelectorAll('.seb-car-img').forEach(img => {
+    img.src = carImg(car[3]);
+    img.onerror = () => { img.src = PLACEHOLDER_IMG; img.onerror = null; };
+  });
   ['findBtn','sidebarFindBtn'].forEach(id => {
     const btn = document.getElementById(id);
     btn.disabled = false;
@@ -895,7 +1023,8 @@ function renderMakerShortcuts() {
     .slice(0, 10);
   const chip = m => `<button class="maker-chip" data-make="${m.id}" onclick="quickPickMake(${m.id})">${m.n}</button>`;
   const html = top10.map(chip).join('');
-  document.getElementById('makerShortcuts').innerHTML = html;
+  const ms = document.getElementById('makerShortcuts');
+  if (ms) ms.innerHTML = html;
   const w = document.getElementById('widgetMakerShortcuts');
   if (w) w.innerHTML = html;
 }
@@ -940,7 +1069,7 @@ function renderHistory() {
       h.year?(h.yearTo?h.year+'–'+h.yearTo:'from '+h.year):''].filter(Boolean);
     return `<div class="recent-item" onclick="pickRecent(${h.id})">
       <div class="recent-item-icon">
-        <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=124&h=80&fit=crop&q=80" alt="">
+        <img src="${carImg(h.id)}" onerror="this.src='${PLACEHOLDER_IMG}'" alt="">
       </div>
       <div class="recent-item-body">
         <div class="recent-item-name">${h.make} ${h.model}</div>
