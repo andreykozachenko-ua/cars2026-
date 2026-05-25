@@ -578,7 +578,9 @@ function normalizeFuel(raw) {
 }
 
 const AUTO_RE = /\b(auto(?:mat(?:ic|ique|isch)?)?|dsg|tiptronic|s.tronic|cvt|multitronic|pdk|xtronic|steptronic|powershift)\b/i;
-function normTransmission(trim) {
+const MOCK_TRANS_AUTO = new Set([11399,18451,19101,19102,19833,19837,25467,25469,25472,25473,26589,28389,28396,30868,31028,31029,31030,31031,33388,53532,105986,105987,105989,117783,119903,121918,123156,123157,118622,133046,139273,9941,9942,9943,9944,9945,10114,10358,11380,11381,11387,11388,12333,12334,29269,31042,31044,31045,31046,31047,31048,31049,31050,31051,32161,32162,32945,33050,33590,51926,54604,54914,55880,55905,58568,58601,58675,59012,59299,59435,59436,59439,59440,100542,106309,106310,106311,107366,107877,107878,108454,109458,116180,132651,133955,138492,138511,142098,143996,146132,59115,59116,59120,100074,100075,101041,106227,106229,117575,118645,120193,122080,125943,125995,126007,126625,135622,127988,140211,109842,112296,113320,122079,125944,125996,139749,141769,142300,142541,142889,143527,144084,146184,146214,148082,157955,158703,158710,800298,141858,142894,143268,143269,146104,158010,800297]);
+function normTransmission(trim, ktypNo) {
+  if (ktypNo !== undefined && MOCK_TRANS_AUTO.has(ktypNo)) return 'Automatic';
   if (!trim) return 'Manual';
   return AUTO_RE.test(trim) ? 'Automatic' : 'Manual';
 }
@@ -770,7 +772,7 @@ function renderStepContent(filter) {
   const transBar = document.getElementById('transFilterBar');
   if (transBar) {
     if (currentStep === 'engine') {
-      const allTrans = new Set(ALL_CARS.filter(c => c[0] === state.make && c[1] === state.model).map(c => normTransmission(c[4])));
+      const allTrans = new Set(ALL_CARS.filter(c => c[0] === state.make && c[1] === state.model).map(c => normTransmission(c[4], c[3])));
       transBar.style.display = allTrans.size > 1 ? 'flex' : 'none';
       if (allTrans.size > 1) {
         document.querySelectorAll('#transFilterBar .trans-chip').forEach(c => c.classList.toggle('active', c.dataset.trans === transFilter));
@@ -858,7 +860,7 @@ function buildItems() {
     return ALL_CARS.filter(c => {
       if (c[0] !== state.make || c[1] !== state.model) return false;
       if (fuelFilter !== 'all' && normalizeFuel(c[5]) !== fuelFilter) return false;
-      if (transFilter !== 'all' && normTransmission(c[4]) !== transFilter) return false;
+      if (transFilter !== 'all' && normTransmission(c[4], c[3]) !== transFilter) return false;
       if (genFilter === 'pre'  && currentFaceliftYear && c[6] >= currentFaceliftYear) return false;
       if (genFilter === 'post' && currentFaceliftYear && c[6] <  currentFaceliftYear) return false;
       return true;
