@@ -370,8 +370,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
       <!-- Popular makes + progress: hidden once make is selected -->
       <div id="spMakesSection">
-        <div class="sp-makes-label">Popular makes</div>
-        <div class="sp-makes-grid" id="spMakesGrid"></div>
         <div class="sp-progress" id="spProgress">
           <div class="sp-prog-step sp-prog-step--active" id="spps-make" onclick="onProgStep('make',event)">
             <div class="sp-prog-num" id="spnum-make">1</div>
@@ -388,6 +386,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <div class="sp-prog-label" id="splbl-engine">Engine</div>
           </div>
         </div>
+        <div class="sp-makes-label" style="margin-top:10px">Popular makes</div>
+        <div class="sp-makes-grid" id="spMakesGrid"></div>
       </div>
 
       <!-- Car card: visible only when car is fully selected -->
