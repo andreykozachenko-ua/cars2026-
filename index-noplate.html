@@ -213,6 +213,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .model-group-items.open { display: block; }
 .model-group-items .step-item { padding-left: 28px; background: transparent; }
 .model-group-items .step-item:hover { background: #fff3ee; }
+.model-group--nested > .model-group-header { background: #f4f4f4; font-size: 13px; }
+.model-group--nested > .model-group-header:hover { background: #eeeeee; }
+.model-group--nested > .model-group-header.has-sel,
+.model-group--nested > .model-group-header.open { background: #fff3ee; }
+.model-group--nested > .model-group-items { background: #f9f9f9; }
+.model-group--nested > .model-group-items .step-item { padding-left: 40px; }
+.model-group--nested > .model-group-items .step-item:hover { background: #fff3ee; }
 
 /* ── Find button ── */
 .find-btn { width: 100%; height: 44px; background: #0068d7; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
@@ -501,6 +508,32 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 let fuelFilter = 'all';
 let MAKERS_MAP = new Map();
+const POPULAR_MAKERS = ['BMW','VW','AUDI','MERCEDES-BENZ','FORD','VAUXHALL','RENAULT','PEUGEOT','TOYOTA','VOLVO'];
+const MAKER_OTHER = new Set(['AC','ACURA','ALVIS','ARO','ARTEGA','ASIA MOTORS','ASKAM (FARGO/DESOTO)','AUSTIN-HEALEY','AUTO UNION','AUVERLAND','BARKAS','BEDFORD','BERTONE','BESTURN (FAW)','BORGWARD','BRABUS','BUGATTI','BUICK','BUICK (SGM)','CARBODIES','CASALINI','CATERHAM','CHERY','DAF','DAIMLER','DE TOMASO','DFSK','EBRO','FISKER','FORD ASIA / OCEANIA','FORD OTOSAN','FSO','GAZ','GEELY (GLEAGLE)','GENESIS','GLAS','GMC','GOUPIL','GREAT WALL','HAVAL','HOLDEN','INDIGO','INNOCENTI','JIANGLING LANDWIND','JINBEI','KOENIGSEGG','KTM','LDV','LEVC','LIGIER','LINCOLN','LLOYD','LTI','LUCID','MAHINDRA','MARUTI','MAYBACH','MCLAREN','MEGA','MERCURY','MIA ELECTRIC','MINELLI','MORGAN','MORRIS','MOSKVICH','NSU','OLDSMOBILE','PAGANI','PANTHER','PININFARINA','PLYMOUTH','POLARIS','PROTON','PUCH','RAVON','RUF','SATURN','SCION','SHELBY','SHUANGHUAN AUTO','SPYKER','STEYR','STREETSCOOTER','THINK','TVR','UAZ','UMM','VICTORY','WARTBURG','WESTFIELD','WIESMANN','ZASTAVA','ZUENDAPP']);
+
+const OTHER_GIDS = {
+  'AUDI':         new Set([1437,1438,1439,1440]),
+  'BMW':          new Set([1422,1423,1424,1425,1426,1427,1429,1430,1431,1432,1433,1436,1885,2022,2023,2024,1023]),
+  'CITROËN':      new Set([1410,1409,1413,1400,1401,1418,1402,1405,1411,1406,1399,1412,1408,1404]),
+  'FIAT':         new Set([731,735,736,737,738,739,740,747,749,750,765,767,769,770,774,778,1378,1379,1381,1384,1389,1391,1393,1907,2107,2108,2109,2350,2351]),
+  'FORD':         new Set([715,719,1051,1377,2008,2009,2317,2322,2323,2352,2353,2354,2355,2356,2357,2358,2359,2360]),
+  'HONDA':        new Set([2493,2227,690,1055,693,2036,2491,2168,1909,1061,1910,2228,2362,2363]),
+  'HYUNDAI':      new Set([1849,1912,665,1224,2268,668,1221,1217,1218,2135,2136,2395,2396,2397,2398,2399,2400,2401,2402,2403,2404,2405,2406]),
+  'KIA':          new Set([601,602,1204,1206,1205,1207,2408,1211,1208,2270,1215,1203,613,1156,1209,1210,1212,1213,1214,2037,2137,2269,2271,2410,2411,2412,2413,2414,2415]),
+  'MAZDA':        new Set([1362,2050,1648,536,1365,1366,1867,2049,2113,2230]),
+  'MERCEDES-BENZ':new Set([470,1348,1345,2368,1350,1344,1349,2372,2373,1347,1351,1352,1354,2374]),
+  'MITSUBISHI':   new Set([1864,438,439,426,423]),
+  'NISSAN':       new Set([2179,1324,2328,382,1325,2065,1333,2175,2239,389,390,2174,2327,1334,2242,393,1923,2116,2176,402,2241,1922,2178,1098,408,1079,2117,1608,412,413,2066,2240]),
+  'OPEL':         new Set([341,344,348,350,352,356,366,367,369,374,375,1320,2381]),
+  'PEUGEOT':      new Set([308,311,316,317,323,329,1096,1317,337,338,2243,2383]),
+  'RENAULT':      new Set([266,267,268,250,252,253,254,255,256,257,258,260,261,262,263,269,2075,1314,1105,1850,273,2384,2385,1313,1312,1099,2098,1311,1303,280,1101,1306,283,2386,2245]),
+  'SEAT':         new Set([199,200,201,202,203,204,205,206,211,215,217,218,219,220]),
+  'SKODA':        new Set([185,186,187,188,190]),
+  'TOYOTA':       new Set([114,1940,2500,2184,2501,2185,1280,2122,1275,1934,1761,123,124,125,126,2090,2124,1276,2125,2254,2507,130,2519,2502,1115,131,2503,2255,2504,1935,1937,1278,1119,2329,1763,140,2183,1936,2123,2089]),
+  'VAUXHALL':     new Set([2189,2190,1487,2129,1541,2191,2128,2259,2192,1491,1495]),
+  'VOLVO':        new Set([88]),
+  'VW':           new Set([1250,1252,1267,2094,1247,19,1248,1260,1147,1254,28,1148,1150,2261,1264,1149,1262]),
+};
 
 const STEPS = ['make','model','engine'];
 const SYNONYM_GROUPS = [
@@ -698,9 +731,19 @@ function renderStepContent(filter) {
   if (currentStep === 'model' && !f) {
     const groups = buildModelGroups(filtered);
     list.innerHTML = groups.map((g, idx) => {
+      if (g.isOther) {
+        const hasSel = g.subgroups.some(sg => sg.models.some(m => m.id == state.model));
+        const totalCount = g.subgroups.reduce((s, sg) => s + sg.models.length, 0);
+        const innerHtml = g.subgroups.map((sg, sgIdx) => {
+          const sgHasSel = sg.models.some(m => m.id == state.model);
+          const sgKey = 'o' + sgIdx;
+          return `<div class="model-group model-group--nested"><div class="model-group-header ${sgHasSel?'has-sel open':''}" data-gidx="${sgKey}" onclick="toggleModelGroup('${sgKey}');event.stopPropagation()"><div class="model-group-name">${sg.name}</div><div class="model-group-meta"><span class="model-group-count">${sg.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${sgHasSel?'open':''}" id="mg-${sgKey}">${sg.models.map(item => { const isSel = item.id == state.model; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
+        }).join('');
+        return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="other" onclick="toggleModelGroup('other')"><div class="model-group-name">Other</div><div class="model-group-meta"><span class="model-group-count">${totalCount}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-other">${innerHtml}</div></div>`;
+      }
       if (g.models.length === 1) {
         const item = g.models[0]; const isSel = item.id == state.model;
-        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`;
+        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${g.name}</div></div><span class="step-item-check">✓</span></div>`;
       }
       const hasSel = g.models.some(m => m.id == state.model);
       return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})"><div class="model-group-name">${g.name}</div><div class="model-group-meta"><span class="model-group-count">${g.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">${g.models.map(item => { const isSel = item.id == state.model; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
@@ -715,19 +758,43 @@ function renderStepContent(filter) {
       return `<div class="model-group"><div class="model-group-header has-fuel open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${fuel}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item => { const isSel = item.id == state.engine; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.sub?`<div class="step-item-sub">${item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
     }).join(''); return;
   }
+  if (currentStep === 'make' && !f) {
+    const mainMakers = filtered.filter(m => !MAKER_OTHER.has(m.label));
+    const otherMakers = filtered.filter(m => MAKER_OTHER.has(m.label));
+    const mkItem = item => { const isSel = item.id == state.make; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; };
+    const popularItems = POPULAR_MAKERS.map(n => filtered.find(m => m.label === n)).filter(Boolean);
+    const popularHtml = popularItems.length ? `<div class="step-count" style="padding-top:10px">Popular carmakers</div>${popularItems.map(m => { const isSel = m.id == state.make; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(m.id)})"><div class="step-item-body"><div class="step-item-name">${m.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}<div class="step-count" style="padding-top:10px">All carmakers</div>` : '';
+    let html = popularHtml + mainMakers.map(mkItem).join('');
+    if (otherMakers.length > 0) {
+      const hasSel = otherMakers.some(m => m.id == state.make);
+      html += `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="mk-other" onclick="toggleModelGroup('mk-other')"><div class="model-group-name">Other</div><div class="model-group-meta"><span class="model-group-count">${otherMakers.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-mk-other">${otherMakers.map(mkItem).join('')}</div></div>`;
+    }
+    list.innerHTML = html; return;
+  }
   list.innerHTML = filtered.map(item => { const isSel = item.id == state[currentStep]; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.subWithFuel||item.sub?`<div class="step-item-sub">${item.subWithFuel||item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('');
 }
 function buildModelGroups(models) {
-  const grouped = new Map(); const ungrouped = [];
+  const makerName = state.make !== null ? (MAKERS.find(m => m.id === state.make)?.n || '') : '';
+  const otherGids = OTHER_GIDS[makerName] || null;
+  const grouped = new Map(); const otherGrouped = new Map(); const ungrouped = [];
   for (const model of models) {
     const g = MODEL_GROUPS[String(model.id)];
-    if (g) { if (!grouped.has(g.gid)) grouped.set(g.gid, { name: g.gn, models: [] }); grouped.get(g.gid).models.push(model); }
-    else ungrouped.push({ name: model.label, models: [model] });
+    if (g) {
+      const target = (otherGids && otherGids.has(g.gid)) ? otherGrouped : grouped;
+      if (!target.has(g.gid)) target.set(g.gid, { name: g.gn, models: [] });
+      target.get(g.gid).models.push(model);
+    } else ungrouped.push({ name: model.label, models: [model] });
   }
   const groups = [...grouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
   groups.forEach(g => g.models.sort((a,b)=>a.label.localeCompare(b.label)));
   ungrouped.sort((a,b)=>a.name.localeCompare(b.name));
-  return [...groups, ...ungrouped];
+  const result = [...groups, ...ungrouped];
+  if (otherGrouped.size > 0) {
+    const subgroups = [...otherGrouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    subgroups.forEach(g => g.models.sort((a,b)=>a.label.localeCompare(b.label)));
+    result.push({ name: 'Other', isOther: true, subgroups });
+  }
+  return result;
 }
 function toggleModelGroup(idx) {
   const header = document.querySelector(`.model-group-header[data-gidx="${idx}"]`);
