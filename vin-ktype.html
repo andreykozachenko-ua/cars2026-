@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIN → ktype lookup · Autodoc</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; min-height: 100vh; }
+
+.header { background: #1a1a2e; }
+.header__top { max-width: 960px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+.header__logo img { height: 26px; display: block; }
+.header__title { color: #999; font-size: 13px; margin-left: auto; }
+
+.auth-bar { background: #232336; border-bottom: 1px solid #333; }
+.auth-bar__inner { max-width: 960px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.auth-bar__label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.auth-bar__input {
+  flex: 1; min-width: 120px; padding: 7px 12px; background: #1a1a2e; border: 1px solid #444; border-radius: 5px;
+  color: #ccc; font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; outline: none; transition: border-color .15s;
+}
+.auth-bar__input:focus { border-color: #F85A00; }
+.auth-bar__input::placeholder { color: #555; }
+.auth-bar__status { font-size: 11px; white-space: nowrap; }
+.auth-bar__status--ok  { color: #4caf50; }
+.auth-bar__status--empty { color: #666; }
+
+.page { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+.card { background: #fff; border-radius: 8px; border: 1px solid #e0e0e0; padding: 28px 32px; margin-bottom: 20px; }
+.card__title { font-size: 18px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+.card__sub { font-size: 13px; color: #888; margin-bottom: 24px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+
+input[type=text], input[type=number], select {
+  padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px;
+  font-size: 14px; color: #333; background: #fff; outline: none; transition: border-color .15s;
+}
+input:focus, select:focus { border-color: #F85A00; box-shadow: 0 0 0 3px rgba(248,90,0,.1); }
+input.vin-input { font-family: 'SF Mono', 'Consolas', monospace; font-size: 15px; letter-spacing: 0.05em; text-transform: uppercase; }
+input.vin-input::placeholder { text-transform: none; letter-spacing: normal; color: #bbb; font-size: 14px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 28px; background: #F85A00; color: #fff; border: none; border-radius: 6px;
+  font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s; margin-top: 20px;
+}
+.btn:hover { background: #e04f00; }
+.btn:disabled { background: #ccc; cursor: not-allowed; }
+.spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+/* Results */
+.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.results-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge--count { background: #e8f0fe; color: #1967d2; }
+.badge--error { background: #fce8e6; color: #c5221f; }
+.badge--empty { background: #f1f3f4; color: #888; }
+
+.vehicle-table { width: 100%; border-collapse: collapse; }
+.vehicle-table th {
+  text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 700;
+  color: #888; text-transform: uppercase; letter-spacing: 0.04em;
+  border-bottom: 2px solid #eee; background: #fafafa;
+}
+.vehicle-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; vertical-align: middle; }
+.vehicle-table tr:last-child td { border-bottom: none; }
+.vehicle-table tr:hover td { background: #fef8f5; }
+
+.vehicle-img { width: 100px; height: 68px; object-fit: contain; background: #f8f8f8; border-radius: 4px; display: block; }
+.vehicle-img-placeholder { width: 100px; height: 68px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.vehicle-img-placeholder svg { opacity: .25; }
+
+.ktype-badge {
+  display: inline-block; padding: 3px 8px; background: #fff3e0; border: 1px solid #F85A00;
+  color: #F85A00; border-radius: 4px; font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 13px; font-weight: 700;
+}
+
+.raw-toggle { font-size: 12px; color: #888; cursor: pointer; text-decoration: underline; margin-top: 12px; display: inline-block; }
+.raw-block { display: none; margin-top: 8px; padding: 12px; background: #1a1a2e; color: #ccc; font-family: monospace; font-size: 11px; border-radius: 6px; overflow: auto; max-height: 240px; white-space: pre-wrap; }
+
+.error-box { padding: 14px 16px; background: #fce8e6; border: 1px solid #f28b82; border-radius: 6px; color: #c5221f; font-size: 13px; }
+.status-bar { font-size: 12px; color: #888; margin-bottom: 12px; }
+.status-ok { color: #1e7e34; }
+.status-err { color: #c5221f; }
+#results { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header__top">
+    <a class="header__logo" href="#">
+      <img src="https://scdn.autodoc.de/static/logo/logo-light.svg" alt="Autodoc">
+    </a>
+    <span class="header__title">Internal Tools · TecDoc VIN Lookup</span>
+  </div>
+</div>
+
+<div class="auth-bar">
+  <div class="auth-bar__inner">
+    <span class="auth-bar__label">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Authorized Token
+    </span>
+    <input type="password" id="authToken" class="auth-bar__input"
+           placeholder="TecDoc API key"
+           autocomplete="off" spellcheck="false"
+           oninput="updateAuthStatus()">
+    <span class="auth-bar__label" style="margin-left:8px">Provider ID</span>
+    <input type="number" id="providerId" class="auth-bar__input" style="flex:0 0 120px;font-family:inherit"
+           placeholder="e.g. 12345" min="1" autocomplete="off">
+    <span class="auth-bar__status auth-bar__status--empty" id="authStatus">not set</span>
+  </div>
+</div>
+
+<div class="page">
+  <div class="card">
+    <div class="card__title">VIN → ktype (carId) lookup</div>
+    <div class="card__sub">TecDoc API · getVehiclesByVIN + getLinkageTargets</div>
+
+    <div class="form-row">
+      <div class="form-group full">
+        <label for="vin">VIN Number</label>
+        <input type="text" id="vin" class="vin-input" placeholder="e.g. WBA3A5C51CF256952" maxlength="17" autocomplete="off" spellcheck="false">
+        <div class="hint">17 characters · letters A–H, J–N, P–Z and digits 0–9</div>
+      </div>
+
+      <div class="form-group">
+        <label for="country">Country</label>
+        <select id="country">
+          <option value="DE">DE — Germany</option>
+          <option value="GB">GB — United Kingdom</option>
+          <option value="FR">FR — France</option>
+          <option value="PL">PL — Poland</option>
+          <option value="UA">UA — Ukraine</option>
+          <option value="NL">NL — Netherlands</option>
+          <option value="IT">IT — Italy</option>
+          <option value="ES">ES — Spain</option>
+          <option value="CZ">CZ — Czech Republic</option>
+          <option value="AT">AT — Austria</option>
+          <option value="BE">BE — Belgium</option>
+          <option value="RO">RO — Romania</option>
+          <option value="SE">SE — Sweden</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="lang">Language</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Français</option>
+          <option value="pl">Polski</option>
+          <option value="uk">Українська</option>
+          <option value="nl">Nederlands</option>
+          <option value="it">Italiano</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" id="lookupBtn" onclick="lookup()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Find ktype
+      <div class="spinner" id="spinner"></div>
+    </button>
+  </div>
+
+  <div class="card" id="results">
+    <div class="results-header">
+      <div class="results-title">Results</div>
+      <div id="resultsBadge"></div>
+    </div>
+    <div id="statusBar" class="status-bar"></div>
+    <div id="resultsBody"></div>
+    <span class="raw-toggle" onclick="toggleRaw()">show raw JSON</span>
+    <div class="raw-block" id="rawBlock"></div>
+  </div>
+</div>
+
+<script>
+const ENDPOINT = 'https://webservice.tecalliance.services/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint';
+
+function updateAuthStatus() {
+  const token = document.getElementById('authToken').value.trim();
+  const el = document.getElementById('authStatus');
+  el.textContent = token ? '✓ set' : 'not set';
+  el.className = 'auth-bar__status ' + (token ? 'auth-bar__status--ok' : 'auth-bar__status--empty');
+}
+
+function apiKey()      { return document.getElementById('authToken').value.trim(); }
+function providerId()  { return parseInt(document.getElementById('providerId').value.trim(), 10); }
+
+async function tecdocPost(body) {
+  const resp = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey() },
+    body: JSON.stringify(body),
+  });
+  return resp.json();
+}
+
+async function lookup() {
+  const vin        = document.getElementById('vin').value.trim().toUpperCase();
+  const country    = document.getElementById('country').value;
+  const lang       = document.getElementById('lang').value;
+  const key        = apiKey();
+  const provider   = providerId();
+
+  if (!vin)             { alert('Please enter a VIN number'); return; }
+  if (!key)             { alert('Please enter your TecDoc API key'); return; }
+  if (!provider)        { alert('Please enter your TecDoc Provider ID'); return; }
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
+    alert('VIN must be 17 characters (no I, O, Q)'); return;
+  }
+
+  const btn = document.getElementById('lookupBtn');
+  const spinner = document.getElementById('spinner');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    // Step 1 — VIN → carId list
+    const vinResp = await tecdocPost({
+      getVehiclesByVIN: { provider, vin, lang, country }
+    });
+
+    if (vinResp.status !== 200) {
+      showError(`TecDoc error ${vinResp.status}: ${vinResp.statusText || 'Unknown error'}`);
+      return;
+    }
+
+    const data     = vinResp.data || {};
+    const rawVehicles = (data.matchingVehicles?.array) || [];
+    const manus    = (data.matchingManufacturers?.array) || [];
+    const models   = (data.matchingModels?.array) || [];
+
+    if (!rawVehicles.length) {
+      showEmpty(vin);
+      return;
+    }
+
+    // Step 2 — carIds → images + tech details
+    const carIds = rawVehicles.map(v => ({ type: 'P', id: v.carId }));
+    const ltResp = await tecdocPost({
+      getLinkageTargets: {
+        provider,
+        lang,
+        linkageTargetCountry: country,
+        linkageTargetType: 'P',
+        linkageTargetIds: carIds,
+        includeVehicleImages: true,
+        perPage: carIds.length,
+        page: 1,
+      }
+    });
+
+    const detailsMap = {};
+    for (const lt of ltResp.linkageTargets || []) {
+      const imgs = lt.vehicleImages || [];
+      const engines = lt.engines || [];
+      const kwF = lt.kiloWattsFrom, kwT = lt.kiloWattsTo;
+      const hpF = lt.horsePowerFrom, hpT = lt.horsePowerTo;
+      detailsMap[lt.linkageTargetId] = {
+        imageURL: imgs[0]?.imageURL200 || imgs[0]?.imageURL100 || null,
+        engineCodes: engines.map(e => e.code).filter(Boolean).join(', ') || null,
+        powerKw: kwF ? (kwF === kwT ? `${kwF} kW` : `${kwF}–${kwT} kW`) : null,
+        powerHp: hpF ? (hpF === hpT ? `${hpF} hp` : `${hpF}–${hpT} hp`) : null,
+        beginYear: lt.beginYearMonth || null,
+        endYear:   lt.endYearMonth   || null,
+        fuelType:  lt.fuelType       || null,
+        bodyStyle: lt.bodyStyle      || null,
+        cylinders: lt.cylinders      || null,
+        capacityCC:lt.capacityCC     || null,
+        driveType: lt.driveType      || null,
+        fuelMixtureFormationType: lt.fuelMixtureFormationType || null,
+        valves:    lt.valves         || null,
+      };
+    }
+
+    const vehicles = rawVehicles.map(v => ({
+      carId:   String(v.carId),
+      carName: v.carName,
+      vehicleTypeDescription: v.vehicleTypeDescription,
+      manuName:  manus[0]?.manuName,
+      modelName: models[0]?.modelName,
+      ...(detailsMap[v.carId] || {}),
+    }));
+
+    showResults(vehicles, vin, vinResp.status, JSON.stringify(vinResp, null, 2));
+
+  } catch (err) {
+    showError('Network error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+  }
+}
+
+function showResults(vehicles, vin, status, rawJson) {
+  const count = vehicles.length;
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('resultsBadge').innerHTML =
+    `<span class="badge badge--count">${count} vehicle${count !== 1 ? 's' : ''} found</span>`;
+  document.getElementById('statusBar').innerHTML =
+    `TecDoc status: <span class="status-ok">${status}</span> · VIN: <b>${escHtml(vin)}</b>`;
+  document.getElementById('rawBlock').textContent = rawJson;
+
+  const rows = vehicles.map(v => {
+    const imgCell = v.imageURL
+      ? `<img class="vehicle-img" src="${escHtml(v.imageURL)}" alt="${escHtml(v.carName||'')}" loading="lazy">`
+      : `<div class="vehicle-img-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.2"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l2-3h10l2 3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg></div>`;
+
+    const production = v.beginYear
+      ? escHtml(v.beginYear) + (v.endYear ? ' – ' + escHtml(v.endYear) : ' – present')
+      : '—';
+
+    const power = [v.powerKw, v.powerHp].filter(Boolean).join(' / ') || '—';
+
+    const specParts = [
+      v.fuelType,
+      v.engineCodes ? `<span style="font-family:monospace">${escHtml(v.engineCodes)}</span>` : null,
+      v.cylinders   ? v.cylinders + ' cyl' : null,
+      v.capacityCC  ? (v.capacityCC / 1000).toFixed(1) + ' L' : null,
+      v.fuelMixtureFormationType,
+      v.valves      ? v.valves + ' valves' : null,
+      v.bodyStyle,
+      v.driveType,
+    ].filter(Boolean);
+
+    return `<tr>
+      <td>${imgCell}</td>
+      <td><span class="ktype-badge">${escHtml(v.carId)}</span></td>
+      <td>
+        <strong>${escHtml(v.carName || v.manuName || '—')}</strong>
+        ${v.vehicleTypeDescription ? '<br><span style="color:#888;font-size:12px">' + escHtml(v.vehicleTypeDescription) + '</span>' : ''}
+      </td>
+      <td style="color:#555">${production}</td>
+      <td style="font-weight:600">${escHtml(power)}</td>
+      <td style="font-size:12px;color:#666;line-height:1.7">${specParts.join(' · ') || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('resultsBody').innerHTML = `
+    <table class="vehicle-table">
+      <thead><tr>
+        <th style="width:116px">Photo</th>
+        <th style="width:120px">ktype (carId)</th>
+        <th>Vehicle</th>
+        <th>Production</th>
+        <th>Power</th>
+        <th>Specs</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function showEmpty(vin) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('resultsBadge').innerHTML = `<span class="badge badge--empty">No vehicles found</span>`;
+  document.getElementById('statusBar').innerHTML = `VIN: <b>${escHtml(vin)}</b>`;
+  document.getElementById('resultsBody').innerHTML =
+    `<p style="color:#888;font-size:13px;padding:8px 0">No matching vehicles for this VIN. Check Provider ID, country, or VIN.</p>`;
+}
+
+function showError(msg) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('resultsBadge').innerHTML = `<span class="badge badge--error">Error</span>`;
+  document.getElementById('statusBar').innerHTML = '';
+  document.getElementById('resultsBody').innerHTML = `<div class="error-box">${escHtml(msg)}</div>`;
+}
+
+function toggleRaw() {
+  const b = document.getElementById('rawBlock');
+  b.style.display = b.style.display === 'block' ? 'none' : 'block';
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('vin').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+</script>
+</body>
+</html>
