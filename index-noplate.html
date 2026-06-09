@@ -961,6 +961,22 @@ function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
   if (q.length < 2) { dd.style.display='none'; return; }
+  const carIdQ = q.match(/^#?(\d+)$/);
+  if (carIdQ) {
+    const id = +carIdQ[1];
+    const car = ALL_CARS.find(c => c[3] === id);
+    if (car) {
+      const m = MAKERS.find(mk => mk.id === car[0]);
+      const sub = [car[6]&&car[7]?`${car[6]}–${car[7]}`:car[6]?`from ${car[6]}`:'', car[5]?car[5].split('/')[0]:'', car[8]?`${car[8]} kW`:''].filter(Boolean).join(' · ');
+      dd.style.display='block';
+      dd.innerHTML = `<div class="ac-item" onclick="pickAc(${car[3]})"><div class="ac-ico" id="aco-${car[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${m?.n||''} ${car[2]} · ${car[4]}</div><div class="ac-sub">ID ${car[3]}${sub?' · '+sub:''}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
+      setBgImg(document.getElementById(`aco-${car[3]}`), carImg(car[3]));
+    } else {
+      dd.style.display='block';
+      dd.innerHTML = `<div class="ac-more">No vehicle with ID ${id}</div>`;
+    }
+    return;
+  }
   const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));

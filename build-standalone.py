@@ -27,6 +27,8 @@ FETCH_BLOCK = """Promise.all([
   fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
 ]).then(([data, csv, groups]) => {
   MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+  MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+  ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
   if (csv) parseRatingsCsv(csv);
   resetFindBtn(); renderMakerShortcuts();
 }).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load — use a local server'; });"""
@@ -37,6 +39,8 @@ INLINE_LOADER = """(function() {
   var csv    = window.__INLINE_BMW_CSV      || '';
   if (data && groups) {
     MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+    MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+    ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
     if (csv) parseRatingsCsv(csv);
     resetFindBtn(); renderMakerShortcuts();
   } else {
@@ -46,6 +50,8 @@ INLINE_LOADER = """(function() {
       fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
     ]).then(([data, csv, groups]) => {
       MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+      MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+      ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
       if (csv) parseRatingsCsv(csv);
       resetFindBtn(); renderMakerShortcuts();
     }).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load'; });
