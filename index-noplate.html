@@ -741,10 +741,6 @@ function renderStepContent(filter) {
         }).join('');
         return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="other" onclick="toggleModelGroup('other')"><div class="model-group-name">Other</div><div class="model-group-meta"><span class="model-group-count">${totalCount}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-other">${innerHtml}</div></div>`;
       }
-      if (g.models.length === 1) {
-        const item = g.models[0]; const isSel = item.id == state.model;
-        return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${g.name}</div></div><span class="step-item-check">✓</span></div>`;
-      }
       const hasSel = g.models.some(m => m.id == state.model);
       return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})"><div class="model-group-name">${g.name}</div><div class="model-group-meta"><span class="model-group-count">${g.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">${g.models.map(item => { const isSel = item.id == state.model; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
     }).join(''); return;
