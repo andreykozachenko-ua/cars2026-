@@ -28,7 +28,7 @@ FETCH_BLOCK = """Promise.all([
 ]).then(([data, csv, groups]) => {
   MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
   MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
-  ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
+  ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
   if (csv) parseRatingsCsv(csv);
   resetFindBtn(); renderMakerShortcuts();
 }).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load — use a local server'; });"""
@@ -40,7 +40,7 @@ INLINE_LOADER = """(function() {
   if (data && groups) {
     MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
     MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
-    ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
+    ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
     if (csv) parseRatingsCsv(csv);
     resetFindBtn(); renderMakerShortcuts();
   } else {
@@ -51,7 +51,7 @@ INLINE_LOADER = """(function() {
     ]).then(([data, csv, groups]) => {
       MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
       MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
-      ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], c[5], c[10], c[11]); });
+      ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
       if (csv) parseRatingsCsv(csv);
       resetFindBtn(); renderMakerShortcuts();
     }).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load'; });
