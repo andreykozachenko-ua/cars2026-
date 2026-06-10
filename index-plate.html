@@ -105,11 +105,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .plate-go-btn:hover:not(:disabled) { background: #0058c7; }
 .plate-go-btn:disabled { background: #ccc; cursor: not-allowed; }
 .plate-go-btn svg { width: 14px; height: 14px; }
-.plate-hints { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; font-size: 11px; color: #999; }
-.plate-hint-label { color: #888; margin-right: 2px; }
-.plate-hint-chip { padding: 2px 8px; background: #F5C518; border: 1px solid #1c1c1c; border-radius: 3px; font-size: 10px; font-weight: 800; font-family: 'Arial Black', Arial, sans-serif; color: #111; cursor: pointer; letter-spacing: 1px; transition: background .12s; }
-.plate-hint-chip:hover { background: #ffd633; }
-
 /* Plate confirm card */
 .plate-confirm-card { margin-top: 10px; border-radius: 6px; overflow: hidden; animation: pccIn .18s ease; }
 @keyframes pccIn { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: translateY(0) } }
@@ -397,14 +392,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           Find
         </button>
       </div>
-      <div class="plate-hints">
-        <span class="plate-hint-label">Try:</span>
-        <button class="plate-hint-chip" onclick="tryPlate('AB12CDE','')">AB12 CDE</button>
-        <button class="plate-hint-chip" onclick="tryPlate('WV68GTI','')">WV68 GTI</button>
-        <button class="plate-hint-chip" onclick="tryPlate('FF24EV1','')">FF24 EV1</button>
-        <button class="plate-hint-chip" onclick="tryPlate('LD17RS6','')">LD17 RS6</button>
-        <button class="plate-hint-chip" onclick="tryPlate('MN20C200','')">MN20 C200</button>
-      </div>
       <div id="plateConfirmCard" class="plate-confirm-card" style="display:none"></div>
     </div>
 
@@ -518,14 +505,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             Find
           </button>
-        </div>
-        <div class="plate-hints">
-          <span class="plate-hint-label">Try:</span>
-          <button class="plate-hint-chip" onclick="tryPlate('AB12CDE','sb-')">AB12 CDE</button>
-          <button class="plate-hint-chip" onclick="tryPlate('WV68GTI','sb-')">WV68 GTI</button>
-          <button class="plate-hint-chip" onclick="tryPlate('FF24EV1','sb-')">FF24 EV1</button>
-          <button class="plate-hint-chip" onclick="tryPlate('LD17RS6','sb-')">LD17 RS6</button>
-          <button class="plate-hint-chip" onclick="tryPlate('MN20C200','sb-')">MN20 C200</button>
         </div>
         <div id="sb-plateConfirmCard" class="plate-confirm-card" style="display:none"></div>
 
@@ -1366,11 +1345,6 @@ const DEMO_PLATES = {
   'MN20C200': 143578,
 };
 let plateFoundCar = null;
-function tryPlate(plate, ctx) {
-  const input = document.getElementById((ctx||'') + 'plateInput');
-  if (input) input.value = plate;
-  searchByPlate(ctx);
-}
 function searchByPlate(ctx) {
   ctx = ctx || '';
   const input = document.getElementById(ctx + 'plateInput');
