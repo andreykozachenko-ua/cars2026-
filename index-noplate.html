@@ -84,6 +84,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ac-name .hl { background: none; color: #F85A00; font-weight: 700; }
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
 .ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
+.ac-item.kb-focus { background: #fff8f5; }
+.ac-refine { padding: 8px 12px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+.ac-refine-text { font-size: 11px; color: #888; margin-bottom: 6px; text-align: center; }
+.ac-refine-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.ac-refine-chip { padding: 3px 9px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 11px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: baseline; }
+.ac-refine-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.ac-refine-count { color: #999; font-weight: 400; margin-left: 4px; font-size: 10px; }
+.ac-refine-chip:hover .ac-refine-count { color: #F85A00; }
 
 /* Maker chips */
 .chips-label { font-size: 11px; color: #888; margin: 10px 0 6px; font-weight: 600; }
@@ -508,6 +516,7 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 let fuelFilter = 'all';
 let MAKERS_MAP = new Map();
+const AC_STATE = { acDrop: { items: [], focusIdx: -1 }, 'sb-acDrop': { items: [], focusIdx: -1 } };
 const POPULAR_MAKERS = ['BMW','VW','AUDI','MERCEDES-BENZ','FORD','VAUXHALL','RENAULT','PEUGEOT','TOYOTA','VOLVO'];
 const MAKER_OTHER = new Set(['AC','ACURA','ALVIS','ARO','ARTEGA','ASIA MOTORS','ASKAM (FARGO/DESOTO)','AUSTIN-HEALEY','AUTO UNION','AUVERLAND','BARKAS','BEDFORD','BERTONE','BESTURN (FAW)','BORGWARD','BRABUS','BUGATTI','BUICK','BUICK (SGM)','CARBODIES','CASALINI','CATERHAM','CHERY','DAF','DAIMLER','DE TOMASO','DFSK','EBRO','FISKER','FORD ASIA / OCEANIA','FORD OTOSAN','FSO','GAZ','GEELY (GLEAGLE)','GENESIS','GLAS','GMC','GOUPIL','GREAT WALL','HAVAL','HOLDEN','INDIGO','INNOCENTI','JIANGLING LANDWIND','JINBEI','KOENIGSEGG','KTM','LDV','LEVC','LIGIER','LINCOLN','LLOYD','LTI','LUCID','MAHINDRA','MARUTI','MAYBACH','MCLAREN','MEGA','MERCURY','MIA ELECTRIC','MINELLI','MORGAN','MORRIS','MOSKVICH','NSU','OLDSMOBILE','PAGANI','PANTHER','PININFARINA','PLYMOUTH','POLARIS','PROTON','PUCH','RAVON','RUF','SATURN','SCION','SHELBY','SHUANGHUAN AUTO','SPYKER','STEYR','STREETSCOOTER','THINK','TVR','UAZ','UMM','VICTORY','WARTBURG','WESTFIELD','WIESMANN','ZASTAVA','ZUENDAPP']);
 
@@ -940,15 +949,20 @@ document.getElementById('sb-searchInput').addEventListener('input', function() {
   clearTimeout(searchDebounce);
   searchDebounce = setTimeout(() => runAc(this.value.trim(), 'sb-acDrop'), 150);
 });
+document.getElementById('searchInput').addEventListener('keydown', e => handleAcKeydown(e, 'acDrop'));
+document.getElementById('sb-searchInput').addEventListener('keydown', e => handleAcKeydown(e, 'sb-acDrop'));
 document.addEventListener('click', e => {
   if (!e.target.closest('.ac-wrap')) {
     document.getElementById('acDrop').style.display = 'none';
     document.getElementById('sb-acDrop').style.display = 'none';
+    AC_STATE['acDrop'].focusIdx = -1;
+    AC_STATE['sb-acDrop'].focusIdx = -1;
   }
 });
 const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const normEng = s => s.replace(/(\d{2,})\s+([a-zA-Z])\b/g, '$1$2');
 function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
-  const base = deaccent([makeName, modelName, trimName, fuel||'', driveType||'', bodyType||''].join(' ')).toLowerCase();
+  const base = normEng(deaccent([makeName, modelName, trimName, fuel||'', driveType||'', bodyType||''].join(' ')).toLowerCase());
   const n1 = base.replace(/[-()_\/]/g,' ');
   const n2 = base.replace(/[()_\/]/g,' ').replace(/-/g,'');
   const n3 = n1.replace(/\b([a-z]) (\d+)\b/g,'$1$2');
@@ -956,6 +970,8 @@ function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
 }
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
+  const st = AC_STATE[dropId];
+  st.items = []; st.focusIdx = -1;
   if (q.length < 2) { dd.style.display='none'; return; }
   const carIdQ = q.match(/^#?(\d+)$/);
   if (carIdQ) {
@@ -967,13 +983,14 @@ function runAc(q, dropId) {
       dd.style.display='block';
       dd.innerHTML = `<div class="ac-item" onclick="pickAc(${car[3]})"><div class="ac-ico" id="aco-${car[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${m?.n||''} ${car[2]} · ${car[4]}</div><div class="ac-sub">ID ${car[3]}${sub?' · '+sub:''}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
       setBgImg(document.getElementById(`aco-${car[3]}`), carImg(car[3]));
+      st.items = [car[3]];
     } else {
       dd.style.display='block';
       dd.innerHTML = `<div class="ac-more">No vehicle with ID ${id}</div>`;
     }
     return;
   }
-  const parts = deaccent(q).toLowerCase().replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
+  const parts = normEng(deaccent(q).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
   const termForms = tt.map(termMatchers);
@@ -987,9 +1004,165 @@ function runAc(q, dropId) {
   res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));
   const top=res.slice(0,8);
   if(!top.length){dd.style.display='block';dd.innerHTML=`<div class="ac-more">No vehicles found</div>`;return;}
+  st.items = top.map(c => c[3]);
+  const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
+  let refineHtml = '';
+  if (res.length > 8) {
+    const sug = getRefineSuggestions(res, q);
+    const chipsHtml = sug.map(s => {
+      const safe = String(s.append).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const titleAttr = s.label.length > 24 ? ` title="${s.label.replace(/"/g,'&quot;')}"` : '';
+      return `<button class="ac-refine-chip" onclick="applyRefineChip('${safe}','${inputId}')"${titleAttr}>+ ${s.label} <span class="ac-refine-count">${s.count}</span></button>`;
+    }).join('');
+    refineHtml = `<div class="ac-refine"><div class="ac-refine-text">Showing top 8 of ${res.length}${sug.length?' — narrow down by:':''}</div>${chipsHtml?`<div class="ac-refine-chips">${chipsHtml}</div>`:''}</div>`;
+  }
   dd.style.display='block';
-  dd.innerHTML=top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('')+(res.length>8?`<div class="ac-more">Showing top 8 of ${res.length} — refine your search</div>`:'');
+  dd.innerHTML = itemsHtml + refineHtml;
   top.forEach(c => setBgImg(document.getElementById(`aco-${c[3]}`), carImg(c[3])));
+}
+function isUsefulTrim(t) {
+  if (!/[a-zA-Z]/.test(t)) return false;
+  const tokens = t.split(/[-()_\/\s]+/).filter(Boolean);
+  return tokens.some(tok => tok.length >= 3);
+}
+function countAfterTerm(res, term) {
+  const parts = normEng(deaccent(term).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
+  let yf = null;
+  const tt = [];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yf = +p) : tt.push(p));
+  const termForms = tt.map(termMatchers);
+  let n = 0;
+  for (const c of res) {
+    if (yf && (c[6] > yf || (c[7] !== null && c[7] < yf))) continue;
+    if (termForms.length) {
+      const hay = c._hay;
+      if (!termForms.every(forms => forms.some(({str, re}) => re ? re.test(hay) : hay.includes(str)))) continue;
+    }
+    n++;
+  }
+  return n;
+}
+function getRefineSuggestions(res, q) {
+  if (res.length <= 8) return [];
+  const candidates = [];
+  const years = new Set();
+  const fuels = new Set();
+  const models = new Map();
+  for (const c of res) {
+    if (c[6]) years.add(c[6]);
+    fuels.add(normalizeFuel(c[5]));
+    const k = c[0] + '|' + c[1];
+    if (!models.has(k)) models.set(k, c[2]);
+  }
+  const yearsSorted = [...years].sort((a,b)=>a-b);
+  if (yearsSorted.length >= 3) {
+    const latest = yearsSorted[yearsSorted.length-1];
+    candidates.push({ category:'year', append: String(latest), label: String(latest) });
+  }
+  ['Diesel','Petrol','Hybrid','Electric'].forEach(f => {
+    if (fuels.has(f)) candidates.push({ category:'fuel', append: f, label: f });
+  });
+  const dispRe = /\b(\d\.\d)\b/;
+  const disps = new Set();
+  const trims = new Set();
+  for (const c of res) {
+    const m = (c[4] || '').match(dispRe);
+    if (m) disps.add(m[1]);
+    if (c[4] && isUsefulTrim(c[4])) trims.add(normEng(c[4]));
+  }
+  disps.forEach(d => candidates.push({ category:'disp', append: d, label: d + 'L' }));
+  trims.forEach(t => candidates.push({ category:'trim', append: t, label: t }));
+  if (models.size > 1) {
+    models.forEach(name => candidates.push({ category:'model', append: name, label: name }));
+  }
+  candidates.forEach(c => { c.count = countAfterTerm(res, c.append); });
+  const dispChipsByPrefix = new Map();
+  for (const c of candidates) if (c.category === 'disp') dispChipsByPrefix.set(c.append, c);
+  const trimGroups = new Map();
+  for (const c of candidates) {
+    if (c.category !== 'trim') continue;
+    const m = c.append.match(/^(\d\.\d)\b/);
+    if (!m) continue;
+    const key = m[1] + '|' + c.count;
+    if (!trimGroups.has(key)) trimGroups.set(key, []);
+    trimGroups.get(key).push(c);
+  }
+  const toRemove = new Set();
+  const toAdd = [];
+  for (const [key, group] of trimGroups) {
+    const [disp, cStr] = key.split('|');
+    const cnt = +cStr;
+    const existingDisp = dispChipsByPrefix.get(disp);
+    if (existingDisp && existingDisp.count === cnt) {
+      group.forEach(c => toRemove.add(c));
+      continue;
+    }
+    if (group.length < 2) continue;
+    group.forEach(c => toRemove.add(c));
+    toAdd.push({ category:'disp_grouped', append: group[0].append, label: disp, count: cnt });
+  }
+  const processed = candidates.filter(c => !toRemove.has(c)).concat(toAdd);
+  const minCount = Math.max(2, Math.floor(res.length * 0.01));
+  const scored = processed.filter(c => c.count >= minCount && c.count < res.length);
+  const TARGET_LOG = Math.log(8);
+  scored.forEach(c => {
+    const ratio = res.length / c.count;
+    c.score = -Math.abs(Math.log(ratio) - TARGET_LOG);
+  });
+  scored.sort((a,b) => b.score - a.score);
+  const seen = new Set();
+  const out = [];
+  for (const c of scored) {
+    const key = c.append.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+function applyRefineChip(append, inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const cur = input.value.trim();
+  input.value = cur ? cur + ' ' + append : append;
+  input.focus();
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function handleAcKeydown(e, dropId) {
+  const dd = document.getElementById(dropId);
+  if (dd.style.display !== 'block') return;
+  const st = AC_STATE[dropId];
+  if (!st.items.length) {
+    if (e.key === 'Escape') { dd.style.display = 'none'; st.focusIdx = -1; }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    st.focusIdx = (st.focusIdx + 1) % st.items.length;
+    updateAcFocus(dropId);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    st.focusIdx = st.focusIdx <= 0 ? st.items.length - 1 : st.focusIdx - 1;
+    updateAcFocus(dropId);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const idx = st.focusIdx >= 0 ? st.focusIdx : 0;
+    const carId = st.items[idx];
+    if (carId != null) pickAc(carId);
+  } else if (e.key === 'Escape') {
+    dd.style.display = 'none';
+    st.focusIdx = -1;
+  }
+}
+function updateAcFocus(dropId) {
+  const dd = document.getElementById(dropId);
+  const items = dd.querySelectorAll('.ac-item');
+  const st = AC_STATE[dropId];
+  items.forEach((it, i) => it.classList.toggle('kb-focus', i === st.focusIdx));
+  const f = items[st.focusIdx];
+  if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' });
 }
 function pickAc(carId) {
   const car=ALL_CARS.find(c=>c[3]===carId); if(!car)return;
@@ -1002,8 +1175,10 @@ function pickAc(carId) {
 }
 function hl(text,terms){
   let out=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  terms.forEach(t=>{out=out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<span class="hl">$1</span>');});
-  return out;
+  if(!terms.length) return out;
+  const pat=terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).filter(Boolean).sort((a,b)=>b.length-a.length).join('|');
+  if(!pat) return out;
+  return out.replace(new RegExp('('+pat+')','gi'),'<span class="hl">$1</span>');
 }
 const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
 const PLACEHOLDER_IMG = 'uploads/000.jpg';
