@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUTODOC — Car Parts & Accessories (plate)</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; }
+
+/* ── Header top ── */
+.header { background: #1a1a2e; }
+.header__top { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.header__logo img { height: 28px; display: block; }
+.header__top-right { display: flex; align-items: center; gap: 20px; }
+.hact { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; color: rgba(255,255,255,.75); transition: color .15s; }
+.hact:hover { color: #fff; }
+.hact svg { width: 22px; height: 22px; flex-shrink: 0; }
+.hact-text { display: flex; flex-direction: column; }
+.hact-label { font-size: 10px; color: rgba(255,255,255,.5); line-height: 1.2; }
+.hact-value { font-size: 12px; font-weight: 600; line-height: 1.2; }
+.cart-count { background: #F85A00; color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: -6px; margin-top: -8px; flex-shrink: 0; }
+
+/* ── Header panel (search row) ── */
+.header__panel { background: #232336; border-top: 1px solid rgba(255,255,255,.08); }
+.header__panel-inner { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+.header-menu__desk { display: flex; align-items: center; gap: 6px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; text-decoration: none; }
+.header-menu__desk svg { width: 18px; height: 18px; opacity: .8; }
+.header-search { flex: 1; display: flex; border-radius: 4px; overflow: hidden; height: 40px; background: #fff; }
+.header-search input { flex: 1; border: none; outline: none; padding: 0 14px; font-size: 14px; font-family: inherit; color: #333; }
+.header-search input::placeholder { color: #bbb; }
+.header-search__btn { background: #0068d7; color: #fff; border: none; padding: 0 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px; transition: background .15s; flex-shrink: 0; }
+.header-search__btn:hover { background: #0058c7; }
+.header-search__btn svg { width: 14px; height: 14px; }
+.header-cart { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.75); cursor: pointer; flex-shrink: 0; }
+.header-cart svg { width: 22px; height: 22px; }
+.header-cart__text { display: flex; flex-direction: column; }
+.header-cart__label { font-size: 10px; color: rgba(255,255,255,.5); }
+.header-cart__value { font-size: 12px; font-weight: 600; color: #fff; }
+
+/* ── Header nav ── */
+.header-nav { background: #1a1a2e; border-top: 1px solid rgba(255,255,255,.07); }
+.header-nav__inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; overflow-x: auto; }
+.header-nav__item { display: flex; align-items: center; gap: 5px; padding: 9px 14px 9px 0; font-size: 12px; font-weight: 500; color: rgba(255,255,255,.6); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; text-decoration: none; margin-right: 4px; }
+.header-nav__item:hover { color: #fff; border-bottom-color: #F85A00; }
+.header-nav__item.active { color: #fff; border-bottom-color: #F85A00; }
+.header-nav__item svg { width: 14px; height: 14px; opacity: .6; }
+
+/* ── Main layout ── */
+.main { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 500px 1fr; gap: 20px; align-items: start; }
+
+/* ── Selector panel ── */
+.selector-panel { background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.sp-section { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+.sp-section:last-child { border-bottom: none; }
+.sp-title { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 12px; }
+
+/* ── Step entry card ── */
+.step-entry-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #f7f7f7; border: 1px solid #e8e8e8; border-radius: 8px; cursor: pointer; transition: border-color .15s, box-shadow .15s; user-select: none; }
+.step-entry-card:hover { border-color: #F85A00; box-shadow: 0 2px 8px rgba(248,90,0,.1); }
+.step-entry-img { width: 80px; min-width: 80px; height: 54px; border-radius: 6px; flex-shrink: 0; background: #fff center/contain no-repeat; }
+.step-entry-body { flex: 1; min-width: 0; }
+.step-entry-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 3px; line-height: 1.3; }
+.step-entry-sub { font-size: 12px; color: #999; }
+.step-entry-arrow { font-size: 22px; color: #ccc; flex-shrink: 0; line-height: 1; margin-right: -2px; }
+
+/* ── Dividers ── */
+.sp-divider { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 12px 0; }
+.sp-divider::before, .sp-divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+
+/* Autocomplete */
+.ac-wrap { position: relative; }
+.ac-box { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d0d0; border-radius: 4px; padding: 0 12px; height: 44px; background: #fff; transition: border-color .15s; }
+.ac-box:focus-within { border-color: #F85A00; }
+.ac-box svg { width: 14px; height: 14px; color: #bbb; flex-shrink: 0; }
+.ac-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.ac-box input::placeholder { color: #bbb; }
+.ac-drop { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #d0d0d0; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.1); overflow: hidden; z-index: 200; }
+.ac-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: #fff8f5; }
+.ac-ico { width: 52px; min-width: 52px; height: 36px; border-radius: 4px; background: #fff center/contain no-repeat; flex-shrink: 0; }
+.ac-name { font-size: 13px; color: #333; }
+.ac-name .hl { background: none; color: #F85A00; font-weight: 700; }
+.ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
+.ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
+.ac-item.kb-focus { background: #fff8f5; }
+.ac-refine { padding: 8px 12px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+.ac-refine-text { font-size: 11px; color: #888; margin-bottom: 6px; text-align: center; }
+.ac-refine-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.ac-refine-chip { padding: 3px 9px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 11px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: baseline; }
+.ac-refine-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.ac-refine-count { color: #999; font-weight: 400; margin-left: 4px; font-size: 10px; }
+.ac-refine-chip:hover .ac-refine-count { color: #F85A00; }
+
+/* Plate input */
+.plate-row { display: flex; gap: 8px; align-items: stretch; }
+.plate-uk { display: flex; align-items: stretch; border: 2px solid #1c1c1c; border-radius: 4px; overflow: hidden; background: #F5C518; flex: 1; height: 44px; }
+.plate-badge { background: #003399; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px 6px; gap: 1px; flex-shrink: 0; }
+.plate-badge-flag { font-size: 13px; line-height: 1; }
+.plate-badge-code { color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .5px; line-height: 1; }
+.plate-input { flex: 1; border: none; background: transparent; font-size: 20px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; font-family: 'Arial Black', Arial, sans-serif; padding: 0 10px; color: #111; outline: none; width: 0; min-width: 0; }
+.plate-input::placeholder { font-size: 13px; font-weight: 400; letter-spacing: 0; color: #999; font-family: inherit; }
+.plate-go-btn { background: #0068d7; color: #fff; border: none; border-radius: 4px; padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; height: 44px; flex-shrink: 0; transition: background .15s; display: flex; align-items: center; gap: 6px; }
+.plate-go-btn:hover:not(:disabled) { background: #0058c7; }
+.plate-go-btn:disabled { background: #ccc; cursor: not-allowed; }
+.plate-go-btn svg { width: 14px; height: 14px; }
+.plate-hints { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; font-size: 11px; color: #999; }
+.plate-hint-label { color: #888; margin-right: 2px; }
+.plate-hint-chip { padding: 2px 8px; background: #F5C518; border: 1px solid #1c1c1c; border-radius: 3px; font-size: 10px; font-weight: 800; font-family: 'Arial Black', Arial, sans-serif; color: #111; cursor: pointer; letter-spacing: 1px; transition: background .12s; }
+.plate-hint-chip:hover { background: #ffd633; }
+
+/* Plate confirm card */
+.plate-confirm-card { margin-top: 10px; border-radius: 6px; overflow: hidden; animation: pccIn .18s ease; }
+@keyframes pccIn { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: translateY(0) } }
+.plate-confirm-card--found { background: #edf3ff; border: 1.5px solid #0068d7; }
+.plate-confirm-card--error { background: #fff0f0; border: 1.5px solid #d93636; }
+.plate-confirm-card--loading { background: #f5f5f5; border: 1.5px solid #ddd; }
+.pcc-header { padding: 8px 12px 0; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.plate-confirm-card--found .pcc-header { color: #0068d7; }
+.plate-confirm-card--error .pcc-header { color: #d93636; }
+.plate-confirm-card--loading .pcc-header { color: #888; }
+.pcc-car { display: flex; align-items: center; gap: 10px; padding: 8px 12px 4px; }
+.pcc-car-img { width: 72px; min-width: 72px; height: 48px; border-radius: 4px; background: #fff center/contain no-repeat; flex-shrink: 0; }
+.pcc-car-name { font-size: 14px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+.pcc-car-trim { font-size: 12px; color: #F85A00; font-weight: 600; margin-top: 2px; }
+.pcc-car-sub { font-size: 11px; color: #888; margin-top: 2px; }
+.pcc-error-msg, .pcc-loading-msg { padding: 6px 12px 2px; font-size: 12px; color: #555; line-height: 1.4; }
+.pcc-actions { padding: 6px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+.pcc-confirm-btn { width: 100%; height: 38px; background: #0068d7; color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .15s; }
+.pcc-confirm-btn:hover { background: #0058c7; }
+.pcc-not-mine, .pcc-try-again { text-align: center; font-size: 11px; }
+.pcc-not-mine a, .pcc-try-again a { color: #0068d7; text-decoration: none; }
+.pcc-not-mine a:hover, .pcc-try-again a:hover { text-decoration: underline; }
+.pcc-spinner { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #0068d7; border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+/* Maker chips */
+.chips-label { font-size: 11px; color: #888; margin: 10px 0 6px; font-weight: 600; }
+.maker-shortcuts { display: flex; flex-wrap: wrap; gap: 5px; }
+.maker-chip { padding: 4px 10px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 11px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; }
+.maker-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.maker-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+
+/* Fuel filter bar */
+.fuel-filter-bar { display: none; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.fuel-chip { padding: 4px 12px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 12px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; }
+.fuel-chip:hover { border-color: #F85A00; color: #F85A00; background: #fff8f5; }
+.fuel-chip.active { background: #F85A00; border-color: #F85A00; color: #fff; }
+.fuel-chip--disabled { opacity: .3; cursor: not-allowed; pointer-events: none; }
+
+/* Recent vehicles */
+.recent-list { display: flex; flex-direction: column; gap: 4px; }
+.recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; transition: border-color .12s; }
+.recent-item:hover { border-color: #F85A00; }
+.recent-item-icon { width: 60px; min-width: 60px; height: 40px; border-radius: 4px; background: #fff center/contain no-repeat; flex-shrink: 0; }
+.recent-item-body { flex: 1; min-width: 0; }
+.recent-item-name { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-sub { font-size: 11px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-item-remove { width: 24px; height: 24px; border: none; background: none; cursor: pointer; color: #ccc; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; transition: color .12s, background .12s; padding: 0; }
+.recent-item-remove:hover { color: #666; background: #eee; }
+.recent-item-remove svg { width: 10px; height: 10px; }
+
+/* ── Right column ── */
+.right-col { display: flex; flex-direction: column; gap: 12px; }
+.promo-banner { border-radius: 4px; overflow: hidden; background: linear-gradient(135deg, #0a1628 0%, #1a1a2e 100%); padding: 28px 32px; min-height: 180px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+.promo-tag { background: #F85A00; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 2px; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
+.promo-h { color: #fff; font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 6px; }
+.promo-h em { color: #F85A00; font-style: normal; }
+.promo-sub { color: rgba(255,255,255,.6); font-size: 12px; margin-bottom: 16px; max-width: 260px; }
+.promo-cta { background: #F85A00; color: #fff; border: none; border-radius: 4px; padding: 10px 22px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; }
+.promo-cta:hover { background: #e04f00; }
+.promo-img { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); opacity: .15; font-size: 100px; }
+
+/* Category grid */
+.cats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.cat-card { background: #fff; border-radius: 4px; padding: 14px 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06); cursor: pointer; transition: box-shadow .15s, border-color .15s; display: flex; flex-direction: column; gap: 6px; text-decoration: none; border: 1px solid transparent; }
+.cat-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); border-color: #F85A00; }
+.cat-icon { font-size: 20px; }
+.cat-name { font-size: 12px; font-weight: 600; color: #333; }
+.cat-count { font-size: 11px; color: #999; }
+
+/* ── Overlay ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+
+/* ── Sidebar ── */
+.sidebar { position: fixed; top: 0; right: 0; bottom: 0; width: 500px; z-index: 101; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .35s cubic-bezier(.32,.72,0,1); box-shadow: -4px 0 24px rgba(0,0,0,.15); background: #fff; overflow: hidden; }
+.sidebar.open { transform: translateX(0); }
+@media (max-width: 480px) { .sidebar { width: 100%; } }
+
+.sb-topbar { flex-shrink: 0; height: 52px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid #eee; }
+.sb-back { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #999; flex-shrink: 0; transition: color .15s; }
+.sb-back:hover { color: #222; }
+.sb-back svg { width: 20px; height: 20px; }
+.sb-back[hidden] { visibility: hidden; pointer-events: none; }
+.sb-topbar-title { flex: 1; text-align: center; font-size: 15px; font-weight: 700; color: #1a1a2e; }
+.sb-close { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; color: #bbb; flex-shrink: 0; transition: color .15s; }
+.sb-close:hover { color: #333; }
+.sb-close svg { width: 18px; height: 18px; }
+
+/* Panels */
+.panels-wrap { flex: 1; position: relative; overflow: hidden; }
+.panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; background: #fff; transition: transform .32s cubic-bezier(.32,.72,0,1); scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+#panel-main { transform: translateX(0); }
+#panel-main.pushed { transform: translateX(-30%); }
+#panel-step { transform: translateX(100%); }
+#panel-step.active { transform: translateX(0); }
+
+.sb-body { padding: 14px 16px; }
+.sb-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.sb-divider { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 14px 0 10px; }
+.sb-divider::before, .sb-divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+
+/* Step panel */
+.step-trail { padding: 10px 16px 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.trail-chip { display: inline-flex; align-items: center; gap: 4px; background: #fff8f5; border: 1px solid #ffd0b8; border-radius: 20px; padding: 3px 10px 3px 11px; font-size: 12px; font-weight: 600; color: #F85A00; cursor: pointer; transition: background .15s; white-space: nowrap; }
+.trail-chip:hover { background: #ffe8d8; }
+.trail-chip-x { font-size: 13px; color: #ffb899; line-height: 1; }
+.step-header { padding: 10px 16px 0; }
+.step-header-step { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.step-header-title { font-size: 18px; font-weight: 800; color: #1a1a2e; }
+.step-search { padding: 10px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 5; }
+.step-search-inner { display: flex; align-items: center; gap: 8px; background: #f5f5f5; border-radius: 4px; padding: 8px 12px; }
+.step-search-inner svg { width: 14px; height: 14px; color: #aaa; flex-shrink: 0; }
+.step-search-inner input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.step-search-inner input::placeholder { color: #bbb; }
+.step-content-wrap { overflow: hidden; }
+.step-content { transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .22s; }
+.step-content.exit-left  { transform: translateX(-48px); opacity: 0; pointer-events: none; }
+.step-content.exit-right { transform: translateX(48px);  opacity: 0; pointer-events: none; }
+.step-content.enter-right { transform: translateX(48px);  opacity: 0; }
+.step-content.enter-left  { transform: translateX(-48px); opacity: 0; }
+.step-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; background: #fff; transition: background .1s; }
+.step-item:last-child { border-bottom: none; }
+.step-item:hover { background: #fff8f5; }
+.step-item.sel { background: #fff3ee; }
+.step-item-body { flex: 1; min-width: 0; }
+.step-item-name { font-size: 14px; color: #333; }
+.step-item.sel .step-item-name { font-weight: 700; color: #F85A00; }
+.step-item-sub { font-size: 11px; color: #999; margin-top: 2px; }
+.step-item-check { color: #F85A00; font-size: 14px; opacity: 0; flex-shrink: 0; margin-left: 8px; }
+.step-item.sel .step-item-check { opacity: 1; }
+.step-empty { padding: 40px 16px; text-align: center; color: #bbb; font-size: 14px; }
+.step-count { font-size: 11px; color: #aaa; padding: 8px 16px 4px; }
+.sb-footer { flex-shrink: 0; padding: 12px 16px; border-top: 1px solid #eee; background: #fff; }
+
+/* Model groups */
+.model-group { border-bottom: 1px solid #f0f0f0; }
+.model-group:last-child { border-bottom: none; }
+.model-group-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; background: #fff; transition: background .1s; user-select: none; }
+.model-group-header:hover { background: #fafafa; }
+.model-group-header.has-sel, .model-group-header.open { background: #fff8f5; }
+.model-group-name { font-size: 14px; color: #333; }
+.model-group-header.has-sel .model-group-name { font-weight: 700; color: #F85A00; }
+.model-group-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.model-group-count { font-size: 11px; color: #bbb; }
+.model-group-arrow { font-size: 16px; color: #bbb; transition: transform .2s; line-height: 1; }
+.model-group-header.open .model-group-arrow { transform: rotate(90deg); }
+.model-group-items { display: none; border-top: 1px solid #f5f5f5; background: #fafafa; }
+.model-group-items.open { display: block; }
+.model-group-items .step-item { padding-left: 28px; background: transparent; }
+.model-group-items .step-item:hover { background: #fff3ee; }
+.model-group--nested > .model-group-header { background: #f4f4f4; font-size: 13px; }
+.model-group--nested > .model-group-header:hover { background: #eeeeee; }
+.model-group--nested > .model-group-header.has-sel,
+.model-group--nested > .model-group-header.open { background: #fff3ee; }
+.model-group--nested > .model-group-items { background: #f9f9f9; }
+.model-group--nested > .model-group-items .step-item { padding-left: 40px; }
+.model-group--nested > .model-group-items .step-item:hover { background: #fff3ee; }
+
+/* ── Find button ── */
+.find-btn { width: 100%; height: 44px; background: #0068d7; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
+.find-btn:hover:not(:disabled) { background: #0058c7; }
+.find-btn:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
+.find-btn svg { width: 15px; height: 15px; }
+
+/* ── Sidebar Make/Model/Engine rows ── */
+.sb-step-rows { border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+.sb-step-row { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; background: #fff; border-bottom: 1px solid #f0f0f0; transition: background .12s; }
+.sb-step-row:last-child { border-bottom: none; }
+.sb-step-row:hover:not(.sb-step-row--disabled) { background: #fff8f5; }
+.sb-step-row--disabled { opacity: .4; pointer-events: none; }
+.sb-step-row__label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .6px; width: 50px; flex-shrink: 0; }
+.sb-step-row__value { flex: 1; font-size: 14px; color: #bbb; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-step-row--filled .sb-step-row__value { color: #222; font-weight: 600; }
+.sb-step-row__arrow { font-size: 18px; color: #ccc; flex-shrink: 0; line-height: 1; }
+
+/* ── Hidden vals ── */
+.seb-steps { display: none; }
+
+/* ── Responsive ── */
+@media (max-width: 1060px) {
+  .main { grid-template-columns: 1fr; }
+  .cats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 600px) {
+  .header__top { flex-wrap: wrap; }
+  .header-search { display: none; }
+  .cats-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 0 12px; margin: 12px auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header top: logo + actions -->
+<header class="header">
+  <div class="header__top">
+    <div class="header__logo">
+      <img src="https://scdn.autodoc.de/static/logo/logo-light.svg" alt="AUTODOC">
+    </div>
+    <div class="header__top-right">
+      <a class="hact" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <div class="hact-text">
+          <span class="hact-label">My Garage</span>
+          <span class="hact-value">Add vehicle</span>
+        </div>
+      </a>
+      <a class="hact" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div class="hact-text">
+          <span class="hact-label">My AUTODOC</span>
+          <span class="hact-value">Sign in</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Header panel: search + cart -->
+  <div class="header__panel">
+    <div class="header__panel-inner">
+      <a class="header-menu__desk" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Car parts
+      </a>
+      <div class="header-search">
+        <input type="text" placeholder="Enter the part number or name">
+        <button class="header-search__btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Search
+        </button>
+      </div>
+      <div class="header-cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <div class="header-cart__text">
+          <span class="header-cart__label">0 items</span>
+          <span class="header-cart__value">£0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav links -->
+  <nav class="header-nav">
+    <div class="header-nav__inner">
+      <a class="header-nav__item active" href="#">Car parts</a>
+      <a class="header-nav__item" href="#">Truck parts</a>
+      <a class="header-nav__item" href="#">Motorcycle parts</a>
+      <a class="header-nav__item" href="#">Tyres</a>
+      <a class="header-nav__item" href="#">Wheels</a>
+      <a class="header-nav__item" href="#">Tools</a>
+      <a class="header-nav__item" href="#">Car Accessories</a>
+      <a class="header-nav__item" href="#">Engine oil</a>
+      <a class="header-nav__item" href="#">Filters</a>
+      <a class="header-nav__item" href="#">Brakes</a>
+    </div>
+  </nav>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Left: selector panel -->
+  <div class="selector-panel">
+
+    <div style="padding: 14px 16px 0; font-size: 15px; font-weight: 700; color: #1a1a2e;">Find car parts for your vehicle</div>
+
+    <!-- Reg number lookup -->
+    <div class="sp-section" style="border-bottom: 1px solid #f0f0f0">
+      <div class="plate-row">
+        <div class="plate-uk">
+          <div class="plate-badge">
+            <span class="plate-badge-flag">🇬🇧</span>
+            <span class="plate-badge-code">GB</span>
+          </div>
+          <input class="plate-input" id="plateInput" type="text" placeholder="YOUR REG"
+            autocomplete="off" maxlength="8"
+            oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+            onkeydown="if(event.key==='Enter')searchByPlate('')">
+        </div>
+        <button class="plate-go-btn" id="plateGoBtn" onclick="searchByPlate('')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Find
+        </button>
+      </div>
+      <div class="plate-hints">
+        <span class="plate-hint-label">Try:</span>
+        <button class="plate-hint-chip" onclick="tryPlate('AB12CDE','')">AB12 CDE</button>
+        <button class="plate-hint-chip" onclick="tryPlate('WV68GTI','')">WV68 GTI</button>
+        <button class="plate-hint-chip" onclick="tryPlate('FF24EV1','')">FF24 EV1</button>
+        <button class="plate-hint-chip" onclick="tryPlate('LD17RS6','')">LD17 RS6</button>
+        <button class="plate-hint-chip" onclick="tryPlate('MN20C200','')">MN20 C200</button>
+      </div>
+      <div id="plateConfirmCard" class="plate-confirm-card" style="display:none"></div>
+    </div>
+
+    <div class="sp-section">
+
+      <div class="sp-divider" style="margin: 0 0 10px">or search by name</div>
+
+      <!-- Autocomplete search — always visible, no tabs -->
+      <div class="ac-wrap">
+        <div class="ac-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ac-drop" id="acDrop"></div>
+      </div>
+
+      <!-- Divider -->
+      <div class="sp-divider" style="margin-top:16px">or select step by step</div>
+
+      <!-- Step entry card -->
+      <div class="step-entry-card" id="stepEntryCard" onclick="openSelector()">
+        <div class="step-entry-img" id="stepEntryImg" style="background-image:url('uploads/000.jpg')"></div>
+        <div class="step-entry-body">
+          <div class="step-entry-title" id="stepEntryTitle">Select by Make, Year, Model...</div>
+          <div class="step-entry-sub" id="stepEntrySub">Make &rsaquo; Model &rsaquo; Engine</div>
+        </div>
+        <span class="step-entry-arrow">›</span>
+      </div>
+
+      <!-- recentSection kept hidden; recent vehicles live in sidebar only -->
+      <div id="recentSection" style="display:none"><div id="recentList"></div></div>
+
+    </div>
+
+    <!-- Find Parts button -->
+    <div class="sp-section">
+      <button class="find-btn" id="findBtn" disabled onclick="findParts()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Find Parts
+      </button>
+    </div>
+
+    <!-- Hidden state holders -->
+    <div style="display:none">
+      <span id="val-make"></span><span id="val-model"></span><span id="val-engine"></span>
+      <span id="selectorEntryBtn"></span><span id="sebTitle"></span>
+      <div id="makerShortcuts"></div>
+    </div>
+  </div>
+
+  <!-- Right: promo + categories -->
+  <div class="right-col">
+    <div class="promo-banner">
+      <div>
+        <div class="promo-tag">BEST PRICE</div>
+        <div class="promo-h">Find parts for<br><em>your car</em></div>
+        <div class="promo-sub">Over 4 million spare parts in stock. Fast delivery across Europe. 2-year warranty on all parts.</div>
+        <button class="promo-cta">SHOP NOW</button>
+      </div>
+      <div class="promo-img">🚗</div>
+    </div>
+
+    <div class="cats-grid">
+      <a class="cat-card" href="#"><div class="cat-icon">⚙️</div><div class="cat-name">Engine Parts</div><div class="cat-count">284,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🛑</div><div class="cat-name">Brakes & Discs</div><div class="cat-count">156,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🔩</div><div class="cat-name">Suspension</div><div class="cat-count">198,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🚗</div><div class="cat-name">Body Parts</div><div class="cat-count">312,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">⚡</div><div class="cat-name">Electrical</div><div class="cat-count">142,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🔧</div><div class="cat-name">Filters & Service</div><div class="cat-count">87,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🔘</div><div class="cat-name">Tyres & Wheels</div><div class="cat-count">64,000+</div></a>
+      <a class="cat-card" href="#"><div class="cat-icon">🧰</div><div class="cat-name">Accessories</div><div class="cat-count">95,000+</div></a>
+    </div>
+  </div>
+
+</main>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-topbar">
+    <button class="sb-back" id="backBtn" onclick="goBack()" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sb-topbar-title" id="topbarTitle">Select Your Vehicle</div>
+    <button class="sb-close" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="panels-wrap">
+
+    <!-- Main panel -->
+    <div class="panel" id="panel-main">
+      <div class="sb-body">
+
+        <!-- Reg number lookup -->
+        <div class="plate-row">
+          <div class="plate-uk">
+            <div class="plate-badge">
+              <span class="plate-badge-flag">🇬🇧</span>
+              <span class="plate-badge-code">GB</span>
+            </div>
+            <input class="plate-input" id="sb-plateInput" type="text" placeholder="YOUR REG"
+              autocomplete="off" maxlength="8"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+              onkeydown="if(event.key==='Enter')searchByPlate('sb-')">
+          </div>
+          <button class="plate-go-btn" onclick="searchByPlate('sb-')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Find
+          </button>
+        </div>
+        <div class="plate-hints">
+          <span class="plate-hint-label">Try:</span>
+          <button class="plate-hint-chip" onclick="tryPlate('AB12CDE','sb-')">AB12 CDE</button>
+          <button class="plate-hint-chip" onclick="tryPlate('WV68GTI','sb-')">WV68 GTI</button>
+          <button class="plate-hint-chip" onclick="tryPlate('FF24EV1','sb-')">FF24 EV1</button>
+          <button class="plate-hint-chip" onclick="tryPlate('LD17RS6','sb-')">LD17 RS6</button>
+          <button class="plate-hint-chip" onclick="tryPlate('MN20C200','sb-')">MN20 C200</button>
+        </div>
+        <div id="sb-plateConfirmCard" class="plate-confirm-card" style="display:none"></div>
+
+        <div class="sb-divider">or search by name</div>
+
+        <!-- Autocomplete search — always visible, no tabs -->
+        <div class="ac-wrap">
+          <div class="ac-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="sb-searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ac-drop" id="sb-acDrop"></div>
+        </div>
+
+        <div class="sb-divider">or select step by step</div>
+
+        <!-- Make / Model / Engine rows -->
+        <div class="sb-step-rows">
+          <div class="sb-step-row" id="sbrow-make" onclick="openStepRow('make')">
+            <span class="sb-step-row__label">Make</span>
+            <span class="sb-step-row__value" id="sbval-make">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-model" onclick="openStepRow('model')">
+            <span class="sb-step-row__label">Model</span>
+            <span class="sb-step-row__value" id="sbval-model">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+          <div class="sb-step-row sb-step-row--disabled" id="sbrow-engine" onclick="openStepRow('engine')">
+            <span class="sb-step-row__label">Engine</span>
+            <span class="sb-step-row__value" id="sbval-engine">Select</span>
+            <span class="sb-step-row__arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Recent vehicles -->
+        <div id="sb-recent-section" style="display:none; margin-top:16px">
+          <div class="sb-label">Recent vehicles</div>
+          <div id="sb-recent-list" class="recent-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step panel -->
+    <div class="panel" id="panel-step">
+      <div id="stepTrail" class="step-trail"></div>
+      <div class="step-header" id="stepHeader">
+        <div class="step-header-step" id="stepHeaderStep"></div>
+        <div class="step-header-title" id="stepHeaderTitle"></div>
+      </div>
+      <div class="step-search">
+        <div class="step-search-inner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="stepSearch" type="text" placeholder="Search…" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="fuel-filter-bar" id="fuelFilterBar">
+          <button class="fuel-chip active" data-fuel="all" onclick="pickFuelFilter('all')">All</button>
+          <button class="fuel-chip" data-fuel="Petrol" onclick="pickFuelFilter('Petrol')">Petrol</button>
+          <button class="fuel-chip" data-fuel="Diesel" onclick="pickFuelFilter('Diesel')">Diesel</button>
+          <button class="fuel-chip" data-fuel="Hybrid" onclick="pickFuelFilter('Hybrid')">Hybrid</button>
+          <button class="fuel-chip" data-fuel="Electric" onclick="pickFuelFilter('Electric')">Electric</button>
+        </div>
+      </div>
+      <div class="step-content-wrap">
+        <div class="step-content" id="stepContent">
+          <div id="stepCount" class="step-count"></div>
+          <div id="stepList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="sb-footer">
+    <button class="find-btn" id="sidebarFindBtn" disabled onclick="findParts()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+    </button>
+  </div>
+</div>
+
+<script>
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {};
+let selectedCar = null;
+let RATINGS = new Map();
+let state = { make: null, model: null, engine: null };
+let currentStep = null;
+let stepHistory = [];
+let allStepItems = [];
+let searchDebounce, stepSearchDebounce;
+let fuelFilter = 'all';
+let MAKERS_MAP = new Map();
+const AC_STATE = { acDrop: { items: [], focusIdx: -1 }, 'sb-acDrop': { items: [], focusIdx: -1 } };
+const POPULAR_MAKERS = ['BMW','VW','AUDI','MERCEDES-BENZ','FORD','VAUXHALL','RENAULT','PEUGEOT','TOYOTA','VOLVO'];
+const MAKER_OTHER = new Set(['AC','ACURA','ALVIS','ARO','ARTEGA','ASIA MOTORS','ASKAM (FARGO/DESOTO)','AUSTIN-HEALEY','AUTO UNION','AUVERLAND','BARKAS','BEDFORD','BERTONE','BESTURN (FAW)','BORGWARD','BRABUS','BUGATTI','BUICK','BUICK (SGM)','CARBODIES','CASALINI','CATERHAM','CHERY','DAF','DAIMLER','DE TOMASO','DFSK','EBRO','FISKER','FORD ASIA / OCEANIA','FORD OTOSAN','FSO','GAZ','GEELY (GLEAGLE)','GENESIS','GLAS','GMC','GOUPIL','GREAT WALL','HAVAL','HOLDEN','INDIGO','INNOCENTI','JIANGLING LANDWIND','JINBEI','KOENIGSEGG','KTM','LDV','LEVC','LIGIER','LINCOLN','LLOYD','LTI','LUCID','MAHINDRA','MARUTI','MAYBACH','MCLAREN','MEGA','MERCURY','MIA ELECTRIC','MINELLI','MORGAN','MORRIS','MOSKVICH','NSU','OLDSMOBILE','PAGANI','PANTHER','PININFARINA','PLYMOUTH','POLARIS','PROTON','PUCH','RAVON','RUF','SATURN','SCION','SHELBY','SHUANGHUAN AUTO','SPYKER','STEYR','STREETSCOOTER','THINK','TVR','UAZ','UMM','VICTORY','WARTBURG','WESTFIELD','WIESMANN','ZASTAVA','ZUENDAPP']);
+
+const OTHER_GIDS = {
+  'AUDI':         new Set([1437,1438,1439,1440]),
+  'BMW':          new Set([1422,1423,1424,1425,1426,1427,1429,1430,1431,1432,1433,1436,1885,2022,2023,2024,1023]),
+  'CITROËN':      new Set([1410,1409,1413,1400,1401,1418,1402,1405,1411,1406,1399,1412,1408,1404]),
+  'FIAT':         new Set([731,735,736,737,738,739,740,747,749,750,765,767,769,770,774,778,1378,1379,1381,1384,1389,1391,1393,1907,2107,2108,2109,2350,2351]),
+  'FORD':         new Set([715,719,1051,1377,2008,2009,2317,2322,2323,2352,2353,2354,2355,2356,2357,2358,2359,2360]),
+  'HONDA':        new Set([2493,2227,690,1055,693,2036,2491,2168,1909,1061,1910,2228,2362,2363]),
+  'HYUNDAI':      new Set([1849,1912,665,1224,2268,668,1221,1217,1218,2135,2136,2395,2396,2397,2398,2399,2400,2401,2402,2403,2404,2405,2406]),
+  'KIA':          new Set([601,602,1204,1206,1205,1207,2408,1211,1208,2270,1215,1203,613,1156,1209,1210,1212,1213,1214,2037,2137,2269,2271,2410,2411,2412,2413,2414,2415]),
+  'MAZDA':        new Set([1362,2050,1648,536,1365,1366,1867,2049,2113,2230]),
+  'MERCEDES-BENZ':new Set([470,1348,1345,2368,1350,1344,1349,2372,2373,1347,1351,1352,1354,2374]),
+  'MITSUBISHI':   new Set([1864,438,439,426,423]),
+  'NISSAN':       new Set([2179,1324,2328,382,1325,2065,1333,2175,2239,389,390,2174,2327,1334,2242,393,1923,2116,2176,402,2241,1922,2178,1098,408,1079,2117,1608,412,413,2066,2240]),
+  'OPEL':         new Set([341,344,348,350,352,356,366,367,369,374,375,1320,2381]),
+  'PEUGEOT':      new Set([308,311,316,317,323,329,1096,1317,337,338,2243,2383]),
+  'RENAULT':      new Set([266,267,268,250,252,253,254,255,256,257,258,260,261,262,263,269,2075,1314,1105,1850,273,2384,2385,1313,1312,1099,2098,1311,1303,280,1101,1306,283,2386,2245]),
+  'SEAT':         new Set([199,200,201,202,203,204,205,206,211,215,217,218,219,220]),
+  'SKODA':        new Set([185,186,187,188,190]),
+  'TOYOTA':       new Set([114,1940,2500,2184,2501,2185,1280,2122,1275,1934,1761,123,124,125,126,2090,2124,1276,2125,2254,2507,130,2519,2502,1115,131,2503,2255,2504,1935,1937,1278,1119,2329,1763,140,2183,1936,2123,2089]),
+  'VAUXHALL':     new Set([2189,2190,1487,2129,1541,2191,2128,2259,2192,1491,1495]),
+  'VOLVO':        new Set([88]),
+  'VW':           new Set([1250,1252,1267,2094,1247,19,1248,1260,1147,1254,28,1148,1150,2261,1264,1149,1262,2093,1251]),
+};
+
+const STEPS = ['make','model','engine'];
+const SYNONYM_GROUPS = [
+  ['vw','volkswagen'],
+  ['mk1','i'],['mk2','ii'],['mk3','iii'],['mk4','iv'],['mk5','v'],['mk6','vi'],['mk7','vii'],['mk8','viii'],
+  ['estate','variant','touring','avant','sw','kombi','break','wagon'],
+  ['cabriolet','cabrio','convertible','roadster','spider','spyder'],
+  ['coupe','coupé'],['saloon','sedan','berline','limousine'],['suv','crossover'],
+  ['4motion','quattro','xdrive','awd','4wd','4x4','syncro','allrad'],
+  ['diesel','tdi','dci','hdi','cdti','cdi','jtd','d4d','tdci'],
+  ['petrol','tsi','tfsi','fsi'],['hybrid','hev','phev','mhev'],
+  ['electric','ev','bev','e-tron'],
+  ['auto','automatic','dsg','tiptronic','s-tronic','cvt','multitronic','pdk'],
+];
+const SYNONYM_MAP = new Map();
+SYNONYM_GROUPS.forEach(g => g.forEach(w => SYNONYM_MAP.set(w, g)));
+const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii','8':'viii','9':'ix','10':'x'};
+const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const wbRe  = s => new RegExp('(?:^|\\s)' + escRe(s) + '(?=\\s|$)');
+const NUM2ROM3 = {'1':'i','2':'ii','3':'iii'};
+const ROM2NUM3 = {'i':'1','ii':'2','iii':'3'};
+function termMatchers(t) {
+  const group = SYNONYM_MAP.get(t);
+  if (group) return group.map(f => ({ str: f, re: wbRe(f) }));
+  const rNum = t.match(/^r(\d+)$/);
+  if (rNum) return [t, rNum[1]].map(f => ({ str: f, re: wbRe(f) }));
+  const num = NUM2ROM[t] || ROM2NUM[t];
+  if (num) return [t, num].map(f => ({ str: f, re: wbRe(f) }));
+  return [{ str: t, re: null }];
+}
+const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
+const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
+const FUEL_ORDER = ['Petrol', 'Diesel', 'Hybrid', 'Electric'];
+function normalizeFuel(raw) {
+  if (!raw) return 'Petrol';
+  const f = raw.toLowerCase();
+  if ((f.includes('electric') || f.includes('electro')) && f.includes('/')) return 'Hybrid';
+  if (f === 'electric' || f === 'electro') return 'Electric';
+  if (f.includes('hybrid') || f.includes('hev') || f.includes('mhev')) return 'Hybrid';
+  if (f.includes('diesel')) return 'Diesel';
+  return 'Petrol';
+}
+
+function parseRatingsCsv(text) {
+  text.trim().split('\n').slice(1).forEach(line => {
+    const m = line.match(/^(\d+),"?([0-9,]+)%"?/);
+    if (!m) return;
+    RATINGS.set(+m[1], parseFloat(m[2].replace(',', '.')));
+  });
+}
+
+Promise.all([
+  fetch('cars_data.json').then(r => r.json()),
+  fetch('bmw.csv').then(r => r.text()).catch(() => ''),
+  fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
+]).then(([data, csv, groups]) => {
+  MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+  MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+  ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
+  if (csv) parseRatingsCsv(csv);
+  resetFindBtn(); renderMakerShortcuts();
+}).catch(() => { document.getElementById('findBtn').textContent = 'Failed to load — use a local server'; });
+
+function openSidebar() {
+  updateSbStepRows();
+  renderSbHistory();
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('sb-searchInput').focus(), 350);
+}
+function closeSidebar() {
+  hideStepPanel();
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function showStepPanel() {
+  document.getElementById('panel-main').classList.add('pushed');
+  document.getElementById('panel-step').classList.add('active');
+  document.getElementById('backBtn').removeAttribute('hidden');
+}
+function hideStepPanel() {
+  document.getElementById('panel-main').classList.remove('pushed');
+  document.getElementById('panel-step').classList.remove('active');
+  document.getElementById('backBtn').setAttribute('hidden','');
+  document.getElementById('topbarTitle').textContent = 'Select Your Vehicle';
+  currentStep = null; stepHistory = []; fuelFilter = 'all';
+}
+function openSelector() { openSidebar(); }
+function openStep(step, direction) {
+  const wasStepOpen = document.getElementById('panel-step').classList.contains('active');
+  currentStep = step;
+  if (!stepHistory.includes(step)) stepHistory.push(step);
+  updateTopbar();
+  if (!wasStepOpen) {
+    if (!document.getElementById('sidebar').classList.contains('open')) openSidebar();
+    showStepPanel(); updateTrail(); renderStepContent('');
+    setTimeout(() => document.getElementById('stepSearch').focus(), 350);
+  } else {
+    animateContent(direction || 'forward', () => {
+      updateTrail(); renderStepContent('');
+      document.getElementById('stepSearch').value = '';
+      document.getElementById('stepSearch').focus();
+    });
+  }
+}
+function animateContent(direction, callback) {
+  const el = document.getElementById('stepContent');
+  const exitCls  = direction === 'forward' ? 'exit-left'  : 'exit-right';
+  const enterCls = direction === 'forward' ? 'enter-right' : 'enter-left';
+  el.classList.add(exitCls);
+  setTimeout(() => {
+    callback(); el.classList.remove(exitCls); el.classList.add(enterCls);
+    el.getBoundingClientRect(); el.classList.remove(enterCls);
+  }, 180);
+}
+function goBack() {
+  const idx = STEPS.indexOf(currentStep);
+  if (idx <= 0) { hideStepPanel(); return; }
+  const prevStep = STEPS[idx - 1];
+  stepHistory = stepHistory.slice(0, stepHistory.indexOf(prevStep) + 1);
+  currentStep = prevStep; updateTopbar();
+  animateContent('back', () => {
+    updateTrail(); renderStepContent(document.getElementById('stepSearch').value || '');
+  });
+}
+function updateTopbar() {
+  const idx = STEPS.indexOf(currentStep);
+  document.getElementById('topbarTitle').textContent = STEP_LABELS[currentStep];
+  document.getElementById('stepHeaderStep').textContent = `Step ${idx+1} of 3`;
+  document.getElementById('stepHeaderTitle').textContent = STEP_LABELS[currentStep];
+}
+function updateTrail() {
+  const trail = document.getElementById('stepTrail');
+  const cIdx = STEPS.indexOf(currentStep);
+  const stepChips = STEPS.filter(s => s !== currentStep && state[s] !== null && STEPS.indexOf(s) < cIdx);
+  let html = '';
+  if (fuelFilter !== 'all' && currentStep !== 'make') {
+    html += `<div class="trail-chip" onclick="clearFuelFilter()">${fuelFilter} <span class="trail-chip-x">×</span></div>`;
+  }
+  html += stepChips.map(s => {
+    const label = getStateLabel(s);
+    return `<div class="trail-chip" onclick="jumpToStep('${s}')">${label} <span class="trail-chip-x">×</span></div>`;
+  }).join('');
+  trail.innerHTML = html;
+}
+function clearFuelFilter() {
+  fuelFilter = 'all';
+  updateTrail();
+  renderStepContent(document.getElementById('stepSearch').value || '');
+}
+function getStateLabel(step) {
+  if (step === 'make') { const m = MAKERS.find(mk=>mk.id===state.make); return m?.n||''; }
+  if (step === 'model') return document.getElementById('val-model').textContent;
+  if (step === 'engine') return document.getElementById('val-engine').textContent;
+  return '';
+}
+function jumpToStep(step) {
+  const idx = STEPS.indexOf(step);
+  STEPS.slice(idx).forEach(s => { state[s] = null; setRowValue(s, `Select ${STEP_SHORT[s].toLowerCase()}`, false); });
+  updateBubbles(); enableRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx + 1); currentStep = step; updateTopbar();
+  animateContent('back', () => { updateTrail(); renderStepContent(''); document.getElementById('stepSearch').value = ''; });
+}
+function getAvailableFuels() {
+  let cars = ALL_CARS;
+  if (currentStep === 'model' && state.make !== null) cars = cars.filter(c => c[0] === state.make);
+  else if (currentStep === 'engine' && state.make !== null && state.model !== null) cars = cars.filter(c => c[0] === state.make && c[1] === state.model);
+  return new Set(cars.map(c => normalizeFuel(c[5])));
+}
+function pickFuelFilter(fuel) {
+  fuelFilter = fuel;
+  document.querySelectorAll('.fuel-chip').forEach(c => c.classList.toggle('active', c.dataset.fuel === fuel));
+  renderStepContent(document.getElementById('stepSearch').value || '');
+}
+function renderStepContent(filter) {
+  const fuelBar = document.getElementById('fuelFilterBar');
+  if (fuelBar) {
+    fuelBar.style.display = 'flex';
+    const available = getAvailableFuels();
+    fuelBar.querySelectorAll('.fuel-chip').forEach(c => {
+      const fuel = c.dataset.fuel;
+      c.classList.toggle('active', fuel === fuelFilter);
+      c.classList.toggle('fuel-chip--disabled', fuel !== 'all' && !available.has(fuel));
+    });
+  }
+  const f = filter.trim().toLowerCase();
+  allStepItems = buildItems();
+  const filtered = f ? allStepItems.filter(i => i.label.toLowerCase().includes(f) || (i.sub||'').toLowerCase().includes(f)) : allStepItems;
+  document.getElementById('stepCount').textContent = filtered.length ? `${filtered.length} option${filtered.length!==1?'s':''}` : '';
+  const list = document.getElementById('stepList');
+  if (!filtered.length) { list.innerHTML = `<div class="step-empty">No results found</div>`; return; }
+  if (currentStep === 'model' && !f) {
+    const groups = buildModelGroups(filtered);
+    list.innerHTML = groups.map((g, idx) => {
+      if (g.isOther) {
+        const hasSel = g.subgroups.some(sg => sg.models.some(m => m.id == state.model));
+        const totalCount = g.subgroups.reduce((s, sg) => s + sg.models.length, 0);
+        const innerHtml = g.subgroups.map((sg, sgIdx) => {
+          const sgHasSel = sg.models.some(m => m.id == state.model);
+          const sgKey = 'o' + sgIdx;
+          return `<div class="model-group model-group--nested"><div class="model-group-header ${sgHasSel?'has-sel open':''}" data-gidx="${sgKey}" onclick="toggleModelGroup('${sgKey}');event.stopPropagation()"><div class="model-group-name">${sg.name}</div><div class="model-group-meta"><span class="model-group-count">${sg.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${sgHasSel?'open':''}" id="mg-${sgKey}">${sg.models.map(item => { const isSel = item.id == state.model; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
+        }).join('');
+        return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="other" onclick="toggleModelGroup('other')"><div class="model-group-name">Other</div><div class="model-group-meta"><span class="model-group-count">${totalCount}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-other">${innerHtml}</div></div>`;
+      }
+      const hasSel = g.models.some(m => m.id == state.model);
+      return `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="${idx}" onclick="toggleModelGroup(${idx})"><div class="model-group-name">${g.name}</div><div class="model-group-meta"><span class="model-group-count">${g.models.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-${idx}">${g.models.map(item => { const isSel = item.id == state.model; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  if (currentStep === 'engine' && !f) {
+    const fuelMap = new Map();
+    FUEL_ORDER.forEach(g => fuelMap.set(g, []));
+    for (const item of filtered) { const key = item.fuel; if (!fuelMap.has(key)) fuelMap.set(key, []); fuelMap.get(key).push(item); }
+    list.innerHTML = [...fuelMap.entries()].filter(([,items]) => items.length > 0).map(([fuel, items], idx) => {
+      const hasSel = items.some(i => i.id == state.engine);
+      return `<div class="model-group"><div class="model-group-header has-fuel open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${fuel}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item => { const isSel = item.id == state.engine; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.sub?`<div class="step-item-sub">${item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
+    }).join(''); return;
+  }
+  if (currentStep === 'make' && !f) {
+    const mainMakers = filtered.filter(m => !MAKER_OTHER.has(m.label));
+    const otherMakers = filtered.filter(m => MAKER_OTHER.has(m.label));
+    const mkItem = item => { const isSel = item.id == state.make; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div></div><span class="step-item-check">✓</span></div>`; };
+    const popularItems = POPULAR_MAKERS.map(n => filtered.find(m => m.label === n)).filter(Boolean);
+    const popularHtml = popularItems.length ? `<div class="step-count" style="padding-top:10px">Popular carmakers</div>${popularItems.map(m => { const isSel = m.id == state.make; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(m.id)})"><div class="step-item-body"><div class="step-item-name">${m.label}</div></div><span class="step-item-check">✓</span></div>`; }).join('')}<div class="step-count" style="padding-top:10px">All carmakers</div>` : '';
+    let html = popularHtml + mainMakers.map(mkItem).join('');
+    if (otherMakers.length > 0) {
+      const hasSel = otherMakers.some(m => m.id == state.make);
+      html += `<div class="model-group"><div class="model-group-header ${hasSel?'has-sel open':''}" data-gidx="mk-other" onclick="toggleModelGroup('mk-other')"><div class="model-group-name">Other</div><div class="model-group-meta"><span class="model-group-count">${otherMakers.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items ${hasSel?'open':''}" id="mg-mk-other">${otherMakers.map(mkItem).join('')}</div></div>`;
+    }
+    list.innerHTML = html; return;
+  }
+  list.innerHTML = filtered.map(item => { const isSel = item.id == state[currentStep]; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.subWithFuel||item.sub?`<div class="step-item-sub">${item.subWithFuel||item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('');
+}
+function buildModelGroups(models) {
+  const makerName = state.make !== null ? (MAKERS.find(m => m.id === state.make)?.n || '') : '';
+  const otherGids = OTHER_GIDS[makerName] || null;
+  const grouped = new Map(); const otherGrouped = new Map(); const ungrouped = [];
+  for (const model of models) {
+    const g = MODEL_GROUPS[String(model.id)];
+    if (g) {
+      const target = (otherGids && otherGids.has(g.gid)) ? otherGrouped : grouped;
+      if (!target.has(g.gid)) target.set(g.gid, { name: g.gn, models: [] });
+      target.get(g.gid).models.push(model);
+    } else ungrouped.push({ name: model.label, models: [model] });
+  }
+  const groups = [...grouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  groups.forEach(g => g.models.sort((a,b)=>a.label.localeCompare(b.label)));
+  ungrouped.sort((a,b)=>a.name.localeCompare(b.name));
+  const result = [...groups, ...ungrouped];
+  if (otherGrouped.size > 0) {
+    const subgroups = [...otherGrouped.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    subgroups.forEach(g => g.models.sort((a,b)=>a.label.localeCompare(b.label)));
+    result.push({ name: 'Other', isOther: true, subgroups });
+  }
+  return result;
+}
+function toggleModelGroup(idx) {
+  const header = document.querySelector(`.model-group-header[data-gidx="${idx}"]`);
+  const items = document.getElementById('mg-' + idx);
+  if (!header || !items) return;
+  const isOpen = items.classList.contains('open');
+  header.classList.toggle('open', !isOpen); items.classList.toggle('open', !isOpen);
+}
+function buildItems() {
+  if (currentStep === 'make') {
+    let makers = MAKERS;
+    if (fuelFilter !== 'all') {
+      const filteredIds = new Set(ALL_CARS.filter(c => normalizeFuel(c[5]) === fuelFilter).map(c => c[0]));
+      makers = makers.filter(m => filteredIds.has(m.id));
+    }
+    return makers.sort((a,b)=>a.n.localeCompare(b.n)).map(m=>({id:m.id,label:m.n}));
+  }
+  if (currentStep === 'model') {
+    const map = new Map();
+    ALL_CARS.filter(c=>c[0]===state.make&&(fuelFilter==='all'||normalizeFuel(c[5])===fuelFilter)).forEach(c=>{ if(!map.has(c[1])) map.set(c[1],c[2]); });
+    return [...map.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>({id,label:name}));
+  }
+  if (currentStep === 'engine') {
+    return ALL_CARS.filter(c=>c[0]===state.make&&c[1]===state.model&&(fuelFilter==='all'||normalizeFuel(c[5])===fuelFilter)).map(c=>({
+      id:c[3],label:c[4],fuel:normalizeFuel(c[5]),
+      sub:[c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · '),
+      subWithFuel:[normalizeFuel(c[5]),c[8]?c[8]+' kW / '+c[9]+' hp':'',c[6]&&c[7]?c[6]+'–'+c[7]:c[6]?'from '+c[6]:''].filter(Boolean).join(' · ')
+    }));
+  }
+  return [];
+}
+function pickItem(id) {
+  if (currentStep === 'make') {
+    const maker = MAKERS.find(m=>m.id===id);
+    state = { make: id, model: null, engine: null };
+    setRowValue('make', maker.n, true); setRowValue('model','Select model',false); setRowValue('engine','Select engine',false);
+    updateBubbles(); enableRows(); setSelectedCar(null);
+    stepHistory = ['make','model']; openStep('model', 'forward');
+  } else if (currentStep === 'model') {
+    const modelName = allStepItems.find(i=>i.id===id)?.label||'';
+    state.model = id; state.engine = null;
+    setRowValue('model', modelName, true); setRowValue('engine','Select engine',false);
+    updateBubbles(); enableRows(); setSelectedCar(null);
+    stepHistory = ['make','model','engine']; openStep('engine', 'forward');
+  } else if (currentStep === 'engine') {
+    const car = ALL_CARS.find(c=>c[3]===id); if (!car) return;
+    state.engine = id; setRowValue('engine', car[4], true);
+    updateBubbles(); setSelectedCar(car, null);
+    setTimeout(() => closeSidebar(), 120);
+  }
+}
+function setRowValue(step, text, filled) {
+  document.getElementById('val-'+step).textContent = filled ? text : '';
+  updateSelectorBtn();
+}
+function updateBubbles() { updateSelectorBtn(); }
+function enableRows()     { updateSelectorBtn(); }
+
+function updateStepEntryCard() {
+  const title = document.getElementById('stepEntryTitle');
+  const sub   = document.getElementById('stepEntrySub');
+  const img   = document.getElementById('stepEntryImg');
+  if (!title) return;
+  if (state.engine) {
+    const car = ALL_CARS.find(c => c[3] === state.engine);
+    const maker = MAKERS.find(m => m.id === state.make);
+    if (car && maker) {
+      title.textContent = `${maker.n} ${car[2]}`;
+      const yr = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+      sub.textContent = [car[4], yr].filter(Boolean).join(' · ');
+      if (img) { setBgImg(img, carImg(car[3])); }
+      return;
+    }
+  }
+  if (state.model) {
+    const maker = MAKERS.find(m => m.id === state.make);
+    const car = ALL_CARS.find(c => c[0] === state.make && c[1] === state.model);
+    if (maker) { title.textContent = `${maker.n}${car ? ' ' + car[2] : ''} — select engine`; sub.innerHTML = 'Make &rsaquo; Model &rsaquo; Engine'; }
+  } else if (state.make) {
+    const maker = MAKERS.find(m => m.id === state.make);
+    if (maker) { title.textContent = `${maker.n} — select model`; sub.innerHTML = 'Make &rsaquo; Model &rsaquo; Engine'; }
+  } else {
+    title.textContent = 'Select by Make, Year, Model...';
+    sub.innerHTML = 'Make &rsaquo; Model &rsaquo; Engine';
+    if (img) { img.style.backgroundImage = `url('${PLACEHOLDER_IMG}')`; img.style.backgroundSize = 'contain'; }
+  }
+}
+function updateSbStepRows() {
+  STEPS.forEach((s, idx) => {
+    const row = document.getElementById('sbrow-' + s);
+    const valEl = document.getElementById('sbval-' + s);
+    if (!row || !valEl) return;
+    const prevFilled = idx === 0 || state[STEPS[idx - 1]] !== null;
+    row.classList.toggle('sb-step-row--disabled', !prevFilled);
+    const value = s === 'make'
+      ? (MAKERS.find(mk => mk.id === state.make)?.n || '')
+      : document.getElementById('val-' + s).textContent;
+    if (value) {
+      valEl.textContent = value;
+      row.classList.add('sb-step-row--filled');
+    } else {
+      valEl.textContent = 'Select';
+      row.classList.remove('sb-step-row--filled');
+    }
+  });
+}
+function renderSbHistory() {
+  const section = document.getElementById('sb-recent-section');
+  if (!section) return;
+  const history = getHistory();
+  if (!history.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('sb-recent-list').innerHTML = history.map(h => {
+    const parts = [h.fuel ? h.fuel.split('/')[0] : '', h.kw ? h.kw + ' kW' : '', h.year ? (h.yearTo ? h.year + '–' + h.yearTo : 'from ' + h.year) : ''].filter(Boolean);
+    return `<div class="recent-item" onclick="pickRecent(${h.id});closeSidebar()">
+      <div class="recent-item-icon" id="ricon-${h.id}"></div>
+      <div class="recent-item-body">
+        <div class="recent-item-name">${h.make} ${h.model}</div>
+        <div class="recent-item-sub">${h.trim}${parts.length ? ' · ' + parts.join(' · ') : ''}</div>
+      </div>
+      <span style="color:#ccc;font-size:18px;flex-shrink:0;line-height:1">›</span>
+    </div>`;
+  }).join('');
+  history.forEach(h => setBgImg(document.getElementById(`ricon-${h.id}`), carImg(h.id)));
+}
+function updateSelectorBtn() {
+  document.querySelectorAll('.maker-chip').forEach(c => c.classList.toggle('active', +c.dataset.make === state.make));
+  updateStepEntryCard();
+  updateSbStepRows();
+}
+function openStepRow(step) {
+  const idx = STEPS.indexOf(step);
+  for (let i = 0; i < idx; i++) { if (state[STEPS[i]] === null) return; }
+  STEPS.slice(idx).forEach(s => { state[s] = null; setRowValue(s, `Select ${STEP_SHORT[s].toLowerCase()}`, false); });
+  updateBubbles(); enableRows(); setSelectedCar(null);
+  stepHistory = STEPS.slice(0, idx + 1); openStep(step);
+}
+document.getElementById('stepSearch').addEventListener('input', function() {
+  clearTimeout(stepSearchDebounce);
+  stepSearchDebounce = setTimeout(() => renderStepContent(this.value), 120);
+});
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => runAc(this.value.trim(), 'acDrop'), 150);
+});
+document.getElementById('sb-searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => runAc(this.value.trim(), 'sb-acDrop'), 150);
+});
+document.getElementById('searchInput').addEventListener('keydown', e => handleAcKeydown(e, 'acDrop'));
+document.getElementById('sb-searchInput').addEventListener('keydown', e => handleAcKeydown(e, 'sb-acDrop'));
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) {
+    document.getElementById('acDrop').style.display = 'none';
+    document.getElementById('sb-acDrop').style.display = 'none';
+    AC_STATE['acDrop'].focusIdx = -1;
+    AC_STATE['sb-acDrop'].focusIdx = -1;
+  }
+});
+const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const normEng = s => s.replace(/(\d{2,})\s+([a-zA-Z])\b/g, '$1$2');
+function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
+  const base = normEng(deaccent([makeName, modelName, trimName, fuel||'', driveType||'', bodyType||''].join(' ')).toLowerCase());
+  const n1 = base.replace(/[-()_\/]/g,' ');
+  const n2 = base.replace(/[()_\/]/g,' ').replace(/-/g,'');
+  const n3 = n1.replace(/\b([a-z]) (\d+)\b/g,'$1$2');
+  return n1+' '+n2+' '+n3;
+}
+function runAc(q, dropId) {
+  const dd = document.getElementById(dropId);
+  const st = AC_STATE[dropId];
+  st.items = []; st.focusIdx = -1;
+  if (q.length < 2) { dd.style.display='none'; return; }
+  const carIdQ = q.match(/^#?(\d+)$/);
+  if (carIdQ) {
+    const id = +carIdQ[1];
+    const car = ALL_CARS.find(c => c[3] === id);
+    if (car) {
+      const m = MAKERS.find(mk => mk.id === car[0]);
+      const sub = [car[6]&&car[7]?`${car[6]}–${car[7]}`:car[6]?`from ${car[6]}`:'', car[5]?car[5].split('/')[0]:'', car[8]?`${car[8]} kW`:''].filter(Boolean).join(' · ');
+      dd.style.display='block';
+      dd.innerHTML = `<div class="ac-item" onclick="pickAc(${car[3]})"><div class="ac-ico" id="aco-${car[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${m?.n||''} ${car[2]} · ${car[4]}</div><div class="ac-sub">ID ${car[3]}${sub?' · '+sub:''}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
+      setBgImg(document.getElementById(`aco-${car[3]}`), carImg(car[3]));
+      st.items = [car[3]];
+    } else {
+      dd.style.display='block';
+      dd.innerHTML = `<div class="ac-more">No vehicle with ID ${id}</div>`;
+    }
+    return;
+  }
+  const parts = normEng(deaccent(q).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
+  let yf=null; const tt=[];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
+  const termForms = tt.map(termMatchers);
+  const res=[];
+  for (let i=0;i<ALL_CARS.length;i++) {
+    const c=ALL_CARS[i];
+    if(yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf)))continue;
+    if(termForms.length){ const hay=c._hay; if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue; }
+    res.push(c);
+  }
+  res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));
+  const top=res.slice(0,8);
+  if(!top.length){dd.style.display='block';dd.innerHTML=`<div class="ac-more">No vehicles found</div>`;return;}
+  st.items = top.map(c => c[3]);
+  const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
+  let refineHtml = '';
+  if (res.length > 8) {
+    const sug = getRefineSuggestions(res, q);
+    const chipsHtml = sug.map(s => {
+      const safe = String(s.append).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const titleAttr = s.label.length > 24 ? ` title="${s.label.replace(/"/g,'&quot;')}"` : '';
+      return `<button class="ac-refine-chip" onclick="applyRefineChip('${safe}','${inputId}')"${titleAttr}>+ ${s.label} <span class="ac-refine-count">${s.count}</span></button>`;
+    }).join('');
+    refineHtml = `<div class="ac-refine"><div class="ac-refine-text">Showing top 8 of ${res.length}${sug.length?' — narrow down by:':''}</div>${chipsHtml?`<div class="ac-refine-chips">${chipsHtml}</div>`:''}</div>`;
+  }
+  dd.style.display='block';
+  dd.innerHTML = itemsHtml + refineHtml;
+  top.forEach(c => setBgImg(document.getElementById(`aco-${c[3]}`), carImg(c[3])));
+}
+function isUsefulTrim(t) {
+  if (!/[a-zA-Z]/.test(t)) return false;
+  const tokens = t.split(/[-()_\/\s]+/).filter(Boolean);
+  return tokens.some(tok => tok.length >= 3);
+}
+function countAfterTerm(res, term) {
+  const parts = normEng(deaccent(term).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
+  let yf = null;
+  const tt = [];
+  parts.forEach(p => /^(19|20)\d{2}$/.test(p) ? (yf = +p) : tt.push(p));
+  const termForms = tt.map(termMatchers);
+  let n = 0;
+  for (const c of res) {
+    if (yf && (c[6] > yf || (c[7] !== null && c[7] < yf))) continue;
+    if (termForms.length) {
+      const hay = c._hay;
+      if (!termForms.every(forms => forms.some(({str, re}) => re ? re.test(hay) : hay.includes(str)))) continue;
+    }
+    n++;
+  }
+  return n;
+}
+function getRefineSuggestions(res, q) {
+  if (res.length <= 8) return [];
+  const candidates = [];
+  const years = new Set();
+  const fuels = new Set();
+  const models = new Map();
+  for (const c of res) {
+    if (c[6]) years.add(c[6]);
+    fuels.add(normalizeFuel(c[5]));
+    const k = c[0] + '|' + c[1];
+    if (!models.has(k)) models.set(k, c[2]);
+  }
+  const yearsSorted = [...years].sort((a,b)=>a-b);
+  if (yearsSorted.length >= 3) {
+    const latest = yearsSorted[yearsSorted.length-1];
+    candidates.push({ category:'year', append: String(latest), label: String(latest) });
+  }
+  ['Diesel','Petrol','Hybrid','Electric'].forEach(f => {
+    if (fuels.has(f)) candidates.push({ category:'fuel', append: f, label: f });
+  });
+  const dispRe = /\b(\d\.\d)\b/;
+  const disps = new Set();
+  const trims = new Set();
+  for (const c of res) {
+    const m = (c[4] || '').match(dispRe);
+    if (m) disps.add(m[1]);
+    if (c[4] && isUsefulTrim(c[4])) trims.add(normEng(c[4]));
+  }
+  disps.forEach(d => candidates.push({ category:'disp', append: d, label: d + 'L' }));
+  trims.forEach(t => candidates.push({ category:'trim', append: t, label: t }));
+  if (models.size > 1) {
+    models.forEach(name => candidates.push({ category:'model', append: name, label: name }));
+  }
+  candidates.forEach(c => { c.count = countAfterTerm(res, c.append); });
+  const dispChipsByPrefix = new Map();
+  for (const c of candidates) if (c.category === 'disp') dispChipsByPrefix.set(c.append, c);
+  const trimGroups = new Map();
+  for (const c of candidates) {
+    if (c.category !== 'trim') continue;
+    const m = c.append.match(/^(\d\.\d)\b/);
+    if (!m) continue;
+    const key = m[1] + '|' + c.count;
+    if (!trimGroups.has(key)) trimGroups.set(key, []);
+    trimGroups.get(key).push(c);
+  }
+  const toRemove = new Set();
+  const toAdd = [];
+  for (const [key, group] of trimGroups) {
+    const [disp, cStr] = key.split('|');
+    const cnt = +cStr;
+    const existingDisp = dispChipsByPrefix.get(disp);
+    if (existingDisp && existingDisp.count === cnt) {
+      group.forEach(c => toRemove.add(c));
+      continue;
+    }
+    if (group.length < 2) continue;
+    group.forEach(c => toRemove.add(c));
+    toAdd.push({ category:'disp_grouped', append: group[0].append, label: disp, count: cnt });
+  }
+  const processed = candidates.filter(c => !toRemove.has(c)).concat(toAdd);
+  const minCount = Math.max(2, Math.floor(res.length * 0.01));
+  const scored = processed.filter(c => c.count >= minCount && c.count < res.length);
+  const TARGET_LOG = Math.log(8);
+  scored.forEach(c => {
+    const ratio = res.length / c.count;
+    c.score = -Math.abs(Math.log(ratio) - TARGET_LOG);
+  });
+  scored.sort((a,b) => b.score - a.score);
+  const seen = new Set();
+  const out = [];
+  for (const c of scored) {
+    const key = c.append.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+function applyRefineChip(append, inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const cur = input.value.trim();
+  input.value = cur ? cur + ' ' + append : append;
+  input.focus();
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function handleAcKeydown(e, dropId) {
+  const dd = document.getElementById(dropId);
+  if (dd.style.display !== 'block') return;
+  const st = AC_STATE[dropId];
+  if (!st.items.length) {
+    if (e.key === 'Escape') { dd.style.display = 'none'; st.focusIdx = -1; }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    st.focusIdx = (st.focusIdx + 1) % st.items.length;
+    updateAcFocus(dropId);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    st.focusIdx = st.focusIdx <= 0 ? st.items.length - 1 : st.focusIdx - 1;
+    updateAcFocus(dropId);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const idx = st.focusIdx >= 0 ? st.focusIdx : 0;
+    const carId = st.items[idx];
+    if (carId != null) pickAc(carId);
+  } else if (e.key === 'Escape') {
+    dd.style.display = 'none';
+    st.focusIdx = -1;
+  }
+}
+function updateAcFocus(dropId) {
+  const dd = document.getElementById(dropId);
+  const items = dd.querySelectorAll('.ac-item');
+  const st = AC_STATE[dropId];
+  items.forEach((it, i) => it.classList.toggle('kb-focus', i === st.focusIdx));
+  const f = items[st.focusIdx];
+  if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' });
+}
+function pickAc(carId) {
+  const car=ALL_CARS.find(c=>c[3]===carId); if(!car)return;
+  ['acDrop','sb-acDrop'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('searchInput').value=''; document.getElementById('sb-searchInput').value='';
+  const maker=MAKERS.find(m=>m.id===car[0]);
+  state={make:car[0],model:car[1],engine:car[3]};
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateBubbles(); enableRows(); setSelectedCar(car,null);
+}
+function hl(text,terms){
+  let out=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if(!terms.length) return out;
+  const pat=terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).filter(Boolean).sort((a,b)=>b.length-a.length).join('|');
+  if(!pat) return out;
+  return out.replace(new RegExp('('+pat+')','gi'),'<span class="hl">$1</span>');
+}
+const SVG_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`;
+const PLACEHOLDER_IMG = 'uploads/000.jpg';
+renderHistory();
+function carImg(carId) { return `imageURL800/${carId}.jpg`; }
+function setBgImg(el, url) {
+  if (!el) return;
+  const probe = new Image();
+  probe.onload = () => { el.style.backgroundImage = `url('${url}')`; };
+  probe.onerror = () => { el.style.backgroundImage = `url('${PLACEHOLDER_IMG}')`; };
+  probe.src = url;
+}
+function setSelectedCar(car, regPlate) {
+  selectedCar = car;
+  if (!car) { resetFindBtn(); updateSelectorBtn(); return; }
+  updateSelectorBtn(); saveToHistory(car); renderHistory(); renderSbHistory();
+  ['findBtn','sidebarFindBtn'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.disabled = false;
+    btn.innerHTML = `${SVG_SEARCH} Find Parts`;
+  });
+}
+function resetFindBtn() {
+  ['findBtn','sidebarFindBtn'].forEach(id => {
+    const btn = document.getElementById(id);
+    btn.disabled = true;
+    btn.innerHTML = `${SVG_SEARCH} Find Parts`;
+  });
+}
+function renderMakerShortcuts() {
+  const counts = {};
+  ALL_CARS.forEach(c => { counts[c[0]] = (counts[c[0]]||0)+1; });
+  const top10 = MAKERS.map(m=>({id:m.id,n:m.n,count:counts[m.id]||0})).sort((a,b)=>b.count-a.count).slice(0,10);
+  const chip = m => `<button class="maker-chip" data-make="${m.id}" onclick="quickPickMake(${m.id})">${m.n}</button>`;
+  const html = top10.map(chip).join('');
+  const ms = document.getElementById('makerShortcuts'); if (ms) ms.innerHTML = html;
+  const w = document.getElementById('widgetMakerShortcuts'); if (w) w.innerHTML = html;
+}
+function quickPickMake(makerId) {
+  const maker = MAKERS.find(m=>m.id===makerId); if(!maker)return;
+  state = { make: makerId, model: null, engine: null };
+  setRowValue('make', maker.n, true);
+  ['model','engine'].forEach(s => setRowValue(s,'Select '+s,false));
+  updateBubbles(); enableRows(); setSelectedCar(null);
+  stepHistory = ['make','model']; openStep('model');
+}
+const HISTORY_KEY = 'sb_recent_cars';
+const HISTORY_MAX = 5;
+function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch { return []; } }
+function saveToHistory(car) {
+  const maker = MAKERS.find(m=>m.id===car[0]);
+  const entry = { id:car[3],make:maker?.n||'',model:car[2],trim:car[4],year:car[6],yearTo:car[7],fuel:car[5],kw:car[8] };
+  let h = getHistory().filter(x=>x.id!==entry.id); h.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0,HISTORY_MAX)));
+}
+function removeFromHistory(id, e) {
+  if (e) e.stopPropagation();
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(getHistory().filter(h=>h.id!==id)));
+  renderHistory();
+}
+function renderHistory() {
+  renderSbHistory();
+}
+function pickRecent(carId) {
+  const car = ALL_CARS.find(c=>c[3]===carId); if(!car)return;
+  const maker = MAKERS.find(m=>m.id===car[0]);
+  state = { make:car[0],model:car[1],engine:car[3] };
+  setRowValue('make',maker?.n||'',true); setRowValue('model',car[2],true); setRowValue('engine',car[4],true);
+  updateBubbles(); enableRows(); setSelectedCar(car,null); closeSidebar();
+}
+function findParts() {
+  if (!selectedCar) return;
+  const maker = MAKERS.find(m=>m.id===selectedCar[0]);
+  alert(`✓ Finding parts for:\n${maker?.n} ${selectedCar[2]} · ${selectedCar[4]}\n\n(Would redirect to parts catalogue)`);
+}
+
+// ── Reg-number lookup (mock) ────────────────────────────────────────
+const DEMO_PLATES = {
+  'AB12CDE':  113434,
+  'WV68GTI':  118645,
+  'LD17RS6':  117081,
+  'FF24EV1':  144688,
+  'MN20C200': 143578,
+};
+let plateFoundCar = null;
+function tryPlate(plate, ctx) {
+  const input = document.getElementById((ctx||'') + 'plateInput');
+  if (input) input.value = plate;
+  searchByPlate(ctx);
+}
+function searchByPlate(ctx) {
+  ctx = ctx || '';
+  const input = document.getElementById(ctx + 'plateInput');
+  const card = document.getElementById(ctx + 'plateConfirmCard');
+  if (!input || !card) return;
+  const plate = (input.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!plate) { card.style.display = 'none'; return; }
+  card.className = 'plate-confirm-card plate-confirm-card--loading';
+  card.innerHTML = `<div class="pcc-loading-msg"><span class="pcc-spinner"></span>Looking up <strong>${plate}</strong>…</div>`;
+  card.style.display = 'block';
+  setTimeout(() => doPlateLookup(plate, ctx), 550);
+}
+function doPlateLookup(plate, ctx) {
+  const card = document.getElementById(ctx + 'plateConfirmCard');
+  if (!card) return;
+  const carId = DEMO_PLATES[plate];
+  const car = carId ? ALL_CARS.find(c => c[3] === carId) : null;
+  if (car) {
+    plateFoundCar = car;
+    const maker = MAKERS.find(m => m.id === car[0]);
+    const fuel = car[5] ? car[5].split('/')[0] : '';
+    const yrs = car[7] ? `${car[6]}–${car[7]}` : car[6] ? `from ${car[6]}` : '';
+    const sub = [fuel, car[8] ? `${car[8]} kW / ${car[9]} hp` : '', yrs].filter(Boolean).join(' · ');
+    card.className = 'plate-confirm-card plate-confirm-card--found';
+    card.innerHTML = `
+      <div class="pcc-header">Plate ${plate} matched</div>
+      <div class="pcc-car">
+        <div class="pcc-car-img" id="${ctx}pccImg"></div>
+        <div style="flex:1;min-width:0">
+          <div class="pcc-car-name">${maker?.n || ''} ${car[2]}</div>
+          <div class="pcc-car-trim">${car[4]}</div>
+          <div class="pcc-car-sub">${sub}</div>
+        </div>
+      </div>
+      <div class="pcc-actions">
+        <button class="pcc-confirm-btn" onclick="confirmPlateResult('${ctx}')">Yes, this is my car</button>
+        <div class="pcc-not-mine"><a href="#" onclick="notMyCar('${ctx}');return false">Not my car &mdash; search by name</a></div>
+      </div>`;
+    setBgImg(document.getElementById(ctx + 'pccImg'), carImg(car[3]));
+  } else {
+    plateFoundCar = null;
+    card.className = 'plate-confirm-card plate-confirm-card--error';
+    card.innerHTML = `
+      <div class="pcc-header">No vehicle found for ${plate}</div>
+      <div class="pcc-error-msg">In this prototype only the suggested demo plates resolve to a real car. Click one of them above, or search by name.</div>
+      <div class="pcc-actions">
+        <div class="pcc-try-again"><a href="#" onclick="document.getElementById('${ctx}plateInput').focus();return false">Try another plate</a></div>
+      </div>`;
+  }
+}
+function confirmPlateResult(ctx) {
+  if (!plateFoundCar) return;
+  const car = plateFoundCar;
+  const maker = MAKERS.find(m => m.id === car[0]);
+  state = { make: car[0], model: car[1], engine: car[3] };
+  setRowValue('make', maker?.n || '', true);
+  setRowValue('model', car[2], true);
+  setRowValue('engine', car[4], true);
+  updateBubbles(); enableRows();
+  setSelectedCar(car, null);
+  ['plateConfirmCard','sb-plateConfirmCard'].forEach(id => {
+    const c = document.getElementById(id);
+    if (c) c.style.display = 'none';
+  });
+  if (ctx === 'sb-') closeSidebar();
+}
+function notMyCar(ctx) {
+  const card = document.getElementById(ctx + 'plateConfirmCard');
+  if (card) card.style.display = 'none';
+  const plate = (document.getElementById(ctx + 'plateInput').value || '').trim();
+  const seedQuery = plateFoundCar ? (MAKERS.find(m => m.id === plateFoundCar[0])?.n || '') + ' ' : '';
+  const inputId = ctx === 'sb-' ? 'sb-searchInput' : 'searchInput';
+  const inp = document.getElementById(inputId);
+  if (inp) {
+    inp.value = seedQuery;
+    inp.focus();
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+</script>
+</body>
+</html>
