@@ -563,6 +563,7 @@ const NUM2ROM = {'1':'i','2':'ii','3':'iii','4':'iv','5':'v','6':'vi','7':'vii',
 const ROM2NUM = Object.fromEntries(Object.entries(NUM2ROM).map(([k,v])=>[v,k]));
 const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const wbRe  = s => new RegExp('(?:^|\\s)' + escRe(s) + '(?=\\s|$)');
+const abRe  = s => new RegExp('(?:^|[^a-z0-9])' + escRe(s) + '(?=[^a-z0-9]|$)');
 const NUM2ROM3 = {'1':'i','2':'ii','3':'iii'};
 const ROM2NUM3 = {'i':'1','ii':'2','iii':'3'};
 function termMatchers(t) {
@@ -572,7 +573,7 @@ function termMatchers(t) {
   if (rNum) return [t, rNum[1]].map(f => ({ str: f, re: wbRe(f) }));
   const num = NUM2ROM[t] || ROM2NUM[t];
   if (num) return [t, num].map(f => ({ str: f, re: wbRe(f) }));
-  return [{ str: t, re: null }];
+  return [{ str: t, re: t.length >= 2 ? abRe(t) : null }];
 }
 const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
@@ -966,7 +967,19 @@ function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
   const n1 = base.replace(/[-()_\/]/g,' ');
   const n2 = base.replace(/[()_\/]/g,' ').replace(/-/g,'');
   const n3 = n1.replace(/\b([a-z]) (\d+)\b/g,'$1$2');
-  return n1+' '+n2+' '+n3;
+  const n4 = n1.replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2');
+  return n1+' '+n2+' '+n3+' '+n4;
+}
+function relevanceScore(c, tt) {
+  if (!tt.length) return RATINGS.get(c[3]) || 0;
+  const maker = MAKERS_MAP.get(c[0]) || '';
+  const makerModel = `${maker} ${c[2]}`.toLowerCase();
+  const modelWords = c[2].toLowerCase().split(/[\s\-()]+/).filter(Boolean);
+  let boost = 0;
+  const lastTerm = tt[tt.length - 1];
+  if (lastTerm && modelWords.some(w => w === lastTerm)) boost += 2.0;
+  if (tt.every(t => makerModel.includes(t))) boost += 1.0;
+  return (RATINGS.get(c[3]) || 0) + boost;
 }
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
@@ -1001,21 +1014,30 @@ function runAc(q, dropId) {
     if(termForms.length){ const hay=c._hay; if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue; }
     res.push(c);
   }
-  res.sort((a,b)=>(RATINGS.get(b[3])||0)-(RATINGS.get(a[3])||0));
-  const top=res.slice(0,8);
-  if(!top.length){dd.style.display='block';dd.innerHTML=`<div class="ac-more">No vehicles found</div>`;return;}
+  res.sort((a,b) => relevanceScore(b, tt) - relevanceScore(a, tt));
+  const top=res.slice(0,20);
+  if(!top.length){
+    const firstToken = tt[0] || '';
+    const makerHint = firstToken.length >= 3 ? MAKERS.find(m => m.n.toLowerCase().startsWith(firstToken.slice(0,4))) : null;
+    const hint = makerHint
+      ? `Try just "<b>${makerHint.n}</b>" or use Make / Model steps below`
+      : `Try the brand name only: <b>BMW</b>, <b>Toyota</b>, <b>VW</b>…`;
+    dd.style.display='block';
+    dd.innerHTML=`<div class="ac-more" style="text-align:left;line-height:1.7">No results for "<b>${q}</b>"<br><span style="color:#888">${hint}</span><br><button onclick="document.getElementById('acDrop').style.display='none';document.getElementById('sb-acDrop').style.display='none';openSidebar();openStep('make');" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;background:#F85A00;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Select by Make / Model →</button></div>`;
+    return;
+  }
   st.items = top.map(c => c[3]);
   const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
   const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
-  if (res.length > 8) {
+  if (res.length > 20) {
     const sug = getRefineSuggestions(res, q);
     const chipsHtml = sug.map(s => {
       const safe = String(s.append).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const titleAttr = s.label.length > 24 ? ` title="${s.label.replace(/"/g,'&quot;')}"` : '';
       return `<button class="ac-refine-chip" onclick="applyRefineChip('${safe}','${inputId}')"${titleAttr}>+ ${s.label} <span class="ac-refine-count">${s.count}</span></button>`;
     }).join('');
-    refineHtml = `<div class="ac-refine"><div class="ac-refine-text">Showing top 8 of ${res.length}${sug.length?' — narrow down by:':''}</div>${chipsHtml?`<div class="ac-refine-chips">${chipsHtml}</div>`:''}</div>`;
+    refineHtml = `<div class="ac-refine"><div class="ac-refine-text">Showing top 20 of ${res.length}${sug.length?' — narrow down by:':''}</div>${chipsHtml?`<div class="ac-refine-chips">${chipsHtml}</div>`:''}</div>`;
   }
   dd.style.display='block';
   dd.innerHTML = itemsHtml + refineHtml;
