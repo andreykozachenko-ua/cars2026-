@@ -73,8 +73,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ac-box { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d0d0; border-radius: 4px; padding: 0 12px; height: 44px; background: #fff; transition: border-color .15s; }
 .ac-box:focus-within { border-color: #F85A00; }
 .ac-box svg { width: 14px; height: 14px; color: #bbb; flex-shrink: 0; }
-.ac-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
+.ac-input-wrap { position: relative; flex: 1; min-width: 0; height: 100%; }
+.ac-box input { position: relative; z-index: 1; width: 100%; height: 100%; border: none; background: transparent; outline: none; font-size: 14px; color: #333; font-family: inherit; }
 .ac-box input::placeholder { color: #bbb; }
+.ac-ghost { position: absolute; inset: 0; display: flex; align-items: center; font-size: 14px; font-family: inherit; white-space: pre; overflow: hidden; pointer-events: none; }
+.ac-ghost-typed { color: transparent; }
+.ac-ghost-plus { color: #F85A00; font-weight: 700; }
+.ac-ghost-suggest { color: #bbb; }
 .ac-drop { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #d0d0d0; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.1); overflow: hidden; z-index: 200; }
 .ac-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background .1s; }
 .ac-item:last-child { border-bottom: none; }
@@ -85,7 +90,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
 .ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
 .ac-item.kb-focus { background: #fff8f5; }
-.ac-refine { padding: 8px 12px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+.ac-refine { display: none; padding: 8px 12px; background: #fafafa; border-top: 1px solid #f0f0f0; }
 .ac-refine-text { font-size: 11px; color: #888; margin-bottom: 6px; text-align: center; }
 .ac-refine-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
 .ac-refine-chip { padding: 3px 9px; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 11px; font-weight: 600; color: #555; cursor: pointer; font-family: inherit; transition: all .1s; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: baseline; }
@@ -343,7 +348,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="ac-wrap">
         <div class="ac-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+          <div class="ac-input-wrap">
+            <input id="searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+            <div class="ac-ghost" id="searchInput-ghost"></div>
+          </div>
         </div>
         <div class="ac-drop" id="acDrop"></div>
       </div>
@@ -433,7 +441,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="ac-wrap">
           <div class="ac-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input id="sb-searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+            <div class="ac-input-wrap">
+              <input id="sb-searchInput" type="text" placeholder="e.g. Audi A4 TDI, Ford Focus 2018…" autocomplete="off" spellcheck="false">
+              <div class="ac-ghost" id="sb-searchInput-ghost"></div>
+            </div>
           </div>
           <div class="ac-drop" id="sb-acDrop"></div>
         </div>
@@ -516,7 +527,7 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 let fuelFilter = 'all';
 let MAKERS_MAP = new Map();
-const AC_STATE = { acDrop: { items: [], focusIdx: -1 }, 'sb-acDrop': { items: [], focusIdx: -1 } };
+const AC_STATE = { acDrop: { items: [], focusIdx: -1, ghostText: '' }, 'sb-acDrop': { items: [], focusIdx: -1, ghostText: '' } };
 const POPULAR_MAKERS = ['BMW','VW','AUDI','MERCEDES-BENZ','FORD','VAUXHALL','RENAULT','PEUGEOT','TOYOTA','VOLVO'];
 const MAKER_OTHER = new Set(['AC','ACURA','ALVIS','ARO','ARTEGA','ASIA MOTORS','ASKAM (FARGO/DESOTO)','AUSTIN-HEALEY','AUTO UNION','AUVERLAND','BARKAS','BEDFORD','BERTONE','BESTURN (FAW)','BORGWARD','BRABUS','BUGATTI','BUICK','BUICK (SGM)','CARBODIES','CASALINI','CATERHAM','CHERY','DAF','DAIMLER','DE TOMASO','DFSK','EBRO','FISKER','FORD ASIA / OCEANIA','FORD OTOSAN','FSO','GAZ','GEELY (GLEAGLE)','GENESIS','GLAS','GMC','GOUPIL','GREAT WALL','HAVAL','HOLDEN','INDIGO','INNOCENTI','JIANGLING LANDWIND','JINBEI','KOENIGSEGG','KTM','LDV','LEVC','LIGIER','LINCOLN','LLOYD','LTI','LUCID','MAHINDRA','MARUTI','MAYBACH','MCLAREN','MEGA','MERCURY','MIA ELECTRIC','MINELLI','MORGAN','MORRIS','MOSKVICH','NSU','OLDSMOBILE','PAGANI','PANTHER','PININFARINA','PLYMOUTH','POLARIS','PROTON','PUCH','RAVON','RUF','SATURN','SCION','SHELBY','SHUANGHUAN AUTO','SPYKER','STEYR','STREETSCOOTER','THINK','TVR','UAZ','UMM','VICTORY','WARTBURG','WESTFIELD','WIESMANN','ZASTAVA','ZUENDAPP']);
 
@@ -573,7 +584,7 @@ function termMatchers(t) {
   if (rNum) return [t, rNum[1]].map(f => ({ str: f, re: wbRe(f) }));
   const num = NUM2ROM[t] || ROM2NUM[t];
   if (num) return [t, num].map(f => ({ str: f, re: wbRe(f) }));
-  return [{ str: t, re: t.length >= 2 ? abRe(t) : null }];
+  return [{ str: t, re: abRe(t) }];
 }
 const STEP_LABELS = { make:'Select Make', model:'Select Model', engine:'Select Engine / Trim' };
 const STEP_SHORT  = { make:'Make', model:'Model', engine:'Engine' };
@@ -958,10 +969,12 @@ document.addEventListener('click', e => {
     document.getElementById('sb-acDrop').style.display = 'none';
     AC_STATE['acDrop'].focusIdx = -1;
     AC_STATE['sb-acDrop'].focusIdx = -1;
+    clearGhost('acDrop');
+    clearGhost('sb-acDrop');
   }
 });
 const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-const normEng = s => s.replace(/(\d{2,})\s+([a-zA-Z])\b/g, '$1$2');
+const normEng = s => s.replace(/(\d{2,})\s+([a-zA-Z])\b/g, (m, digits, letter) => /^(19|20)\d{2}$/.test(digits) ? m : digits + letter);
 function buildHay(makeName, modelName, trimName, fuel, driveType, bodyType) {
   const base = normEng(deaccent([makeName, modelName, trimName, fuel||'', driveType||'', bodyType||''].join(' ')).toLowerCase());
   const n1 = base.replace(/[-()_\/]/g,' ');
@@ -981,28 +994,127 @@ function relevanceScore(c, tt) {
   if (tt.every(t => makerModel.includes(t))) boost += 1.0;
   return (RATINGS.get(c[3]) || 0) + boost;
 }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clearGhost(dropId) {
+  const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+  const g = document.getElementById(inputId + '-ghost');
+  if (g) g.innerHTML = '';
+  AC_STATE[dropId].ghostText = '';
+}
+function pickValidatedStageCandidate(res, texts) {
+  for (const text of texts) {
+    const cnt = countAfterTerm(res, text);
+    if (cnt > 0 && cnt < res.length) return text;
+  }
+  return null;
+}
+function groupTextVariants(gn) {
+  const parts = gn.split(' / ').map(p => p.trim()).filter(Boolean);
+  const out = [gn];
+  for (const p of parts) {
+    if (p !== gn) out.push(p);
+    const erStripped = p.replace(/^(\d+)er$/i, '$1');
+    if (erStripped !== p) out.push(erStripped);
+  }
+  return out;
+}
+function significantEntries(entries) {
+  // entries: array of {name, count}. Drops the whole set if one entry already
+  // dominates (stage effectively resolved) and drops entries that are too small
+  // a share to be a real competing option (likely noisy cross-matches).
+  if (!entries.length) return [];
+  const total = entries.reduce((s, e) => s + e.count, 0);
+  const sorted = [...entries].sort((a,b) => b.count - a.count);
+  if (sorted[0].count / total >= 0.9) return [];
+  const minShare = Math.max(2, Math.floor(total * 0.03));
+  return sorted.filter(e => e.count >= minShare);
+}
+function getStagedTip(res, yf) {
+  if (res.length < 2) return null;
+  const makerCounts = new Map();
+  for (const c of res) makerCounts.set(c[0], (makerCounts.get(c[0]) || 0) + 1);
+  const dominantMaker = [...makerCounts.entries()].sort((a,b) => b[1] - a[1])[0];
+  if (dominantMaker[1] / res.length < 0.5) return null; // no single maker clearly resolved yet
+  const scoped = res.filter(c => c[0] === dominantMaker[0]);
+
+  const groupCounts = new Map();
+  for (const c of scoped) {
+    const g = MODEL_GROUPS[String(c[1])];
+    if (!g) continue;
+    if (!groupCounts.has(g.gid)) groupCounts.set(g.gid, { name: g.gn, count: 0 });
+    groupCounts.get(g.gid).count++;
+  }
+  const groupsSignificant = significantEntries([...groupCounts.values()]);
+  if (groupsSignificant.length > 1) {
+    for (const g of groupsSignificant) {
+      const pick = pickValidatedStageCandidate(res, groupTextVariants(g.name));
+      if (pick) return { append: pick, label: pick };
+    }
+  }
+
+  if (yf == null) {
+    const yearCounts = new Map();
+    for (const c of scoped) { if (c[6]) yearCounts.set(c[6], (yearCounts.get(c[6]) || 0) + 1); }
+    const yearsSignificant = significantEntries([...yearCounts.entries()].map(([y, count]) => ({ name: y, count })));
+    if (yearsSignificant.length > 1) {
+      const years = yearsSignificant.map(e => e.name).sort((a,b) => b - a);
+      const pick = pickValidatedStageCandidate(res, years.map(String));
+      if (pick) return { append: pick, label: pick };
+    }
+  }
+
+  const modelCounts = new Map();
+  for (const c of scoped) {
+    const k = c[0] + '|' + c[1];
+    if (!modelCounts.has(k)) modelCounts.set(k, { name: c[2], count: 0 });
+    modelCounts.get(k).count++;
+  }
+  const modelsSignificant = significantEntries([...modelCounts.values()]);
+  if (modelsSignificant.length > 1) {
+    const pick = pickValidatedStageCandidate(res, modelsSignificant.map(m => m.name));
+    if (pick) return { append: pick, label: pick };
+  }
+
+  const fuelCounts = new Map();
+  for (const c of scoped) {
+    const f = normalizeFuel(c[5]);
+    fuelCounts.set(f, (fuelCounts.get(f) || 0) + 1);
+  }
+  const fuelsSignificant = significantEntries([...fuelCounts.entries()].map(([f, count]) => ({ name: f, count })));
+  if (fuelsSignificant.length > 1) {
+    const pick = pickValidatedStageCandidate(res, fuelsSignificant.map(e => e.name));
+    if (pick) return { append: pick, label: pick };
+  }
+
+  const trimCounts = new Map();
+  for (const c of scoped) {
+    if (!c[4]) continue;
+    trimCounts.set(c[4], (trimCounts.get(c[4]) || 0) + 1);
+  }
+  const trimsSignificant = significantEntries([...trimCounts.entries()].map(([t, count]) => ({ name: t, count })));
+  if (trimsSignificant.length > 1) {
+    const pick = pickValidatedStageCandidate(res, trimsSignificant.map(e => e.name));
+    if (pick) return { append: pick, label: pick };
+  }
+
+  return null;
+}
+function updateGhost(dropId, inputId, tip) {
+  if (!tip) return;
+  const g = document.getElementById(inputId + '-ghost');
+  const input = document.getElementById(inputId);
+  const rawVal = input.value;
+  if (!g || !rawVal) return;
+  const rem = /\s$/.test(rawVal) ? tip.append : ' ' + tip.append;
+  AC_STATE[dropId].ghostText = rem;
+  g.innerHTML = `<span class="ac-ghost-typed">${escHtml(rawVal)}</span><span class="ac-ghost-plus"> +</span><span class="ac-ghost-suggest">${escHtml(tip.append)}</span>`;
+}
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
   const st = AC_STATE[dropId];
   st.items = []; st.focusIdx = -1;
+  clearGhost(dropId);
   if (q.length < 2) { dd.style.display='none'; return; }
-  const carIdQ = q.match(/^#?(\d+)$/);
-  if (carIdQ) {
-    const id = +carIdQ[1];
-    const car = ALL_CARS.find(c => c[3] === id);
-    if (car) {
-      const m = MAKERS.find(mk => mk.id === car[0]);
-      const sub = [car[6]&&car[7]?`${car[6]}–${car[7]}`:car[6]?`from ${car[6]}`:'', car[5]?car[5].split('/')[0]:'', car[8]?`${car[8]} kW`:''].filter(Boolean).join(' · ');
-      dd.style.display='block';
-      dd.innerHTML = `<div class="ac-item" onclick="pickAc(${car[3]})"><div class="ac-ico" id="aco-${car[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${m?.n||''} ${car[2]} · ${car[4]}</div><div class="ac-sub">ID ${car[3]}${sub?' · '+sub:''}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`;
-      setBgImg(document.getElementById(`aco-${car[3]}`), carImg(car[3]));
-      st.items = [car[3]];
-    } else {
-      dd.style.display='block';
-      dd.innerHTML = `<div class="ac-more">No vehicle with ID ${id}</div>`;
-    }
-    return;
-  }
   const parts = normEng(deaccent(q).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
@@ -1028,6 +1140,7 @@ function runAc(q, dropId) {
   }
   st.items = top.map(c => c[3]);
   const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+  updateGhost(dropId, inputId, getStagedTip(res, yf));
   const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
   if (res.length > 20) {
@@ -1153,11 +1266,22 @@ function applyRefineChip(append, inputId) {
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 function handleAcKeydown(e, dropId) {
+  const st = AC_STATE[dropId];
+  if ((e.key === 'ArrowRight' || e.key === 'Tab') && !e.shiftKey && st.ghostText) {
+    const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+    const input = document.getElementById(inputId);
+    if (input.selectionStart === input.value.length && input.selectionEnd === input.value.length) {
+      e.preventDefault();
+      input.value += st.ghostText;
+      clearGhost(dropId);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+  }
   const dd = document.getElementById(dropId);
   if (dd.style.display !== 'block') return;
-  const st = AC_STATE[dropId];
   if (!st.items.length) {
-    if (e.key === 'Escape') { dd.style.display = 'none'; st.focusIdx = -1; }
+    if (e.key === 'Escape') { dd.style.display = 'none'; st.focusIdx = -1; clearGhost(dropId); }
     return;
   }
   if (e.key === 'ArrowDown') {
@@ -1176,6 +1300,7 @@ function handleAcKeydown(e, dropId) {
   } else if (e.key === 'Escape') {
     dd.style.display = 'none';
     st.focusIdx = -1;
+    clearGhost(dropId);
   }
 }
 function updateAcFocus(dropId) {
@@ -1188,7 +1313,7 @@ function updateAcFocus(dropId) {
 }
 function pickAc(carId) {
   const car=ALL_CARS.find(c=>c[3]===carId); if(!car)return;
-  ['acDrop','sb-acDrop'].forEach(id=>document.getElementById(id).style.display='none');
+  ['acDrop','sb-acDrop'].forEach(id=>{document.getElementById(id).style.display='none';clearGhost(id);});
   document.getElementById('searchInput').value=''; document.getElementById('sb-searchInput').value='';
   const maker=MAKERS.find(m=>m.id===car[0]);
   state={make:car[0],model:car[1],engine:car[3]};
