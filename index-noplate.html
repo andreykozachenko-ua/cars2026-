@@ -563,10 +563,21 @@ const SYNONYM_GROUPS = [
   ['cabriolet','cabrio','convertible','roadster','spider','spyder'],
   ['coupe','coupé'],['saloon','sedan','berline','limousine'],['suv','crossover'],
   ['4motion','quattro','xdrive','awd','4wd','4x4','syncro','allrad'],
-  ['diesel','tdi','dci','hdi','cdti','cdi','jtd','d4d','tdci'],
-  ['petrol','tsi','tfsi','fsi'],['hybrid','hev','phev','mhev'],
-  ['electric','ev','bev','e-tron'],
+  ['diesel','tdi','dci','hdi','cdti','cdi','jtd','d4d','tdci','дизел','diisel','πετρελαιο','dizel','dyzelinas','dizeldegviela','motorina'],
+  ['petrol','tsi','tfsi','fsi','benzin','бензин','bensiin','gasolina','bensiini','essence','βενζινη','benzina','benzinas','benzins','benzine','bensin','benzyna','bencin'],
+  ['hybrid','hev','phev','mhev'],
+  ['electric','ev','bev','e-tron','elektro','ток','elektriline','electrico','sahko','electrique','ηλεκτρικο','elektromos','elektra','elektriba','elektrisch','elektrisk','eletrico','el'],
   ['auto','automatic','dsg','tiptronic','s-tronic','cvt','multitronic','pdk'],
+  // Fuel-type translations from fuel.csv (24 EU languages) — groups not previously covered
+  ['alcohol','alkohol','алкохол','alkoholi','alcool','αλκοολ','alcol','spiritas','spirts'],
+  ['bifuel','kaksikkutus','bicombustible','dwupaliwowy','bicombustivel','bicarburant'],
+  ['cng','surugaas','gnc'],
+  ['ethanol','eтанол','etanol','etanool','etanoli','αιθανολη','etanolo','etanolis','etanols'],
+  ['flexfuel','segakutuseline','fleksifuel','multicarburant','flexifuel'],
+  ['gas','газ','plyn','gaas','kaasu','gaz','αεριο','dujos','gaze','gass','plin'],
+  ['mixture','gemisch','смес','smes','blanding','segu','mixto','seos','melange','μιγμα','keverek','miscela','misinys','maisijums','mengsel','mieszanka','mistura','amestec','blandning','zmes'],
+  ['lpg','пропанбутан','autogas','autogaas','glp','gpl'],
+  ['hydrogen','wasserstoff','водород','vodik','vesinik','hidrogeno','vety','hydrogene','υδρογονο','hidrogen','idrogeno','vandenilis','udenradis','waterstof','wodor','hidrogenio','vatgas'],
 ];
 const SYNONYM_MAP = new Map();
 SYNONYM_GROUPS.forEach(g => g.forEach(w => SYNONYM_MAP.set(w, g)));
