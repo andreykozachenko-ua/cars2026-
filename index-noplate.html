@@ -1109,6 +1109,19 @@ function updateGhost(dropId, inputId, tip) {
   AC_STATE[dropId].ghostText = rem;
   g.innerHTML = `<span class="ac-ghost-typed">${escHtml(rawVal)}</span><span class="ac-ghost-plus"> +</span><span class="ac-ghost-suggest">${escHtml(tip.append)}</span>`;
 }
+function updateGhostCompletion(dropId, inputId, fullText) {
+  const g = document.getElementById(inputId + '-ghost');
+  const input = document.getElementById(inputId);
+  const rawVal = input.value;
+  if (!g || !rawVal) return;
+  const rawLower = deaccent(rawVal).toLowerCase();
+  const fullLower = deaccent(fullText).toLowerCase();
+  if (!fullLower.startsWith(rawLower) || fullLower.length <= rawLower.length) return;
+  let rem = fullLower.slice(rawVal.length);
+  if (rawVal === rawVal.toUpperCase() && rawVal !== rawVal.toLowerCase()) rem = rem.toUpperCase();
+  AC_STATE[dropId].ghostText = rem;
+  g.innerHTML = `<span class="ac-ghost-typed">${escHtml(rawVal)}</span><span class="ac-ghost-suggest">${escHtml(rem)}</span>`;
+}
 function runAc(q, dropId) {
   const dd = document.getElementById(dropId);
   const st = AC_STATE[dropId];
@@ -1128,18 +1141,19 @@ function runAc(q, dropId) {
   }
   res.sort((a,b) => relevanceScore(b, tt) - relevanceScore(a, tt));
   const top=res.slice(0,20);
+  const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
   if(!top.length){
     const firstToken = tt[0] || '';
     const makerHint = firstToken.length >= 3 ? MAKERS.find(m => m.n.toLowerCase().startsWith(firstToken.slice(0,4))) : null;
     const hint = makerHint
       ? `Try just "<b>${makerHint.n}</b>" or use Make / Model steps below`
       : `Try the brand name only: <b>BMW</b>, <b>Toyota</b>, <b>VW</b>…`;
+    if (makerHint) updateGhostCompletion(dropId, inputId, makerHint.n);
     dd.style.display='block';
     dd.innerHTML=`<div class="ac-more" style="text-align:left;line-height:1.7">No results for "<b>${q}</b>"<br><span style="color:#888">${hint}</span><br><button onclick="document.getElementById('acDrop').style.display='none';document.getElementById('sb-acDrop').style.display='none';openSidebar();openStep('make');" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;background:#F85A00;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Select by Make / Model →</button></div>`;
     return;
   }
   st.items = top.map(c => c[3]);
-  const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
   updateGhost(dropId, inputId, getStagedTip(res, yf));
   const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
