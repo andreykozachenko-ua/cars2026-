@@ -723,7 +723,7 @@ const OTHER_GIDS = {
 
 const STEPS = ['make','model','engine'];
 const SYNONYM_GROUPS = [
-  ['vw','volkswagen'],
+  ['vw','volkswagen','volkswagon','фольксваген','фолксваген'],
   ['mk1','i'],['mk2','ii'],['mk3','iii'],['mk4','iv'],['mk5','v'],['mk6','vi'],['mk7','vii'],['mk8','viii'],
   ['estate','variant','touring','avant','sw','kombi','break','wagon'],
   ['cabriolet','cabrio','convertible','roadster','spider','spyder'],
@@ -775,6 +775,9 @@ function normalizeFuel(raw) {
   if (f.includes('diesel')) return 'Diesel';
   return 'Petrol';
 }
+// Display-only German labels for fuel_type values (search still matches the underlying English data via SYNONYM_GROUPS)
+const FUEL_DE = { Petrol:'Benzin', Diesel:'Diesel', Hybrid:'Hybrid', Electric:'Elektro', Alcohol:'Alkohol', 'Bi-Fuel':'BiFuel', CNG:'CNG', Ethanol:'Ethanol', Flexfuel:'Flexfuel', Gas:'Gas', Mixture:'Gemisch', LPG:'LPG', Hydrogen:'Wasserstoff' };
+const fuelDE = f => FUEL_DE[f] || f;
 
 function parseRatingsCsv(text) {
   text.trim().split('\n').slice(1).forEach(line => {
@@ -1299,7 +1302,7 @@ function getStagedTip(res, yf) {
 
   const fuelCounts = new Map();
   for (const c of scoped) {
-    const f = normalizeFuel(c[5]);
+    const f = fuelDE(normalizeFuel(c[5]));
     fuelCounts.set(f, (fuelCounts.get(f) || 0) + 1);
   }
   const fuelsSignificant = significantEntries([...fuelCounts.entries()].map(([f, count]) => ({ name: f, count })));
@@ -1368,16 +1371,16 @@ function runAc(q, dropId) {
     const firstToken = tt[0] || '';
     const makerHint = firstToken.length >= 3 ? MAKERS.find(m => m.n.toLowerCase().startsWith(firstToken.slice(0,4))) : null;
     const hint = makerHint
-      ? `Try just "<b>${makerHint.n}</b>" or use Make / Model steps below`
-      : `Try the brand name only: <b>BMW</b>, <b>Toyota</b>, <b>VW</b>…`;
+      ? `Versuchen Sie es nur mit "<b>${makerHint.n}</b>" oder nutzen Sie die Schritte Marke / Modell unten`
+      : `Versuchen Sie nur den Markennamen: <b>BMW</b>, <b>Toyota</b>, <b>VW</b>…`;
     if (makerHint) updateGhostCompletion(dropId, inputId, makerHint.n);
     dd.style.display='block';
-    dd.innerHTML=`<div class="ac-more" style="text-align:left;line-height:1.7">No results for "<b>${q}</b>"<br><span style="color:#888">${hint}</span><br><button onclick="document.getElementById('acDrop').style.display='none';document.getElementById('sb-acDrop').style.display='none';openSidebar();openStep('make');" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;background:#F85A00;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Select by Make / Model →</button></div>`;
+    dd.innerHTML=`<div class="ac-more" style="text-align:left;line-height:1.7">Keine Ergebnisse für "<b>${q}</b>"<br><span style="color:#888">${hint}</span><br><button onclick="document.getElementById('acDrop').style.display='none';document.getElementById('sb-acDrop').style.display='none';openSidebar();openStep('make');" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;background:#F85A00;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Nach Marke / Modell auswählen →</button></div>`;
     return;
   }
   st.items = top.map(c => c[3]);
   updateGhost(dropId, inputId, getStagedTip(res, yf));
-  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
+  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`ab ${c[6]}`:'',c[5]?fuelDE(c[5].split('/')[0]):'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
   if (res.length > 20) {
     const sug = getRefineSuggestions(res, q);
