@@ -1027,6 +1027,11 @@ function pickValidatedStageCandidate(res, texts) {
   }
   return null;
 }
+function stripTypedTokens(text, tt) {
+  const typed = new Set(tt.map(t => deaccent(t).toLowerCase()));
+  const kept = text.split(/\s+/).filter(w => !typed.has(deaccent(w).toLowerCase().replace(/[()_,]/g, '')));
+  return kept.join(' ').trim();
+}
 function significantEntries(entries) {
   // entries: array of {name, count}. Drops the whole set if one entry already
   // dominates (stage effectively resolved) and drops entries that are too small
@@ -1148,7 +1153,12 @@ function runAc(q, dropId) {
     return;
   }
   st.items = top.map(c => c[3]);
-  updateGhost(dropId, inputId, getStagedTip(res, yf));
+  let stagedTip = getStagedTip(res, yf);
+  if (stagedTip) {
+    const stripped = stripTypedTokens(stagedTip.append, tt);
+    stagedTip = stripped ? { append: stripped, label: stripped } : null;
+  }
+  updateGhost(dropId, inputId, stagedTip);
   const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); const feat=HIGHLIGHT_IDS.has(c[3]); return `<div class="ac-item${feat?' is-featured':''}" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${feat?'<span class="featured-star">★</span>':''}${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
   if (res.length > 20) {
