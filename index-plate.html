@@ -90,6 +90,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ac-sub { font-size: 11px; color: #999; margin-top: 1px; }
 .ac-more { padding: 8px 12px; text-align: center; font-size: 11px; color: #aaa; background: #fafafa; }
 .ac-item.kb-focus { background: #fff8f5; }
+.ac-item.is-featured, .step-item.is-featured { background: #fffaeb; border-left: 3px solid #f2b400; }
+.ac-item.is-featured:hover, .step-item.is-featured:hover { background: #fef3c7; }
+.step-item.is-featured.sel { background: #fff3ee; }
+.featured-star { color: #f2b400; font-size: 11px; margin-right: 4px; }
 .ac-refine { display: none; padding: 8px 12px; background: #fafafa; border-top: 1px solid #f0f0f0; }
 .ac-refine-text { font-size: 11px; color: #888; margin-bottom: 6px; text-align: center; }
 .ac-refine-chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
@@ -153,6 +157,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .recent-list { display: flex; flex-direction: column; gap: 4px; }
 .recent-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fafafa; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; transition: border-color .12s; }
 .recent-item:hover { border-color: #F85A00; }
+.recent-item.is-featured { background: #fffaeb; border-left: 3px solid #f2b400; }
 .recent-item-icon { width: 60px; min-width: 60px; height: 40px; border-radius: 4px; background: #fff center/contain no-repeat; flex-shrink: 0; }
 .recent-item-body { flex: 1; min-width: 0; }
 .recent-item-name { font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -646,7 +651,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </div>
 
 <script>
-let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {};
+let ALL_CARS = [], MAKERS = [], MODEL_GROUPS = {}, HIGHLIGHT_IDS = new Set();
 let selectedCar = null;
 let RATINGS = new Map();
 let state = { make: null, model: null, engine: null };
@@ -750,9 +755,11 @@ function parseRatingsCsv(text) {
 Promise.all([
   fetch('cars_data.json').then(r => r.json()),
   fetch('bmw.csv').then(r => r.text()).catch(() => ''),
-  fetch('model_groups.json').then(r => r.json()).catch(() => ({}))
-]).then(([data, csv, groups]) => {
+  fetch('model_groups.json').then(r => r.json()).catch(() => ({})),
+  fetch('highlight_ids.json').then(r => r.json()).catch(() => [])
+]).then(([data, csv, groups, highlightIds]) => {
   MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
+  HIGHLIGHT_IDS = new Set(highlightIds);
   MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
   ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
   if (csv) parseRatingsCsv(csv);
@@ -912,7 +919,7 @@ function renderStepContent(filter) {
     for (const item of filtered) { const key = item.fuel; if (!fuelMap.has(key)) fuelMap.set(key, []); fuelMap.get(key).push(item); }
     list.innerHTML = [...fuelMap.entries()].filter(([,items]) => items.length > 0).map(([fuel, items], idx) => {
       const hasSel = items.some(i => i.id == state.engine);
-      return `<div class="model-group"><div class="model-group-header has-fuel open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${fuel}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item => { const isSel = item.id == state.engine; return `<div class="step-item ${isSel?'sel':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${item.label}</div>${item.sub?`<div class="step-item-sub">${item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
+      return `<div class="model-group"><div class="model-group-header has-fuel open ${hasSel?'has-sel':''}" data-gidx="f${idx}" onclick="toggleModelGroup('f${idx}')"><div class="model-group-name">${fuel}</div><div class="model-group-meta"><span class="model-group-count">${items.length}</span><span class="model-group-arrow">›</span></div></div><div class="model-group-items open" id="mg-f${idx}">${items.map(item => { const isSel = item.id == state.engine; const feat = HIGHLIGHT_IDS.has(item.id); return `<div class="step-item ${isSel?'sel':''}${feat?' is-featured':''}" onclick="pickItem(${JSON.stringify(item.id)})"><div class="step-item-body"><div class="step-item-name">${feat?'<span class="featured-star">★</span>':''}${item.label}</div>${item.sub?`<div class="step-item-sub">${item.sub}</div>`:''}</div><span class="step-item-check">✓</span></div>`; }).join('')}</div></div>`;
     }).join(''); return;
   }
   if (currentStep === 'make' && !f) {
@@ -1066,10 +1073,11 @@ function renderSbHistory() {
   section.style.display = 'block';
   document.getElementById('sb-recent-list').innerHTML = history.map(h => {
     const parts = [h.fuel ? h.fuel.split('/')[0] : '', h.kw ? h.kw + ' kW' : '', h.year ? (h.yearTo ? h.year + '–' + h.yearTo : 'from ' + h.year) : ''].filter(Boolean);
-    return `<div class="recent-item" onclick="pickRecent(${h.id});closeSidebar()">
+    const feat = HIGHLIGHT_IDS.has(h.id);
+    return `<div class="recent-item${feat?' is-featured':''}" onclick="pickRecent(${h.id});closeSidebar()">
       <div class="recent-item-icon" id="ricon-${h.id}"></div>
       <div class="recent-item-body">
-        <div class="recent-item-name">${h.make} ${h.model}</div>
+        <div class="recent-item-name">${feat?'<span class="featured-star">★</span>':''}${h.make} ${h.model}</div>
         <div class="recent-item-sub">${h.trim}${parts.length ? ' · ' + parts.join(' · ') : ''}</div>
       </div>
       <span style="color:#ccc;font-size:18px;flex-shrink:0;line-height:1">›</span>
@@ -1292,7 +1300,7 @@ function runAc(q, dropId) {
   }
   st.items = top.map(c => c[3]);
   updateGhost(dropId, inputId, getStagedTip(res, yf));
-  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); return `<div class="ac-item" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
+  const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); const feat=HIGHLIGHT_IDS.has(c[3]); return `<div class="ac-item${feat?' is-featured':''}" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${feat?'<span class="featured-star">★</span>':''}${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
   if (res.length > 20) {
     const sug = getRefineSuggestions(res, q);
