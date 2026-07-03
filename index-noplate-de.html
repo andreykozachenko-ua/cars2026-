@@ -1233,16 +1233,6 @@ function pickValidatedStageCandidate(res, texts) {
   }
   return null;
 }
-function groupTextVariants(gn) {
-  const parts = gn.split(' / ').map(p => p.trim()).filter(Boolean);
-  const out = [gn];
-  for (const p of parts) {
-    if (p !== gn) out.push(p);
-    const erStripped = p.replace(/^(\d+)er$/i, '$1');
-    if (erStripped !== p) out.push(erStripped);
-  }
-  return out;
-}
 function significantEntries(entries) {
   // entries: array of {name, count}. Drops the whole set if one entry already
   // dominates (stage effectively resolved) and drops entries that are too small
@@ -1261,21 +1251,6 @@ function getStagedTip(res, yf) {
   const dominantMaker = [...makerCounts.entries()].sort((a,b) => b[1] - a[1])[0];
   if (dominantMaker[1] / res.length < 0.5) return null; // no single maker clearly resolved yet
   const scoped = res.filter(c => c[0] === dominantMaker[0]);
-
-  const groupCounts = new Map();
-  for (const c of scoped) {
-    const g = MODEL_GROUPS[String(c[1])];
-    if (!g) continue;
-    if (!groupCounts.has(g.gid)) groupCounts.set(g.gid, { name: g.gn, count: 0 });
-    groupCounts.get(g.gid).count++;
-  }
-  const groupsSignificant = significantEntries([...groupCounts.values()]);
-  if (groupsSignificant.length > 1) {
-    for (const g of groupsSignificant) {
-      const pick = pickValidatedStageCandidate(res, groupTextVariants(g.name));
-      if (pick) return { append: pick, label: pick };
-    }
-  }
 
   if (yf == null) {
     const yearCounts = new Map();

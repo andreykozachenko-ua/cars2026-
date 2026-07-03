@@ -2,7 +2,7 @@
 
 > **Status:** describes the **current implemented behaviour** of `index-noplate.html` (Variant B prototype, no plate lookup).
 > Companion Confluence doc: `../confluence-vehicle-selector-initiative.txt`.
-> Last verified against code: 2026-05-11.
+> Last verified against code: 2026-07-01.
 
 ---
 
@@ -180,7 +180,11 @@ Additionally, an `r`-prefixed digit (`r3`, `r5`) is treated as equivalent to its
 For each token, `termMatchers(t)` returns:
 - **Synonym group:** all group members with **word-boundary regex** (`(?:^|\s)term(?=\s|$)`) — prevents `auto` from matching `automatic`.
 - **Roman numeral / r-prefix:** original + numeric form, both word-boundary.
-- **Plain token:** plain `String.includes()` (no word boundary) — allows partial matches like `320` inside `320d`.
+- **Plain token:** alphanumeric-boundary regex `abRe` (`(?:^|[^a-z0-9])term(?=[^a-z0-9]|$)`) — **as of 2026-07, this applies to every token length, including single characters.**
+
+> **2026-07 fix:** single-character tokens used to skip the boundary check and fall back to plain `String.includes()`, making them near-useless as filters (e.g. `"e"` matched almost any haystack, since nearly every string contains the letter "e" somewhere). This broke real queries like `mercedes e-klasse`, which tokenizes to `["e","klasse"]` — the dropdown mixed in S-Klasse/G-Klasse/T-Klasse because `"klasse"` alone was doing all the filtering. Fixed by dropping the length exception so single chars also require a clean boundary (e.g. `"e"` only matches a standalone `e`, such as the one in `e-klasse`).
+>
+> **Related fix in `normEng`** (used to normalize split engine codes like `"320 d"` → `"320d"`): it was also merging a real 4-digit year with a following single letter — `"2023 e"` (year, then "E" from a later "E-Klasse" in the same query) became `"2023e"`, which fails the year regex and matches nothing. Fixed by skipping the merge when the digit group is itself a `19xx`/`20xx` year.
 
 ---
 
@@ -217,7 +221,42 @@ A global `click` listener on `document` closes both dropdowns (`#acDrop`, `#sb-a
 
 ### 5.4 Keyboard navigation
 
-> **Not implemented.** Mouse / touch only. No `↑ ↓ Enter Esc` handling in current prototype.
+Implemented via `handleAcKeydown(e, dropId)` (per-dropdown state in `AC_STATE[dropId].focusIdx`):
+
+| Key | Behaviour |
+|---|---|
+| `↓` ArrowDown | Move focus to next item (wraps) |
+| `↑` ArrowUp | Move focus to previous item (wraps) |
+| `Enter` | `pickAc()` on the focused item (or the first item if none focused) |
+| `Escape` | Hide dropdown, reset focus index, dismiss ghost suggestion |
+| `→` ArrowRight / `Tab` | Accept the inline ghost-text suggestion (only when caret is at the end of the input and a suggestion is showing) — see §5.5 |
+
+> This section previously said keyboard nav was not implemented — that was stale; `handleAcKeydown` predates the ghost-text work below.
+
+### 5.5 Inline ghost-text suggestions (added 2026-07)
+
+While typing, a grey completion is rendered inline in the input (after the typed text, prefixed with a small orange `+`), suggesting the next thing worth typing. Accept with `→`/`Tab`, dismiss with `Esc`, outside click, or picking a result.
+
+**Markup:** `.ac-box` now wraps the `<input>` in a `.ac-input-wrap` alongside a sibling overlay `<div id="searchInput-ghost">` (and `sb-searchInput-ghost` for the sidebar copy), absolutely positioned over the input. The overlay is `<span class="ac-ghost-typed">` (transparent, mirrors the typed text for alignment) + `<span class="ac-ghost-plus">` + `<span class="ac-ghost-suggest">`.
+
+**Source — a fixed staged funnel** (`getStagedTip(res, yf)`), not a generic "best narrowing tip":
+
+```
+year  →  model  →  fuel type  →  engine/trim
+```
+
+> **2026-07:** the funnel used to start with a **model group** stage (`groupTextVariants()` + `MODEL_GROUPS` tally). Removed — group names (BMW's `"3er"`/`"5er"` etc.) rarely matched the searchable text cleanly and the fallback-text guessing produced suggestions that felt arbitrary. `MODEL_GROUPS` is unaffected elsewhere (still used to group the dropdown's default/no-filter view, §7).
+
+1. Only fires once a **single maker dominates** the current result set (`count / res.length >= 0.5`) — needed because this dataset splits some brands into sub-entries (`FORD`, `FORD USA`, `FORD OTOSAN`, `FORD ASIA / OCEANIA` all match `"ford"`).
+2. Each stage tallies within that dominant maker's subset and stops at the **first** stage with real ambiguity — it does not compute all 4 and rank them.
+3. `significantEntries()` guards every stage: if the top candidate already covers ≥90% of the tally, treat the stage as resolved (nothing to suggest, move on); otherwise drop anything below ~3% of the total. This exists because free-text AND-matching occasionally lets a stray record slip in that satisfies every token for the wrong reason (e.g. a lone BMW "501" classic matching a loose digit token, or a Mercedes "C 300 e" hybrid matching both `"e"` and `"klasse"`) — without the filter, that noise could outrank the real answer.
+4. Year stage is skipped once a year token is already in the query.
+
+**Old below-list refine chips are hidden:** the `+ label count` chip row (`getRefineSuggestions` / `applyRefineChip`, shown under the dropdown when `res.length > 20`) is now `display: none` via CSS — the inline ghost covers the same purpose. The generation code is untouched (dead weight, not deleted).
+
+**Direct ktype/car-ID lookup removed:** a purely-numeric query (`^#?(\d+)$`) used to short-circuit into a direct `car_id` lookup instead of the normal search. That branch was removed — numeric input now goes through the standard token/year pipeline like any other query.
+
+**Zero-results maker completion:** the no-results branch already guessed a likely maker from the first 3+ typed chars (`makerHint`, e.g. `"vol"` → `"VOLVO"`) to render `Try just "VOLVO"...`. That guess is now also offered as a ghost via `updateGhostCompletion(dropId, inputId, fullText)` — it completes the **current word** (no leading space, no `+` marker, just a grey tail glued onto what's typed) rather than appending a new token like the staged-funnel ghost does. Casing of the suggested tail is normalized to match how the user is typing, since `MAKERS` names are stored upper-case and a naive slice would otherwise render e.g. `volVO`.
 
 ---
 
@@ -393,6 +432,7 @@ These elements exist in the prototype but are intentionally not exposed in the c
 | `#recentSection` in widget (not sidebar) | Inline `display:none` — recent vehicles live in sidebar only |
 | `NUM2ROM3` / `ROM2NUM3` constants | Defined but never read (full 1..10 map is used) |
 | `.recent-item-remove` button styling | CSS present, button not rendered |
+| `.ac-refine` (below-list "+ label count" chips) | CSS-hidden (`display:none`) since 2026-07; `getRefineSuggestions`/`applyRefineChip` still generate the markup, superseded by inline ghost-text (§5.5) |
 
 ---
 
