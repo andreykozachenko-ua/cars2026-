@@ -2,7 +2,7 @@
 
 > **Status:** describes the **current implemented behaviour** of `index-noplate.html` (Variant B prototype, no plate lookup).
 > Companion Confluence doc: `../confluence-vehicle-selector-initiative.txt`.
-> Last verified against code: 2026-07-01.
+> Last verified against code: 2026-07-21.
 
 ---
 
@@ -118,14 +118,17 @@ raw input
                              every termForm group must match ≥1 of its synonyms
    │
    ▼
-[9] Rank                   sort by RATINGS.get(car_id) descending
-                           (missing rating → 0 → ranks last)
+[8b] Fuzzy maker fallback  ONLY if step [8] found zero matches — see §4.5
    │
    ▼
-[10] Slice                 top 8 results
+[9] Rank                   relevanceScore(c, tt) — RATINGS.get(car_id) plus a
+                           model/maker-match boost (see §4.6), descending
    │
    ▼
-[11] Render                dropdown rows + "Showing top 8 of N" footer if N > 8
+[10] Slice                 top 20 results
+   │
+   ▼
+[11] Render                dropdown rows + "Showing top 20 of N" footer if N > 20
 ```
 
 Input debounce: **150 ms** on both the widget input (`#searchInput`) and the sidebar input (`#sb-searchInput`).
@@ -186,6 +189,51 @@ For each token, `termMatchers(t)` returns:
 >
 > **Related fix in `normEng`** (used to normalize split engine codes like `"320 d"` → `"320d"`): it was also merging a real 4-digit year with a following single letter — `"2023 e"` (year, then "E" from a later "E-Klasse" in the same query) became `"2023e"`, which fails the year regex and matches nothing. Fixed by skipping the merge when the digit group is itself a `19xx`/`20xx` year.
 
+### 4.5 Fuzzy maker-typo fallback (added 2026-07-21)
+
+If step [8] finds **zero** matches, `runAc` tries once more with each token replaced by its closest maker-name word (if any is close enough), before giving up and showing the empty state.
+
+```
+MAKER_WORDS   = every word (≥3 chars) from every MAKERS[].n, deaccented + lowercased
+                — built once at load (buildMakerWords()), ~200 words, not the 48k-record haystack
+
+fuzzyMakerWord(tok):
+  skip if tok.length < 3, non-alphabetic, or already an exact maker word
+  maxDist = tok.length <= 5 ? 1 : 2
+  return the closest MAKER_WORDS entry within maxDist, else null (Damerau-Levenshtein — see below)
+```
+
+- **Damerau-Levenshtein, not plain Levenshtein.** An adjacent-letter transposition (`"ADUI"` vs `"AUDI"`) is distance **1** under Damerau-Levenshtein (one transposition) but distance **2** under plain Levenshtein (two substitutions) — the whole point of this fallback is catching exactly that typo shape, so plain Levenshtein under-corrects it.
+- **Only a fallback** — runs after the normal pipeline already returned zero results, and only touches tokens that don't already match a real maker word. Queries that already work are completely untouched (confirmed: zero metric change on any non-typo query variant in `autocomplete-tests/`).
+- If the corrected re-run finds results, the dropdown shows a hint above the list: `Showing results for AUDI` (blue, `#0068d7`) — see `correctionHtml` in `runAc`.
+- **Cost:** roughly 2x a normal query when it fires (a second full `ALL_CARS` pass with the corrected token) — 5-15ms in absolute terms on this dataset, not perceptible on its own. See §4.5.1 for a much larger, unrelated cost this fallback exposed.
+- **Known gap:** doesn't help when the typo shifts a word boundary in a multi-word maker (`"ALFA ROMEO"` → `"ALF AROMEO"` tokenizes wrong before the fuzzy check even runs).
+- Measured impact (1659-query synthetic suite, `autocomplete-tests/`): `make_typo` variant zero-result rate 99.6% → 8.2%, Top-1 0.4% → 31.2%. See `project_autocomplete_testing` memory for the full report.
+
+#### 4.5.1 Perf trap this fallback exposed (found + fixed same day)
+
+A fuzzy-corrected **maker-only** query (e.g. `"mersedes"` → `"mercedes"`, no model/trim typed) leaves `res` as almost the *entire* catalog for a large maker — thousands of records, unconstrained by any other token. `getRefineSuggestions()` (see §12, `.ac-refine`) was still being called whenever `res.length > 20` to build markup for a chip row that's been `display:none` since before this fix — and its `countAfterTerm()` calls are `O(res.length)` **per candidate**, with candidates generated per unique trim/year/displacement in `res`. On a few thousand unconstrained Mercedes records this took **~2.5 seconds** per keystroke (measured via `performance.now()` around `runAc()` in a real headless browser) for markup nobody ever sees. Fixed by skipping the call entirely (`if (false && res.length > 20)` in `runAc` — left as dead code rather than deleted, in case the refine-chip UI is ever un-hidden). Confirmed fix: 2500ms → 17ms on the same query; zero change to `autocomplete-tests/` metrics (that computation never touched `res`/ranking, only unused markup).
+
+> **Lesson for future perf work on this file:** a "2x slower" estimate from reading a diff would have missed this — the real cost was ~150x, sitting in unrelated legacy code that a new code path happened to newly exercise. Profile with `page.evaluate(() => { performance.now(); runAc(q, dropId); })` in a real browser, by keystroke-prefix, before trusting a theoretical estimate.
+
+### 4.6 Relevance ranking (`relevanceScore`)
+
+Sort key is not raw popularity alone:
+
+```js
+function relevanceScore(c, tt) {
+  if (!tt.length) return RATINGS.get(c[3]) || 0;
+  const makerModel = `${maker} ${c[2]}`.toLowerCase();
+  const modelWords = c[2].toLowerCase().split(/[\s\-()]+/).filter(Boolean);
+  let boost = 0;
+  if (modelWords.some(w => w === tt[tt.length-1])) boost += 2.0;   // last typed token is an exact model word
+  if (tt.every(t => makerModel.includes(t))) boost += 1.0;         // every token appears in maker+model text
+  return (RATINGS.get(c[3]) || 0) + boost;
+}
+```
+
+Sorted descending: `res.sort((a,b) => relevanceScore(b, tt) - relevanceScore(a, tt))`. A car with no rating but a strong token-boost can still outrank a highly-rated but loosely-matching one.
+
 ---
 
 ## 5. Dropdown UI
@@ -242,15 +290,34 @@ While typing, a grey completion is rendered inline in the input (after the typed
 **Source — a fixed staged funnel** (`getStagedTip(res, yf)`), not a generic "best narrowing tip":
 
 ```
-year  →  model  →  fuel type  →  engine/trim
+model  →  year  →  fuel type  →  engine/trim
 ```
 
-> **2026-07:** the funnel used to start with a **model group** stage (`groupTextVariants()` + `MODEL_GROUPS` tally). Removed — group names (BMW's `"3er"`/`"5er"` etc.) rarely matched the searchable text cleanly and the fallback-text guessing produced suggestions that felt arbitrary. `MODEL_GROUPS` is unaffected elsewhere (still used to group the dropdown's default/no-filter view, §7).
+> **2026-07:** the funnel used to start with a separate **model group** stage (`groupTextVariants()` + `MODEL_GROUPS` tally, suggesting the *group name* itself, e.g. `"3er"`). Removed as its own stage — group names rarely matched the searchable text cleanly and the fallback-text guessing produced suggestions that felt arbitrary. `MODEL_GROUPS` came back on 2026-07-21 in a different role (see point 2 below) — it's used to *tally* significance, but the thing actually suggested is always a real literal model name, never the group label. It's also unaffected in its original job of grouping the dropdown's default/no-filter view (§7).
+>
+> **2026-07-21: model moved before year.** It used to be year → model → fuel → trim, contradicting both this doc and plain UX sense — right after typing just a maker name, a bare year (`"+2020"`) is a much weaker guess than a popular model (`"+3"`); year only earns its keep as a disambiguator *once* a model is already pinned down (it mostly maps to generation/fitment at that point). Swapped the block order in `getStagedTip`.
 
-1. Only fires once a **single maker dominates** the current result set (`count / res.length >= 0.5`) — needed because this dataset splits some brands into sub-entries (`FORD`, `FORD USA`, `FORD OTOSAN`, `FORD ASIA / OCEANIA` all match `"ford"`).
-2. Each stage tallies within that dominant maker's subset and stops at the **first** stage with real ambiguity — it does not compute all 4 and rank them.
-3. `significantEntries()` guards every stage: if the top candidate already covers ≥90% of the tally, treat the stage as resolved (nothing to suggest, move on); otherwise drop anything below ~3% of the total. This exists because free-text AND-matching occasionally lets a stray record slip in that satisfies every token for the wrong reason (e.g. a lone BMW "501" classic matching a loose digit token, or a Mercedes "C 300 e" hybrid matching both `"e"` and `"klasse"`) — without the filter, that noise could outrank the real answer.
+1. Only fires once a **single maker dominates** the current result set (`count / res.length >= 0.5`, factored out as `dominantMakerOf(res)`) — needed because this dataset splits some brands into sub-entries (`FORD`, `FORD USA`, `FORD OTOSAN`, `FORD ASIA / OCEANIA` all match `"ford"`).
+2. Each stage tallies within that dominant maker's subset and stops at the **first** stage with real ambiguity — it does not compute all 4 and rank them. **Model stage tallies by `MODEL_GROUPS` nameplate (`gid`), not raw `model_id`** (fixed 2026-07-21) — TecDoc gives each *generation* its own `model_id` (BMW's "3" alone is 5+ ids: E36/E46/E90/F30/G20), which fragmented a popular maker's records across 100+ tiny buckets and made every single one of them miss the 3%-of-total significance bar below (BMW's single largest `model_id` bucket was 65/2360 = 2.75%, just under the line) — **the model stage silently never fired for exactly the highest-search-volume makers** (BMW, Audi, VW, Toyota, Ford, Mercedes all affected; small-catalog makers like Smart/Lada/Seat were unaffected and already worked). Tallying by nameplate group first restores enough count-per-bucket to clear the bar; the candidate text actually suggested is still the most popular *literal* model name within that group (e.g. `"3 (E90) Limousine"`), picked via the same validation as any other stage — never the bare group name, to avoid resurrecting the exact problem that killed the original model-group stage above.
+3. `significantEntries()` guards every stage: if the top candidate already covers ≥90% of the tally, treat the stage as resolved (nothing to suggest, move on); otherwise drop anything below ~3% of the total. This exists because free-text AND-matching occasionally lets a stray record slip in that satisfies every token for the wrong reason (e.g. a lone BMW "501" classic matching a loose digit token, or a Mercedes "C 300 e" hybrid matching both `"e"` and `"klasse"`) — without the filter, that noise could outrank the real answer. **Caveat:** this same 3%-style bar is what caused point 2's bug — when reusing `significantEntries` for a new tally, check whether the tallying key is more fragmented than what it was calibrated for; aggregate at a coarser existing grouping rather than lowering the threshold (which would just let noise back in where the threshold already worked fine).
 4. Year stage is skipped once a year token is already in the query.
+
+### 5.5.1 Mid-word model completion (added 2026-07-21)
+
+Separate from the append-style funnel above (which fires once a word is *finished*, i.e. the raw input ends in whitespace): while the user is still mid-typing a model-name token right after a resolved maker (raw input has **no** trailing space, ≥2 tokens typed), a grey completion of the *current* word appears — same rendering mechanic as the zero-results maker completion below (glued tail, no `+`, no leading space), not the funnel's append style.
+
+```
+"VW gol"        → completes to "golf"
+"AUDI a"        → completes to "avant"
+"MERCEDES e-kl" → completes to "klasse"   (hyphenated sub-token handled)
+"AUDI a4"       → no completion — "a4" is already a complete/matched token, falls through to the append funnel instead
+```
+
+- `dominantMakerOf(res)` (shared with §5.5's funnel) establishes the maker from the *resolved* (already-finished) tokens only.
+- `filterCarsByTerms(termForms, yf)` re-scans `ALL_CARS` using just those resolved tokens — a second `O(48k)` pass, same order of cost as the main filter loop, only triggered on the mid-word condition (not every keystroke).
+- `pickModelCompletion(scoped, pool, rawPartialToken)` tallies distinct model-name words (same split as `relevanceScore`'s `modelWords`) starting with the partial token, drops noise via `significantEntries`, and validates each candidate the same way the funnel does (`0 < countAfterTerm(pool, candidate) < pool.length`) before suggesting it — never a bare guess.
+- **Priority: mid-word completion wins.** If it fires, both the zero-result maker-hint ghost and the append-style funnel are skipped for that keystroke — you can't sensibly append a whole new word onto one that isn't finished yet.
+- Verified no perf regression even on large-catalog makers (28-58ms band, measured the same way as §4.5.1's bug) and zero effect on `autocomplete-tests/` metrics (that suite reads `#acDrop` results only, never the ghost overlay).
 
 **Old below-list refine chips are hidden:** the `+ label count` chip row (`getRefineSuggestions` / `applyRefineChip`, shown under the dropdown when `res.length > 20`) is now `display: none` via CSS — the inline ghost covers the same purpose. The generation code is untouched (dead weight, not deleted).
 
@@ -432,7 +499,7 @@ These elements exist in the prototype but are intentionally not exposed in the c
 | `#recentSection` in widget (not sidebar) | Inline `display:none` — recent vehicles live in sidebar only |
 | `NUM2ROM3` / `ROM2NUM3` constants | Defined but never read (full 1..10 map is used) |
 | `.recent-item-remove` button styling | CSS present, button not rendered |
-| `.ac-refine` (below-list "+ label count" chips) | CSS-hidden (`display:none`) since 2026-07; `getRefineSuggestions`/`applyRefineChip` still generate the markup, superseded by inline ghost-text (§5.5) |
+| `.ac-refine` (below-list "+ label count" chips) | CSS-hidden (`display:none`) since 2026-07, superseded by inline ghost-text (§5.5). **2026-07-21:** the `getRefineSuggestions()` call itself is now also skipped (`if (false && ...)` in `runAc`) — not just CSS-hidden — after it was found to take ~2.5s on a large unconstrained `res` (see §4.5.1). `applyRefineChip` and the function bodies are untouched, just unreachable. |
 
 ---
 

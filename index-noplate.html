@@ -532,6 +532,53 @@ let allStepItems = [];
 let searchDebounce, stepSearchDebounce;
 let fuelFilter = 'all';
 let MAKERS_MAP = new Map();
+let MAKER_WORDS = [];
+// Damerau-Levenshtein (optimal string alignment) — counts an adjacent-letter
+// transposition ("ADUI" vs "AUDI") as distance 1, not 2, since that's the
+// exact typo shape real users (and the test generator) produce.
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const d = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[m][n];
+}
+function buildMakerWords() {
+  const map = new Map();
+  MAKERS.forEach(m => {
+    deaccent(m.n).toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3).forEach(w => {
+      if (!map.has(w)) map.set(w, true);
+    });
+  });
+  MAKER_WORDS = [...map.keys()];
+}
+// Fuzzy maker-name typo correction (fires only when the exact/synonym pipeline
+// returns zero results — see autocomplete-spec.md "how to improve" item 2).
+// Cheap by design: compares a single token against ~200 maker words, not the
+// 48k-record haystack.
+function fuzzyMakerWord(tok) {
+  if (!tok || tok.length < 3 || !/^[a-z]+$/.test(tok)) return null;
+  if (MAKER_WORDS.includes(tok)) return null; // already a real maker word — not a typo
+  const maxDist = tok.length <= 5 ? 1 : 2;
+  let best = null, bestDist = Infinity;
+  for (const w of MAKER_WORDS) {
+    if (Math.abs(w.length - tok.length) > maxDist) continue;
+    const d = levenshtein(tok, w);
+    if (d < bestDist) { bestDist = d; best = w; if (d === 0) break; }
+  }
+  return (best && bestDist <= maxDist) ? best : null;
+}
 const AC_STATE = { acDrop: { items: [], focusIdx: -1, ghostText: '' }, 'sb-acDrop': { items: [], focusIdx: -1, ghostText: '' } };
 const POPULAR_MAKERS = ['BMW','VW','AUDI','MERCEDES-BENZ','FORD','VAUXHALL','RENAULT','PEUGEOT','TOYOTA','VOLVO'];
 const MAKER_OTHER = new Set(['AC','ACURA','ALVIS','ARO','ARTEGA','ASIA MOTORS','ASKAM (FARGO/DESOTO)','AUSTIN-HEALEY','AUTO UNION','AUVERLAND','BARKAS','BEDFORD','BERTONE','BESTURN (FAW)','BORGWARD','BRABUS','BUGATTI','BUICK','BUICK (SGM)','CARBODIES','CASALINI','CATERHAM','CHERY','DAF','DAIMLER','DE TOMASO','DFSK','EBRO','FISKER','FORD ASIA / OCEANIA','FORD OTOSAN','FSO','GAZ','GEELY (GLEAGLE)','GENESIS','GLAS','GMC','GOUPIL','GREAT WALL','HAVAL','HOLDEN','INDIGO','INNOCENTI','JIANGLING LANDWIND','JINBEI','KOENIGSEGG','KTM','LDV','LEVC','LIGIER','LINCOLN','LLOYD','LTI','LUCID','MAHINDRA','MARUTI','MAYBACH','MCLAREN','MEGA','MERCURY','MIA ELECTRIC','MINELLI','MORGAN','MORRIS','MOSKVICH','NSU','OLDSMOBILE','PAGANI','PANTHER','PININFARINA','PLYMOUTH','POLARIS','PROTON','PUCH','RAVON','RUF','SATURN','SCION','SHELBY','SHUANGHUAN AUTO','SPYKER','STEYR','STREETSCOOTER','THINK','TVR','UAZ','UMM','VICTORY','WARTBURG','WESTFIELD','WIESMANN','ZASTAVA','ZUENDAPP']);
@@ -632,6 +679,7 @@ Promise.all([
   MAKERS = data.makers; ALL_CARS = data.cars; MODEL_GROUPS = groups;
   HIGHLIGHT_IDS = new Set(highlightIds);
   MAKERS_MAP = new Map(MAKERS.map(m => [m.id, m.n]));
+  buildMakerWords();
   ALL_CARS.forEach(c => { c._hay = buildHay(MAKERS_MAP.get(c[0])||'', c[2], c[4], normalizeFuel(c[5]), c[10], c[11]); });
   if (csv) parseRatingsCsv(csv);
   resetFindBtn(); renderMakerShortcuts();
@@ -1043,13 +1091,100 @@ function significantEntries(entries) {
   const minShare = Math.max(2, Math.floor(total * 0.03));
   return sorted.filter(e => e.count >= minShare);
 }
-function getStagedTip(res, yf) {
+function dominantMakerOf(res) {
+  // Only returns a maker once it clearly accounts for >=50% of the candidate
+  // pool — handles makers that fan out into sub-brands in the data (FORD vs
+  // FORD USA vs FORD OTOSAN vs FORD ASIA / OCEANIA). Shared by the append-style
+  // staged funnel (getStagedTip) and the mid-word model-name completion below.
   if (res.length < 2) return null;
   const makerCounts = new Map();
   for (const c of res) makerCounts.set(c[0], (makerCounts.get(c[0]) || 0) + 1);
   const dominantMaker = [...makerCounts.entries()].sort((a,b) => b[1] - a[1])[0];
   if (dominantMaker[1] / res.length < 0.5) return null; // no single maker clearly resolved yet
-  const scoped = res.filter(c => c[0] === dominantMaker[0]);
+  return dominantMaker[0];
+}
+function filterCarsByTerms(termForms, yf) {
+  const out = [];
+  for (let i = 0; i < ALL_CARS.length; i++) {
+    const c = ALL_CARS[i];
+    if (yf && (c[6] > yf || (c[7] !== null && c[7] < yf))) continue;
+    if (termForms.length) {
+      const hay = c._hay;
+      if (!termForms.every(forms => forms.some(({str, re}) => re ? re.test(hay) : hay.includes(str)))) continue;
+    }
+    out.push(c);
+  }
+  return out;
+}
+function pickModelCompletion(scoped, pool, rawPartialToken) {
+  // Candidate completions = distinct model-name words (c[2], same splitting as
+  // relevanceScore's modelWords) among the dominant maker's scoped rows that
+  // start with the partial token the user is still typing. Ties/noise are
+  // filtered via significantEntries (same discipline as the append funnel),
+  // then each candidate is validated with the same countAfterTerm narrowing
+  // check pickValidatedStageCandidate uses, so we never suggest a completion
+  // that would return zero (or literally all) results if accepted.
+  const partial = deaccent(rawPartialToken || '').toLowerCase();
+  if (!partial) return null;
+  const wordCounts = new Map();
+  for (const c of scoped) {
+    const words = c[2].toLowerCase().split(/[\s\-()]+/).filter(Boolean);
+    for (const w of words) {
+      const dw = deaccent(w);
+      if (dw !== partial && dw.startsWith(partial)) wordCounts.set(w, (wordCounts.get(w) || 0) + 1);
+    }
+  }
+  if (!wordCounts.size) return null;
+  let entries = [...wordCounts.entries()].map(([name, count]) => ({ name, count }));
+  if (entries.length > 1) {
+    const sig = significantEntries(entries);
+    if (sig.length) entries = sig;
+  }
+  entries.sort((a, b) => b.count - a.count);
+  for (const e of entries) {
+    const cnt = countAfterTerm(pool, e.name);
+    if (cnt > 0 && cnt < pool.length) return e.name;
+  }
+  return null;
+}
+function getStagedTip(res, yf) {
+  const makerId = dominantMakerOf(res);
+  if (makerId == null) return null;
+  const scoped = res.filter(c => c[0] === makerId);
+
+  // Model is checked before year: once only the maker is known, a popular model
+  // name ("3", "GOLF") is a much better guess than a bare year — year only earns
+  // its keep as a disambiguator (generation/fitment) once a model is already
+  // pinned down. See project_autocomplete_testing memory, 2026-07-21.
+  //
+  // Tally by MODEL_GROUPS nameplate (gid), not raw model_id: TecDoc gives each
+  // generation its own model_id (BMW "3" alone is E36/E46/E90/F30/G20 — 5+ ids),
+  // which fragments a popular maker's records across 100+ tiny buckets and made
+  // every one of them miss significantEntries()'s ~3%-of-total bar (e.g. BMW's
+  // single biggest model_id bucket was 65/2360 = 2.75%, just under the line) —
+  // the model stage silently never fired for exactly the highest-volume makers.
+  // Grouping by nameplate first restores enough count-per-bucket to clear that
+  // bar; we still only ever *suggest* a real literal model name (never the group
+  // label itself — that's what broke the old, now-removed model-group stage).
+  const groupTally = new Map(); // groupKey -> { count, names: Map<literalName, count> }
+  for (const c of scoped) {
+    const g = MODEL_GROUPS[String(c[1])];
+    const groupKey = g ? ('g' + g.gid) : ('m' + c[1]);
+    if (!groupTally.has(groupKey)) groupTally.set(groupKey, { count: 0, names: new Map() });
+    const entry = groupTally.get(groupKey);
+    entry.count++;
+    entry.names.set(c[2], (entry.names.get(c[2]) || 0) + 1);
+  }
+  const modelsSignificant = significantEntries([...groupTally.values()]);
+  if (modelsSignificant.length > 1) {
+    const candidates = [];
+    for (const grp of modelsSignificant) {
+      const namesByPopularity = [...grp.names.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+      candidates.push(...namesByPopularity);
+    }
+    const pick = pickValidatedStageCandidate(res, candidates);
+    if (pick) return { append: pick, label: pick };
+  }
 
   if (yf == null) {
     const yearCounts = new Map();
@@ -1060,18 +1195,6 @@ function getStagedTip(res, yf) {
       const pick = pickValidatedStageCandidate(res, years.map(String));
       if (pick) return { append: pick, label: pick };
     }
-  }
-
-  const modelCounts = new Map();
-  for (const c of scoped) {
-    const k = c[0] + '|' + c[1];
-    if (!modelCounts.has(k)) modelCounts.set(k, { name: c[2], count: 0 });
-    modelCounts.get(k).count++;
-  }
-  const modelsSignificant = significantEntries([...modelCounts.values()]);
-  if (modelsSignificant.length > 1) {
-    const pick = pickValidatedStageCandidate(res, modelsSignificant.map(m => m.name));
-    if (pick) return { append: pick, label: pick };
   }
 
   const fuelCounts = new Map();
@@ -1130,7 +1253,7 @@ function runAc(q, dropId) {
   const parts = normEng(deaccent(q).toLowerCase()).replace(/[-()_\/]/g,' ').replace(/([a-zA-Z]{3,})(\d)/g,'$1 $2').replace(/(\d)([a-zA-Z]{2,})/g,'$1 $2').split(/\s+/).filter(Boolean);
   let yf=null; const tt=[];
   parts.forEach(p => /^(19|20)\d{2}$/.test(p)?(yf=+p):tt.push(p));
-  const termForms = tt.map(termMatchers);
+  let termForms = tt.map(termMatchers);
   const res=[];
   for (let i=0;i<ALL_CARS.length;i++) {
     const c=ALL_CARS[i];
@@ -1138,30 +1261,96 @@ function runAc(q, dropId) {
     if(termForms.length){ const hay=c._hay; if(!termForms.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue; }
     res.push(c);
   }
+  // Fuzzy maker-typo fallback: only fires when the exact/synonym pipeline above
+  // found nothing, and only touches tokens that don't already exactly match a
+  // known maker word — so queries that already work are untouched.
+  let fuzzyFix = null;
+  if (!res.length && tt.length) {
+    const fixed = tt.map(t => fuzzyMakerWord(t) || t);
+    if (fixed.some((t,i) => t !== tt[i])) {
+      const termForms2 = fixed.map(termMatchers);
+      for (let i=0;i<ALL_CARS.length;i++) {
+        const c=ALL_CARS[i];
+        if(yf&&(c[6]>yf||(c[7]!==null&&c[7]<yf)))continue;
+        const hay=c._hay;
+        if(!termForms2.every(forms=>forms.some(({str,re})=>re?re.test(hay):hay.includes(str))))continue;
+        res.push(c);
+      }
+      if (res.length) {
+        fuzzyFix = [];
+        for (let i=0;i<tt.length;i++) { if (fixed[i]!==tt[i]) fuzzyFix.push({from:tt[i],to:fixed[i]}); tt[i]=fixed[i]; }
+        termForms = termForms2;
+      }
+    }
+  }
   res.sort((a,b) => relevanceScore(b, tt) - relevanceScore(a, tt));
   const top=res.slice(0,20);
   const inputId = dropId === 'sb-acDrop' ? 'sb-searchInput' : 'searchInput';
+  // Mid-word model-name completion: fires when the user is still typing the
+  // current token (raw input has no trailing space — mirrors the /\s$/ check
+  // in updateGhost) and a maker has already been resolved from the tokens
+  // typed before it. Distinct from the append-style funnel below (which
+  // completes a *finished* word by adding a new one) — this completes the
+  // word in progress, so it takes priority: you can't sensibly append a whole
+  // new word while still mid-word on the current one. Computed off a
+  // separate maker-scoped filter (resResolved, using only the tokens *before*
+  // the partial one) rather than the main `res`, because `res` already
+  // requires the partial token itself to bounded-match something in the
+  // haystack — which is usually exactly what's NOT true yet (e.g. "gol" does
+  // not bounded-match "golf"), so `res` is often empty right when this should
+  // fire.
+  let midWordApplied = false;
+  if (tt.length >= 2) {
+    const inputEl = document.getElementById(inputId);
+    const rawVal = inputEl ? inputEl.value : '';
+    if (rawVal && !/\s$/.test(rawVal)) {
+      const sepRe = /[-()_\/\s]/g;
+      let lastSepIdx = -1, sm;
+      while ((sm = sepRe.exec(rawVal))) lastSepIdx = sm.index;
+      const rawPartial = lastSepIdx >= 0 ? rawVal.slice(lastSepIdx + 1) : rawVal;
+      if (rawPartial) {
+        const resolvedForms = tt.slice(0, -1).map(termMatchers);
+        const resResolved = filterCarsByTerms(resolvedForms, yf);
+        const makerId = dominantMakerOf(resResolved);
+        if (makerId != null) {
+          const scoped = resResolved.filter(c => c[0] === makerId);
+          const candidate = pickModelCompletion(scoped, resResolved, tt[tt.length - 1]);
+          if (candidate) {
+            const prefix = lastSepIdx >= 0 ? rawVal.slice(0, lastSepIdx + 1) : '';
+            updateGhostCompletion(dropId, inputId, prefix + candidate);
+            midWordApplied = true;
+          }
+        }
+      }
+    }
+  }
   if(!top.length){
     const firstToken = tt[0] || '';
     const makerHint = firstToken.length >= 3 ? MAKERS.find(m => m.n.toLowerCase().startsWith(firstToken.slice(0,4))) : null;
     const hint = makerHint
       ? `Try just "<b>${makerHint.n}</b>" or use Make / Model steps below`
       : `Try the brand name only: <b>BMW</b>, <b>Toyota</b>, <b>VW</b>…`;
-    if (makerHint) updateGhostCompletion(dropId, inputId, makerHint.n);
+    if (!midWordApplied && makerHint) updateGhostCompletion(dropId, inputId, makerHint.n);
     dd.style.display='block';
     dd.innerHTML=`<div class="ac-more" style="text-align:left;line-height:1.7">No results for "<b>${q}</b>"<br><span style="color:#888">${hint}</span><br><button onclick="document.getElementById('acDrop').style.display='none';document.getElementById('sb-acDrop').style.display='none';openSidebar();openStep('make');" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;background:#F85A00;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Select by Make / Model →</button></div>`;
     return;
   }
   st.items = top.map(c => c[3]);
-  let stagedTip = getStagedTip(res, yf);
+  let stagedTip = midWordApplied ? null : getStagedTip(res, yf);
   if (stagedTip) {
     const stripped = stripTypedTokens(stagedTip.append, tt);
     stagedTip = stripped ? { append: stripped, label: stripped } : null;
   }
-  updateGhost(dropId, inputId, stagedTip);
+  if (!midWordApplied) updateGhost(dropId, inputId, stagedTip);
   const itemsHtml = top.map(c=>{ const m=MAKERS.find(mk=>mk.id===c[0]); const main=hl(`${m?.n||''} ${c[2]} · ${c[4]}`,tt); const sub=[c[6]&&c[7]?`${c[6]}–${c[7]}`:c[6]?`from ${c[6]}`:'',c[5]?c[5].split('/')[0]:'',c[8]?`${c[8]} kW`:''].filter(Boolean).join(' · '); const feat=HIGHLIGHT_IDS.has(c[3]); return `<div class="ac-item${feat?' is-featured':''}" onclick="pickAc(${c[3]})"><div class="ac-ico" id="aco-${c[3]}"></div><div style="flex:1;min-width:0"><div class="ac-name">${feat?'<span class="featured-star">★</span>':''}${main}</div><div class="ac-sub">${sub}</div></div><span style="color:#ccc;font-size:14px">›</span></div>`; }).join('');
   let refineHtml = '';
-  if (res.length > 20) {
+  // NOTE: .ac-refine is CSS `display: none` (superseded by the inline ghost-text
+  // funnel — see autocomplete-spec.md). getRefineSuggestions() does O(res.length x
+  // candidates) work via countAfterTerm(); on a large unconstrained `res` (e.g. a
+  // maker-only query after fuzzy-typo correction matches a whole big-catalog maker)
+  // this took 2+ seconds for markup nobody ever sees. Skipped entirely — re-enable
+  // only if the refine-chip UI is ever un-hidden.
+  if (false && res.length > 20) {
     const sug = getRefineSuggestions(res, q);
     const chipsHtml = sug.map(s => {
       const safe = String(s.append).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1170,8 +1359,13 @@ function runAc(q, dropId) {
     }).join('');
     refineHtml = `<div class="ac-refine"><div class="ac-refine-text">Showing top 20 of ${res.length}${sug.length?' — narrow down by:':''}</div>${chipsHtml?`<div class="ac-refine-chips">${chipsHtml}</div>`:''}</div>`;
   }
+  let correctionHtml = '';
+  if (fuzzyFix && fuzzyFix.length) {
+    const label = fuzzyFix.map(f => f.to.toUpperCase()).join(' ');
+    correctionHtml = `<div class="ac-more" style="text-align:left;font-size:12px;color:#888;padding:6px 12px 0">Showing results for <b style="color:#0068d7">${escHtml(label)}</b></div>`;
+  }
   dd.style.display='block';
-  dd.innerHTML = itemsHtml + refineHtml;
+  dd.innerHTML = correctionHtml + itemsHtml + refineHtml;
   top.forEach(c => setBgImg(document.getElementById(`aco-${c[3]}`), carImg(c[3])));
 }
 function isUsefulTrim(t) {
