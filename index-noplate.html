@@ -1229,7 +1229,7 @@ function updateGhost(dropId, inputId, tip) {
   if (!g || !rawVal) return;
   const rem = /\s$/.test(rawVal) ? tip.append : ' ' + tip.append;
   AC_STATE[dropId].ghostText = rem;
-  g.innerHTML = `<span class="ac-ghost-typed">${escHtml(rawVal)}</span><span class="ac-ghost-plus"> +</span><span class="ac-ghost-suggest">${escHtml(tip.append)}</span>`;
+  g.innerHTML = `<span class="ac-ghost-typed">${escHtml(rawVal)}</span><span class="ac-ghost-plus"> + </span><span class="ac-ghost-suggest">${escHtml(tip.append)}</span>`;
 }
 function updateGhostCompletion(dropId, inputId, fullText) {
   const g = document.getElementById(inputId + '-ghost');
