@@ -1266,7 +1266,21 @@ function runAc(q, dropId) {
   // known maker word — so queries that already work are untouched.
   let fuzzyFix = null;
   if (!res.length && tt.length) {
-    const fixed = tt.map(t => fuzzyMakerWord(t) || t);
+    // Guard against "fixing" a token that was never broken: fuzzyMakerWord()
+    // finds the *closest* maker word within range regardless of whether the
+    // typed token is itself already a real word elsewhere in the dataset —
+    // e.g. "spider" (Alfa Romeo Spider) is distance-2 from the real maker
+    // "SPYKER", "partner" (Peugeot Partner) from "PANTHER", "xantia" (Citroën
+    // Xantia) from "LANCIA". Only accept a fuzzy correction for tokens that
+    // don't match anything anywhere in ALL_CARS on their own — a token that's
+    // already a valid word somewhere isn't the thing that broke this query.
+    const fixed = tt.map(t => {
+      const candidate = fuzzyMakerWord(t);
+      if (!candidate) return t;
+      const forms = termMatchers(t);
+      const matchesSomething = ALL_CARS.some(c => forms.some(({str,re}) => re ? re.test(c._hay) : c._hay.includes(str)));
+      return matchesSomething ? t : candidate;
+    });
     if (fixed.some((t,i) => t !== tt[i])) {
       const termForms2 = fixed.map(termMatchers);
       for (let i=0;i<ALL_CARS.length;i++) {
