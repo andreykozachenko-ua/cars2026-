@@ -22,6 +22,10 @@ with open(os.path.join(SRC_DIR, "top.json"), encoding="utf-8") as f:
 # on the live page -- they link straight out and have 0 nested categories.
 real_sections = [s for s in tree if s["count"] > 0]
 
+# "Car service parts" leads the list so it's the default-expanded section on load.
+DEFAULT_FIRST_ID = "10100"
+real_sections.sort(key=lambda s: s["id"] != DEFAULT_FIRST_ID)
+
 DATA_JSON = json.dumps({"sections": real_sections, "top": top}, ensure_ascii=False)
 
 TEMPLATE_PATH = os.path.join(SRC_DIR, "template.html")
