@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalog UX prototype — left-nav hover menu (BMW 3 Touring F31 328i xDrive)</title>
+<style>
+:root{
+  --orange:#F85A00; --orange-hover:#e04f00; --navy:#1a1a2e; --navy-panel:#232336;
+  --page-bg:#f5f5f5; --card-bg:#fff; --border:#d9d9d9; --text:#222; --text-muted:#8a8a8a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--page-bg);color:var(--text);font-size:14px;line-height:1.4}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* ── header ── */
+.header{background:var(--navy);padding:14px 0}
+.header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header__logo{color:#fff;font-weight:800;font-size:18px;letter-spacing:.5px;flex-shrink:0}
+.header__logo span{color:var(--orange)}
+.header-search{flex:1;max-width:520px;margin:0 24px;display:flex;height:38px;border-radius:4px;overflow:hidden;background:#fff;min-width:0}
+.header-search input{flex:1;min-width:0;border:none;outline:none;padding:0 12px;font-size:13px}
+.header-search button{background:var(--orange);border:none;color:#fff;padding:0 16px;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0}
+.header__account{flex-shrink:0;font-size:12px}
+@media (max-width:600px){
+  .header-search{margin:0}
+  .header__account{display:none}
+}
+
+/* ── vehicle block ── */
+.vbar{background:#fff;border-bottom:1px solid #eee;padding:14px 0}
+.vbar .wrap{display:flex;align-items:center;gap:16px}
+.vbar img{width:64px;height:44px;object-fit:cover;border-radius:4px;background:#eee;flex-shrink:0}
+.vbar__name{font-weight:700;font-size:14px}
+.vbar__sub{font-size:11.5px;color:var(--text-muted)}
+.vbar__spacer{flex:1}
+.vbar__btn{border:1px solid var(--border);border-radius:4px;padding:7px 14px;font-size:12px;font-weight:600;background:#fff;cursor:pointer}
+.vbar__btn:hover{border-color:var(--orange);color:var(--orange)}
+.crumbs{font-size:11px;color:var(--text-muted);padding:8px 0 0}
+.crumbs .wrap{padding-top:0}
+
+/* ── top categories (untouched block) ── */
+.topcats{padding:22px 0 6px}
+.topcats h2{text-align:center;text-transform:uppercase;font-size:15px;letter-spacing:.4px;margin-bottom:14px}
+.topcats__row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+@media (max-width:960px){.topcats__row{grid-template-columns:repeat(5,1fr)}}
+@media (max-width:600px){.topcats__row{grid-template-columns:repeat(3,1fr)}}
+.topcats__item{background:#fff;border:1px solid #eee;border-radius:4px;padding:8px 4px;text-align:center;font-size:10px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.25}
+.topcats__item:hover{border-color:var(--orange);color:var(--orange)}
+.topcats__item img{width:26px;height:26px;object-fit:contain}
+.topcats__row.collapsed{overflow:hidden}
+.topcats__more-wrap{text-align:center;margin-top:12px}
+.topcats__more{border:1px solid var(--border);border-radius:20px;background:#fff;padding:6px 20px;font-size:12px;font-weight:700;color:#555;cursor:pointer;font-family:inherit}
+.topcats__more:hover{border-color:var(--orange);color:var(--orange)}
+.topcats__more[hidden]{display:none}
+
+/* ── catalog section header + toggle ── */
+.catsec{padding:26px 0 60px}
+.catsec__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.catsec__head h2{font-size:16px}
+.seg{display:inline-flex;background:#e9e9e9;border-radius:6px;padding:3px;font-size:12px}
+.seg button{border:none;background:transparent;padding:7px 14px;border-radius:5px;font-weight:700;font-family:inherit;cursor:pointer;color:#777}
+.seg button.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+/* ── OLD grid mode ── */
+.old-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+@media (max-width:900px){.old-layout{grid-template-columns:1fr}}
+.old-search{background:#fff;border:1px solid #eee;border-radius:6px;padding:16px}
+.old-search__title{font-size:12px;font-weight:700;color:#666;margin-bottom:10px}
+.old-search input{width:100%;height:42px;border:1px solid var(--border);border-radius:4px;padding:0 12px;font-size:13px;font-family:inherit}
+.old-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:700px){.old-tiles{grid-template-columns:repeat(2,1fr)}}
+.old-tile{background:#fff;border:1px solid #eee;border-radius:6px;padding:16px 8px;text-align:center;cursor:pointer;transition:border-color .15s}
+.old-tile img{width:48px;height:48px;object-fit:contain;margin-bottom:8px}
+.old-tile__name{font-size:12px;font-weight:600}
+.old-tile.active,.old-tile:hover{border-color:var(--orange)}
+.old-flyout{grid-column:1/-1;background:#fff;border:2px solid var(--orange);border-radius:6px;padding:18px 20px;display:none;position:relative;max-height:var(--panel-h);overflow-y:auto}
+@media (max-width:700px){.old-flyout{max-height:none;overflow-y:visible}}
+.old-flyout.open{display:block}
+.old-flyout__close{position:absolute;top:12px;right:14px;cursor:pointer;font-size:16px;color:#999;font-weight:700}
+.old-flyout h3{font-size:14px;margin-bottom:12px}
+.old-flyout__group{margin-bottom:14px}
+.old-flyout__group-title{font-size:11.5px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:8px}
+.old-flyout__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 14px}
+@media (max-width:700px){.old-flyout__grid{grid-template-columns:repeat(2,1fr)}}
+.old-flyout__link{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0}
+.old-flyout__link img{width:24px;height:24px;object-fit:contain;flex-shrink:0}
+.old-flyout__link:hover{color:var(--orange)}
+.old-hint{font-size:11.5px;color:var(--text-muted);text-align:center;padding:20px;grid-column:1/-1}
+
+/* ── NEW left-nav mode ── */
+:root{--panel-h:900px;--new-search-h:94px}
+.new-layout{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+@media (max-width:900px){.new-layout{grid-template-columns:1fr}.new-left{position:static !important}.navlist{max-height:360px}}
+.new-left{background:#fff;border:1px solid #eee;border-radius:6px;overflow:hidden;position:sticky;top:16px}
+.new-search{padding:16px 16px 10px}
+.new-search__title{font-size:12px;font-weight:700;color:#666;margin-bottom:10px}
+.new-search input{width:100%;height:42px;border:1px solid var(--border);border-radius:4px;padding:0 12px;font-size:13px;font-family:inherit}
+.new-search input:focus{outline:none;border-color:var(--orange)}
+.navlist{max-height:calc(var(--panel-h) - var(--new-search-h));overflow-y:auto}
+.navrow{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-top:1px solid #f4f4f4;transition:background .1s}
+.navrow:hover,.navrow.active{background:#fff3ee}
+.navrow.active{border-left:3px solid var(--orange);padding-left:13px}
+.navrow.active .navrow__name{color:var(--orange);font-weight:700}
+.navrow img{width:26px;height:26px;object-fit:contain;flex-shrink:0}
+.navrow__name{font-size:13px;font-weight:500;flex:1}
+.navrow__count{font-size:10.5px;color:var(--text-muted)}
+.navrow__chev{color:#ccc;font-size:12px}
+.navrow.active .navrow__chev{color:var(--orange)}
+.navrow.dim{display:none}
+
+.new-right{background:#fff;border:1px solid #eee;border-radius:6px;padding:20px 22px;height:var(--panel-h);overflow-y:auto}
+@media (max-width:900px){.new-right{height:auto;max-height:none;overflow-y:visible}}
+.new-right h3{font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.new-right h3 img{width:30px;height:30px;object-fit:contain}
+.panel-group{margin-bottom:18px}
+.panel-group__title{font-size:11.5px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:10px;letter-spacing:.3px}
+.panel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px}
+@media (max-width:700px){.panel-grid{grid-template-columns:repeat(2,1fr)}}
+.panel-link{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:6px 4px;border-radius:4px}
+.panel-link:hover{color:var(--orange);background:#fff8f5}
+.panel-link img{width:26px;height:26px;object-fit:contain;flex-shrink:0}
+.search-hits{font-size:11.5px;color:var(--text-muted);margin-bottom:10px}
+.empty-state{color:var(--text-muted);font-size:13px;text-align:center;padding:60px 0}
+
+footer{background:var(--navy);color:rgba(255,255,255,.5);text-align:center;font-size:11px;padding:20px 0}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="wrap">
+    <div class="header__logo">auto<span>doc</span></div>
+    <div class="header-search"><input placeholder="Enter the part number or name"><button>Search</button></div>
+    <div class="header__account" style="color:#fff;opacity:.7">My Garage · Sign in</div>
+  </div>
+</div>
+
+<div class="vbar">
+  <div class="wrap">
+    <img src="catalog-leftnav-src/car.jpg" alt="BMW 3 Touring F31 328i xDrive">
+    <div>
+      <div class="vbar__name">BMW 3 Touring (F31) 328 i xDrive</div>
+      <div class="vbar__sub">2016 · Petrol · 245 hp · car_id 59402</div>
+    </div>
+    <div class="vbar__spacer"></div>
+    <button class="vbar__btn">Vehicle details</button>
+    <button class="vbar__btn">Change</button>
+  </div>
+</div>
+<div class="crumbs"><div class="wrap">BMW / 3er Reihe / 3 Touring (F31) / 328 i xDrive</div></div>
+
+<div class="topcats">
+  <div class="wrap">
+    <h2>Top parts categories for the BMW 328 i xDrive Petrol 245 hp</h2>
+    <div class="topcats__row" id="topcatsRow"></div>
+    <div class="topcats__more-wrap">
+      <button class="topcats__more" id="topcatsMore">Далее <span>▾</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="catsec">
+  <div class="wrap">
+    <div class="catsec__head">
+      <h2>Please select the appropriate car parts category</h2>
+      <div class="seg">
+        <button id="btnOld">Текущий каталог</button>
+        <button id="btnNew" class="active">Новый вариант: меню слева</button>
+      </div>
+    </div>
+    <!-- OLD -->
+    <div id="oldView" style="display:none">
+      <div class="old-layout">
+        <div class="old-search">
+          <div class="old-search__title">Quick search by category</div>
+          <input placeholder="Enter a category (e.g. brakes, filters)" disabled>
+        </div>
+        <div class="old-tiles" id="oldTiles"></div>
+      </div>
+    </div>
+
+    <!-- NEW -->
+    <div id="newView">
+      <div class="new-layout">
+        <div class="new-left">
+          <div class="new-search">
+            <div class="new-search__title">Quick search by category</div>
+            <input id="catSearch" placeholder="Enter a category (e.g. brakes, filters)" autocomplete="off">
+          </div>
+          <div class="navlist" id="navList"></div>
+        </div>
+        <div class="new-right" id="rightPanel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Prototype · not deployed · real catalog data for demonstration only</footer>
+
+<script>
+const DATA = __DATA__;
+const SECTIONS = DATA.sections;
+const TOP = DATA.top;
+
+const ICON = (id, size) => `https://scdn.autodoc.de/catalog/categories/${size}x${size}/${id}.png`;
+
+// ---- top categories row (real, untouched) ----
+const topcatsRow = document.getElementById('topcatsRow');
+TOP.forEach(t => {
+  const a = document.createElement('a');
+  a.className = 'topcats__item';
+  a.href = t.link;
+  a.innerHTML = `<img src="${ICON(t.category_id,150)}" loading="lazy"><span>${t.name}</span>`;
+  topcatsRow.appendChild(a);
+});
+
+// ---- top categories: collapse to 2 rows, "Далее" expands ----
+const topcatsMore = document.getElementById('topcatsMore');
+let topcatsExpanded = false;
+
+function collapseTopcats(){
+  const items = [...topcatsRow.children];
+  if (!items.length) { topcatsMore.hidden = true; return; }
+  const tops = [...new Set(items.map(el => el.offsetTop))];
+  if (tops.length <= 2) { topcatsRow.classList.remove('collapsed'); topcatsRow.style.maxHeight = ''; topcatsMore.hidden = true; return; }
+  const gap = parseFloat(getComputedStyle(topcatsRow).rowGap) || 0;
+  const cutY = tops[2] - tops[0] - gap / 2;
+  topcatsMore.hidden = false;
+  if (topcatsExpanded) {
+    topcatsRow.classList.remove('collapsed');
+    topcatsRow.style.maxHeight = '';
+  } else {
+    topcatsRow.classList.add('collapsed');
+    topcatsRow.style.maxHeight = cutY + 'px';
+  }
+}
+topcatsMore.addEventListener('click', () => {
+  topcatsExpanded = !topcatsExpanded;
+  topcatsMore.innerHTML = topcatsExpanded ? 'Свернуть <span>▴</span>' : 'Далее <span>▾</span>';
+  collapseTopcats();
+});
+window.addEventListener('resize', () => { if (!topcatsExpanded) collapseTopcats(); });
+collapseTopcats();
+
+// ---- mode toggle ----
+const btnOld = document.getElementById('btnOld');
+const btnNew = document.getElementById('btnNew');
+const oldView = document.getElementById('oldView');
+const newView = document.getElementById('newView');
+function setMode(mode){
+  const isNew = mode === 'new';
+  btnNew.classList.toggle('active', isNew);
+  btnOld.classList.toggle('active', !isNew);
+  newView.style.display = isNew ? '' : 'none';
+  oldView.style.display = isNew ? 'none' : '';
+}
+btnOld.onclick = () => setMode('old');
+btnNew.onclick = () => setMode('new');
+setMode('new');
+
+// ---- OLD grid ----
+const oldTiles = document.getElementById('oldTiles');
+let oldActiveId = null;
+function renderOldTiles(){
+  oldTiles.innerHTML = '';
+  SECTIONS.forEach(s => {
+    const tile = document.createElement('div');
+    tile.className = 'old-tile' + (oldActiveId === s.id ? ' active' : '');
+    tile.innerHTML = `<img src="${ICON(s.id,150)}" loading="lazy"><div class="old-tile__name">${s.name}</div>`;
+    tile.onclick = () => { oldActiveId = (oldActiveId === s.id ? null : s.id); renderOldTiles(); };
+    oldTiles.appendChild(tile);
+
+    if (oldActiveId === s.id) {
+      const fly = document.createElement('div');
+      fly.className = 'old-flyout open';
+      fly.innerHTML = `<div class="old-flyout__close">✕</div><h3>${s.name}</h3>` + s.groups.map(g => `
+        <div class="old-flyout__group">
+          ${g.subtitle ? `<div class="old-flyout__group-title">${g.subtitle}</div>` : ''}
+          <div class="old-flyout__grid">
+            ${g.items.map(it => `<a class="old-flyout__link" href="${it.link}"><img src="${ICON(it.category_id,100)}" loading="lazy">${it.name}</a>`).join('')}
+          </div>
+        </div>`).join('');
+      fly.querySelector('.old-flyout__close').onclick = (e) => { e.stopPropagation(); oldActiveId = null; renderOldTiles(); };
+      oldTiles.appendChild(fly);
+    }
+  });
+}
+renderOldTiles();
+
+// ---- NEW left-nav ----
+const navList = document.getElementById('navList');
+const rightPanel = document.getElementById('rightPanel');
+const catSearch = document.getElementById('catSearch');
+let activeId = SECTIONS[0].id;
+let pinned = false;
+
+function renderNav(filterText){
+  navList.innerHTML = '';
+  const f = (filterText || '').trim().toLowerCase();
+  SECTIONS.forEach(s => {
+    const matches = !f || s.name.toLowerCase().includes(f) ||
+      s.groups.some(g => g.items.some(it => it.name.toLowerCase().includes(f)));
+    const row = document.createElement('div');
+    row.className = 'navrow' + (s.id === activeId ? ' active' : '') + (matches ? '' : ' dim');
+    row.innerHTML = `<img src="${ICON(s.id,150)}" loading="lazy"><span class="navrow__name">${s.name}</span><span class="navrow__count">${s.count}</span><span class="navrow__chev">›</span>`;
+    row.addEventListener('mouseenter', () => { if(!pinned){ activeId = s.id; renderPanel(); highlightActive(); } });
+    row.addEventListener('click', () => {
+      activeId = s.id; pinned = true; renderPanel(); highlightActive();
+      // On stacked mobile layout the nav list sits above the panel, so a tap
+      // needs to jump the user down to the result -- on desktop's side-by-side
+      // grid this would be a no-op the user never notices.
+      if (window.matchMedia('(max-width: 900px)').matches) {
+        rightPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    navList.appendChild(row);
+  });
+}
+function highlightActive(){
+  [...navList.children].forEach(row => {
+    const name = row.querySelector('.navrow__name').textContent;
+    const sec = SECTIONS.find(s => s.name === name);
+    row.classList.toggle('active', sec && sec.id === activeId);
+  });
+}
+
+function renderPanel(){
+  const f = catSearch.value.trim().toLowerCase();
+  if (f) {
+    const seen = new Set();
+    const hits = [];
+    SECTIONS.forEach(s => s.groups.forEach(g => g.items.forEach(it => {
+      if (it.name.toLowerCase().includes(f) && !seen.has(it.category_id)) {
+        seen.add(it.category_id);
+        hits.push({ ...it, section: s.name, sectionId: s.id });
+      }
+    })));
+    if (!hits.length) {
+      rightPanel.innerHTML = `<div class="empty-state">Ничего не найдено по «${catSearch.value}»</div>`;
+      return;
+    }
+    rightPanel.innerHTML = `<div class="search-hits">Найдено ${hits.length} категорий по «${catSearch.value}»</div>` +
+      `<div class="panel-grid">${hits.map(it => `<a class="panel-link" href="${it.link}" title="${it.section}"><img src="${ICON(it.category_id,100)}" loading="lazy">${it.name}</a>`).join('')}</div>`;
+    return;
+  }
+  const s = SECTIONS.find(sec => sec.id === activeId);
+  if (!s) { rightPanel.innerHTML = '<div class="empty-state">Наведите курсор на раздел слева</div>'; return; }
+  rightPanel.innerHTML = `<h3><img src="${ICON(s.id,150)}" loading="lazy">${s.name} <span class="navrow__count">(${s.count})</span></h3>` +
+    s.groups.map(g => `
+      <div class="panel-group">
+        ${g.subtitle ? `<div class="panel-group__title">${g.subtitle}</div>` : ''}
+        <div class="panel-grid">
+          ${g.items.map(it => `<a class="panel-link" href="${it.link}"><img src="${ICON(it.category_id,100)}" loading="lazy">${it.name}</a>`).join('')}
+        </div>
+      </div>`).join('');
+}
+
+catSearch.addEventListener('input', () => { renderNav(catSearch.value); renderPanel(); });
+renderNav('');
+renderPanel();
+</script>
+</body>
+</html>
