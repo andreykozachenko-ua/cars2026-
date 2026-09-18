@@ -90,6 +90,67 @@ Checked at 390×844 (iPhone-class viewport) via Playwright. Three real bugs foun
 
 **Open question for a real mobile design** (not resolved by this patch, worth raising if this direction is pursued for a phone-first shop): should mobile drop the side-panel metaphor entirely and use a **tap-to-expand accordion** instead (categories insert directly under the tapped row, like the old grid already does), rather than porting the desktop hover-panel layout as-is? The current fix makes the desktop pattern *usable* on mobile, not necessarily the *right* pattern for mobile.
 
+## Mobile app-style drilldown (2026-09-18, local only)
+
+Replaced the mobile rendering of **New mode**'s two-column hover-nav+panel
+(the thing flagged as an open question in the mobile pass above) with a
+native-app-style drilldown, matching two reference screenshots of the actual
+Autodoc mobile app: a parent screen (large image + bold name + chevron, one
+per full-width card) that pushes to a category screen (back arrow + pill
+showing the parent name + flat list rows with smaller images, thin dividers,
+small gray group-subtitle labels). Tapping a leaf category uses the real
+listing link, same as everywhere else in this prototype.
+
+- Only replaces **New mode** below the existing 900px breakpoint —
+  `.new-layout{display:none}` / `.mCatalog{display:block}` in that media
+  query. Desktop New mode and **both breakpoints of Old mode** (the grid+flyout
+  emulation of the current site) are untouched.
+- Markup: `#mCatalog` holds two `.mScreen` divs (`#mScreenParents`,
+  `#mScreenCategory`), toggled via `hidden`, not re-rendered from scratch on
+  back — `openMobileSection(sectionId)` just repopulates `#mCategoryList` and
+  flips visibility.
+- Deliberately dropped the item-count badge that the desktop `navrow` shows
+  next to each parent name — the reference app screenshots don't have it, and
+  matching the reference took priority over information density here.
+- Icons reused as-is from the existing `ICON()` CDN helper — no new asset
+  source, just bigger sizes (150px card icons vs 100px flat-list icons) to
+  match the app's proportions.
+- **Local only, not deployed** — explicitly requested to stay local this round.
+
+**Regression fixed same day:** the first cut of this drilldown replaced the
+working "Quick search by category" input with a purely decorative
+`<div class="mBar__pill">` (no `<input>` inside) on the mobile parent screen —
+so search silently stopped doing anything on mobile once this shipped. Fixed
+by putting a real `<input id="mSearch">` inside the pill and wiring it to
+`renderMobileParents(filterText)`, which reuses the same `sectionMatches(s, f)`
+predicate the desktop nav search already used (extracted from `renderNav`'s
+inline logic so both call sites share one implementation) — matches by
+section name OR any nested category name, shows `#mParentEmpty` when nothing
+matches. Lesson: when a screenshot-matching pass replaces a whole markup
+block wholesale, re-check that every element carrying real interactivity in
+the old version has an equivalent in the new one, not just the visual layout.
+
+**Second regression, same root cause:** search also didn't work one level
+deeper — the category screen's pill (`#mCategoryTitle`) was a static `<b>`
+label, not editable, matching the reference screenshot's *look* but not its
+*behavior* (the reference shows the section name sitting in an editable
+search field). Fixed by making it a real `<input id="mCategorySearch">`,
+pre-filled with the section name on open (cosmetic parity with the
+screenshot) but rendering the **full unfiltered** list initially — filtering
+only kicks in once the user actually edits the text. `renderMobileCategoryList(sectionId, filterText)`
+filters items within the open section's groups and hides any group whose
+items all get filtered out; shows `#mCategoryEmpty` on zero matches.
+
+**Search results upgraded to show categories, not sections (same day):**
+the parent-screen search originally just filtered which *parent cards*
+stayed visible (via `sectionMatches`), so a query like "oil filter" surfaced
+whole sections ("Car service parts", "Engine"...) the user then had to
+re-open and re-scan. Changed `renderMobileParents(filterText)` so a non-empty
+query switches `#mParentList` to the flat `.mList--flat` style and renders
+**deduped leaf categories directly** (same cross-section dedup-by-`category_id`
+approach as the desktop panel search) — tapping a hit goes straight to its
+real listing link. Empty query still shows the normal parent cards.
+
 ## Not deployed
 
 Kept local only, consistent with the rule in `reference_prototypes_deploy`

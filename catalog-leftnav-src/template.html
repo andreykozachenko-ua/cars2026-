@@ -123,6 +123,33 @@ a{color:inherit;text-decoration:none}
 .search-hits{font-size:11.5px;color:var(--text-muted);margin-bottom:10px}
 .empty-state{color:var(--text-muted);font-size:13px;text-align:center;padding:60px 0}
 
+/* ── mobile app-style drilldown (New mode, ≤900px only) ── */
+.mCatalog{display:none}
+@media (max-width:900px){
+  .new-layout{display:none}
+  .mCatalog{display:block}
+}
+.mBar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.mBar__back{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid #eee;display:flex;align-items:center;justify-content:center;font-size:18px;color:#333;cursor:pointer}
+.mBar__pill{flex:1;min-width:0;height:42px;border-radius:21px;background:#fff;border:1px solid #eee;display:flex;align-items:center;gap:8px;padding:0 16px;color:#999;font-size:14px;overflow:hidden}
+.mBar__pill b{color:#222;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mBar__pill input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-size:14px;font-family:inherit;color:#222}
+.mBar__pill input::placeholder{color:#999}
+.mBar__icon{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1px solid var(--orange);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:15px}
+
+.mList{display:flex;flex-direction:column;gap:12px}
+.mList--flat{gap:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.mRow{display:flex;align-items:center;gap:16px;background:#fff;cursor:pointer;text-decoration:none;color:inherit}
+.mRow--card{border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:12px}
+.mRow--card img{width:78px;height:78px}
+.mRow--flat{padding:14px 16px;border-bottom:1px solid #f0f0f0}
+.mList--flat .mRow--flat:last-child{border-bottom:none}
+.mRow--flat img{width:56px;height:56px}
+.mRow img{object-fit:contain;flex-shrink:0}
+.mRow__name{flex:1;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.25}
+.mRow__chev{color:#ccc;font-size:20px;flex-shrink:0}
+.mGroup__title{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.3px;padding:14px 16px 6px;background:#fafafa}
+
 footer{background:var(--navy);color:rgba(255,255,255,.5);text-align:center;font-size:11px;padding:20px 0}
 </style>
 </head>
@@ -191,6 +218,37 @@ footer{background:var(--navy);color:rgba(255,255,255,.5);text-align:center;font-
           <div class="navlist" id="navList"></div>
         </div>
         <div class="new-right" id="rightPanel"></div>
+      </div>
+
+      <!-- Mobile app-style drilldown: parent list -> tap -> category list -->
+      <div class="mCatalog" id="mCatalog">
+        <div class="mScreen" id="mScreenParents">
+          <div class="mBar">
+            <div class="mBar__pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="mSearch" placeholder="Search by category" autocomplete="off">
+            </div>
+            <div class="mBar__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="9" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+            </div>
+          </div>
+          <div class="mList" id="mParentList"></div>
+          <div class="empty-state" id="mParentEmpty" hidden>Ничего не найдено</div>
+        </div>
+        <div class="mScreen" id="mScreenCategory" hidden>
+          <div class="mBar">
+            <div class="mBar__back" id="mBack">‹</div>
+            <div class="mBar__pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="mCategorySearch" autocomplete="off">
+            </div>
+            <div class="mBar__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="9" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+            </div>
+          </div>
+          <div class="mList mList--flat" id="mCategoryList"></div>
+          <div class="empty-state" id="mCategoryEmpty" hidden>Ничего не найдено</div>
+        </div>
       </div>
     </div>
   </div>
@@ -295,12 +353,16 @@ const catSearch = document.getElementById('catSearch');
 let activeId = SECTIONS[0].id;
 let pinned = false;
 
+function sectionMatches(s, f){
+  return !f || s.name.toLowerCase().includes(f) ||
+    s.groups.some(g => g.items.some(it => it.name.toLowerCase().includes(f)));
+}
+
 function renderNav(filterText){
   navList.innerHTML = '';
   const f = (filterText || '').trim().toLowerCase();
   SECTIONS.forEach(s => {
-    const matches = !f || s.name.toLowerCase().includes(f) ||
-      s.groups.some(g => g.items.some(it => it.name.toLowerCase().includes(f)));
+    const matches = sectionMatches(s, f);
     const row = document.createElement('div');
     row.className = 'navrow' + (s.id === activeId ? ' active' : '') + (matches ? '' : ' dim');
     row.innerHTML = `<img src="${ICON(s.id,150)}" loading="lazy"><span class="navrow__name">${s.name}</span><span class="navrow__count">${s.count}</span><span class="navrow__chev">›</span>`;
@@ -359,6 +421,86 @@ function renderPanel(){
 catSearch.addEventListener('input', () => { renderNav(catSearch.value); renderPanel(); });
 renderNav('');
 renderPanel();
+
+// ---- mobile app-style drilldown (parents -> categories, native app pattern) ----
+const mParentList = document.getElementById('mParentList');
+const mCategoryList = document.getElementById('mCategoryList');
+const mScreenParents = document.getElementById('mScreenParents');
+const mScreenCategory = document.getElementById('mScreenCategory');
+const mCategorySearch = document.getElementById('mCategorySearch');
+const mCategoryEmpty = document.getElementById('mCategoryEmpty');
+const mBack = document.getElementById('mBack');
+const mSearch = document.getElementById('mSearch');
+const mParentEmpty = document.getElementById('mParentEmpty');
+let mCurrentSectionId = null;
+
+function renderMobileParents(filterText){
+  const f = (filterText || '').trim().toLowerCase();
+
+  if (!f) {
+    mParentList.className = 'mList';
+    mParentList.innerHTML = '';
+    SECTIONS.forEach(s => {
+      const row = document.createElement('div');
+      row.className = 'mRow mRow--card';
+      row.innerHTML = `<img src="${ICON(s.id,150)}" loading="lazy"><span class="mRow__name">${s.name}</span><span class="mRow__chev">›</span>`;
+      row.addEventListener('click', () => openMobileSection(s.id));
+      mParentList.appendChild(row);
+    });
+    mParentEmpty.hidden = true;
+    return;
+  }
+
+  // Searching: jump straight to matching leaf categories (deduped across
+  // sections), same as the desktop cross-section search -- not just the
+  // parent sections that contain a match.
+  mParentList.className = 'mList mList--flat';
+  const seen = new Set();
+  const hits = [];
+  SECTIONS.forEach(s => s.groups.forEach(g => g.items.forEach(it => {
+    if (it.name.toLowerCase().includes(f) && !seen.has(it.category_id)) {
+      seen.add(it.category_id);
+      hits.push({ ...it, section: s.name });
+    }
+  })));
+  mParentList.innerHTML = hits.map(it =>
+    `<a class="mRow mRow--flat" href="${it.link}"><img src="${ICON(it.category_id,100)}" loading="lazy"><span class="mRow__name">${it.name}</span><span class="mRow__chev">›</span></a>`
+  ).join('');
+  mParentEmpty.hidden = hits.length > 0;
+}
+mSearch.addEventListener('input', () => renderMobileParents(mSearch.value));
+renderMobileParents('');
+
+function renderMobileCategoryList(sectionId, filterText){
+  const s = SECTIONS.find(sec => sec.id === sectionId);
+  if (!s) return;
+  const f = (filterText || '').trim().toLowerCase();
+  const groupsHtml = s.groups.map(g => {
+    const items = g.items.filter(it => !f || it.name.toLowerCase().includes(f));
+    if (!items.length) return '';
+    return `${g.subtitle ? `<div class="mGroup__title">${g.subtitle}</div>` : ''}
+      ${items.map(it => `<a class="mRow mRow--flat" href="${it.link}"><img src="${ICON(it.category_id,100)}" loading="lazy"><span class="mRow__name">${it.name}</span><span class="mRow__chev">›</span></a>`).join('')}`;
+  }).join('');
+  mCategoryList.innerHTML = groupsHtml;
+  mCategoryEmpty.hidden = groupsHtml.length > 0;
+}
+
+function openMobileSection(sectionId){
+  const s = SECTIONS.find(sec => sec.id === sectionId);
+  if (!s) return;
+  mCurrentSectionId = sectionId;
+  mCategorySearch.value = s.name;
+  renderMobileCategoryList(sectionId, '');
+  mScreenParents.hidden = true;
+  mScreenCategory.hidden = false;
+  document.getElementById('mCatalog').scrollIntoView({ behavior: 'instant', block: 'start' });
+}
+mCategorySearch.addEventListener('input', () => renderMobileCategoryList(mCurrentSectionId, mCategorySearch.value));
+mBack.addEventListener('click', () => {
+  mScreenCategory.hidden = true;
+  mScreenParents.hidden = false;
+  document.getElementById('mCatalog').scrollIntoView({ behavior: 'instant', block: 'start' });
+});
 </script>
 </body>
 </html>
