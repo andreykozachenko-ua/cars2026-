@@ -4,3 +4,10 @@ node_modules/
 imageURL800/
 .DS_Store
 *.png
+
+# Prototypes & data live on corporate GitLab Pages (product/concepts/vehicle-selector), not here
+*.html
+*.json
+*.csv
+*.jpg
+!package.json
